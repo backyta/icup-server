@@ -8,9 +8,33 @@
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
 
 
-# Dev
+#ICUP-API
 
-1. Clonar el ```.env.template``` y cambiar por ```.env```
-2. Ejecutar el comando ```docker compose up -d```
+## Description
+In this project, an API is developed to control the membership of a church, the following technologies are used:
+- NestJs
+- coupler
+- TypeORM
+- PostgresSQL
 
+## Developer
 
+1. Clone the project
+2. Install dependencies
+```
+npm install or thread install
+```
+3. Clone the ```.env.template``` and change it to ```.env``` and configure its environment variables.
+4. Raise the DB development, executing the command
+```
+docker compose -d
+```
+5. Rebuild database development with seed
+
+```
+http://localhost:3000/api/v2/seed
+```
+6. Raise the backend
+```
+npm start:dev or thread start:dev
+```
