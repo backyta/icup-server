@@ -8,7 +8,7 @@
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
 
 
-#ICUP-API
+# ICUP-API
 
 ## Description
 In this project, an API is developed to control the membership of a church, the following technologies are used:
