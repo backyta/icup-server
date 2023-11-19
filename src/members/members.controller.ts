@@ -12,7 +12,7 @@ import {
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
-import { PaginationDto } from 'src/common/dtos/pagination.dto';
+import { PaginationDto, QueryTypeDto } from 'src/common/dtos';
 
 @Controller('members')
 export class MembersController {
@@ -28,9 +28,9 @@ export class MembersController {
     return this.membersService.findAll(paginationDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.membersService.findOne(id);
+  @Get(':term')
+  findOne(@Param('term') term: string, @Query() queryType: QueryTypeDto) {
+    return this.membersService.findOne(term, queryType);
   }
 
   @Patch(':id')

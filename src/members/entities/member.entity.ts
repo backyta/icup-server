@@ -5,35 +5,34 @@ export class Member {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
+  @Column('text', { name: 'firstname' })
   firstName: string;
 
-  @Column('text')
+  @Column('text', { name: 'lastname' })
   lastName: string;
 
-  @Column('date')
+  @Column('date', { name: 'datebirth' })
   dateOfBirth: Date;
 
   @Column('int')
   age: number;
 
   @Column('text')
-  genero: string;
+  gender: string;
 
   @Column('text', { unique: true, nullable: true })
   email: string;
 
-  @Column('date')
-  @Column('text')
+  @Column('text', { name: 'maritalstatus' })
   maritalStatus: string;
 
-  @Column('int', { default: 0 })
+  @Column('int', { default: 0, name: 'numberchildren' })
   numberChildren: number;
 
   @Column('text', { nullable: true })
   phone: string;
 
-  @Column('date')
+  @Column('date', { name: 'datejoining' })
   dateJoinig: Date;
 
   @Column('text')
@@ -49,11 +48,9 @@ export class Member {
     this.dateJoinig = new Date(this.dateJoinig);
 
     const ageMiliSeconds = Date.now() - this.dateOfBirth.getTime();
-    console.log(ageMiliSeconds);
 
     const ageDate = new Date(ageMiliSeconds);
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-    console.log(age);
 
     this.age = age;
   }

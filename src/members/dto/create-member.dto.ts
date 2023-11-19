@@ -29,15 +29,15 @@ export class CreateMemberDto {
   @IsOptional()
   email?: string;
 
-  @IsIn(['Male', 'Female'])
-  genero: string;
+  @IsIn(['male', 'female'])
+  gender: string;
 
   @IsNumber()
   @IsOptional()
   @IsPositive()
   numberChildren?: number;
 
-  @IsIn(['Single', 'Married', 'Widowed', 'Divorced', 'other'])
+  @IsIn(['single', 'married', 'widowed', 'divorced', 'other'])
   maritalStatus: string;
 
   @IsString()
