@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { MembersModule } from './members/members.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       autoLoadEntities: true, // para cargar automaticamente las entidades que definimos.
       synchronize: true, // sincronizacion automatica con DB (no production, hacer migrations)
     }),
+    MembersModule,
+    CommonModule,
   ],
 })
 export class AppModule {}
