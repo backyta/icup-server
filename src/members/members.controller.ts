@@ -30,7 +30,7 @@ export class MembersController {
 
   @Get(':term')
   findOne(@Param('term') term: string, @Query() queryType: QueryTypeDto) {
-    return this.membersService.findOne(term, queryType);
+    return this.membersService.findTerm(term, queryType);
   }
 
   @Patch(':id')
