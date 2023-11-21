@@ -13,8 +13,9 @@ import { Member } from './entities/member.entity';
 import { ValidRoles } from './enums/valid-roles.enum';
 import { PaginationDto } from '../common/dtos/pagination.dto';
 import { validate as isUUID } from 'uuid';
-import { QueryTypeDto } from 'src/common/dtos';
 import { SearchType } from './enums/search-types.enum';
+import { SearchPersonOptions } from './interfaces/search-person.interface';
+import { SearchTypeAndPaginationDto } from 'src/common/dtos';
 
 @Injectable()
 export class MembersService {
@@ -43,13 +44,13 @@ export class MembersService {
 
       return member;
     } catch (error) {
-      console.log(error);
+      this.logger.error(error);
+      // console.log(error);
       this.handleDBExceptions(error);
     }
   }
 
-  //* BUSCAR TODOS (FILTRO Y PAGINADO)
-  //TODO : Paginar
+  //* FIND ALL (PAGINATED)
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.memberRepository.find({
@@ -59,66 +60,96 @@ export class MembersService {
     });
   }
 
-  //* BUSCAR POR TERMINO Y TIPO DE BUSQUEDA
-  async findTerm(term: string, searchType: QueryTypeDto) {
-    const { type } = searchType;
+  //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
+  async findTerm(
+    term: string,
+    searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
+  ) {
+    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let member: Member | Member[];
 
-    //TODO : add busqueda por id de las relaciones como ID copastor o leader
+    //? Para cuando haiga relaciones
+    //NOTE : add busqueda por id de las "relaciones" como ID copastor o leader
+    //NOTE : hacer type de Relacion (Copastor x id)
+    //NOTE : manejar mayuscilas y minusculaas ver video(LIKE convierte a min todo)
+
+    //FIXME : arreglar todos los badRequest por NotFound Exceptions
+    //FIXME : hacer obligatorio el termino, todo mediante el controlar y su DTO, si no viene colocarmos un default para que al validar de error o no seria necesaro con el validator
+
+    //* Find UUID --> One
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOneBy({ id: term });
     }
 
+    //* Find gender --> Many
     if (term && type === SearchType.gender) {
-      member = await this.memberRepository.findBy({ gender: term });
+      member = await this.findMembersWithPagination(
+        SearchType.gender,
+        term,
+        limit,
+        offset,
+      );
     }
 
-    if (term && type === SearchType.maritalstatus) {
-      member = await this.memberRepository.findBy({ maritalStatus: term });
+    //* Find maritalStatus --> Many
+    if (term && type === SearchType.maritalStatus) {
+      member = await this.findMembersWithPagination(
+        SearchType.maritalStatus,
+        term,
+        limit,
+        offset,
+      );
     }
 
+    //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
-      member = await this.searchPerson(term, SearchType.firstName);
+      member = await this.searchPerson({
+        term,
+        searchType: SearchType.firstName,
+        limit,
+        offset,
+      });
     }
 
+    //* Find lastName --> Many
     if (term && type === SearchType.lastName) {
-      member = await this.searchPerson(term, SearchType.lastName);
+      member = await this.searchPerson({
+        term,
+        searchType: SearchType.lastName,
+        limit,
+        offset,
+      });
     }
 
+    //* Find fullName --> Many
     if (term && type === SearchType.fullName) {
-      if (!term.includes('-')) {
-        throw new BadRequestException(
-          `Term not valid, use allow '-' for concatc firstname and lastname`,
-        );
-      }
+      member = await this.searchFullname(term, limit, offset);
+    }
 
-      const [first, second] = term.split('-');
-      const firstName = this.validateName(first);
-      const lastName = this.validateName(second);
+    //* Find roles --> Many
+    if (term && type === SearchType.roles) {
+      const rolesArray = term.split('-');
+      console.log(rolesArray);
 
-      const queryBuilder = this.memberRepository.createQueryBuilder();
-      member = await queryBuilder
-        .where(`firstname ILIKE :searchTerm1`, {
-          searchTerm1: `%${firstName}%`,
+      member = await this.memberRepository
+        .createQueryBuilder('member')
+        .where('member.roles @> ARRAY[:...roles]::text[]', {
+          roles: rolesArray,
         })
-        .andWhere(`lastname ILIKE :searchTerm2`, {
-          searchTerm2: `%${lastName}%`,
-        })
+        .skip(offset)
+        .limit(limit)
         .getMany();
 
       if (member.length === 0) {
         throw new BadRequestException(
-          `Not found member with those names: ${firstName} ${lastName}`,
+          `Not found members with those roles: ${rolesArray}`,
         );
       }
     }
+    console.log(term);
 
-    //* AFINAR BUSQUEDA POR ROLES
-    if (term && type === SearchType.roles) {
-      member = await this.memberRepository
-        .createQueryBuilder('member')
-        .where(':role = ANY(member.roles)', { role: term })
-        .getMany();
+    if (!isUUID(term) && term === '' && type === SearchType.id) {
+      throw new BadRequestException(`Id no viene en la pericion`);
     }
 
     if (!member) throw new NotFoundException(`Member with ${term} not found`);
@@ -126,11 +157,8 @@ export class MembersService {
     return member;
   }
 
-  //TODO : hacer bsuqueda por varios roles que se pasaran separar por espacio o -
-  //TODO : hacer type de Relacion (Copastor x id)
-  //TODO : manejar mayuscilas y minusculaas ver video(LIKE convierte a min todo)
-
-  //* ACTUALIZAR POR ID Y PAYLOAD
+  //* UPDATE FOR ID Y PAYLOAD
+  //TODO : trabajar en esto tomorrow 22//11
   update(id: string, updateMemberDto: UpdateMemberDto) {
     console.log(updateMemberDto);
 
@@ -138,13 +166,26 @@ export class MembersService {
   }
 
   //* ELIMINAR POR ID
+  // NOTE : ajustar el metodo en futro cuando se integren relaciones.
   async remove(id: string) {
-    // const member = await this.findOne(id);
-    // await this.memberRepository.remove(member); //? deberia ser como una actualizacion para marcar como inactivo
+    let member: Member;
+
+    if (isUUID(id)) {
+      member = await this.memberRepository.findOneBy({ id });
+    }
+
+    if (member) {
+      try {
+        await this.memberRepository.remove(member); //? deberia ser como una actualizacion para marcar como inactivo
+      } catch (error) {
+        this.logger.error(error);
+      }
+    } else {
+      throw new NotFoundException(`Member with id: ${id} not exits`);
+    }
   }
 
   //! PRIVATE METHODS
-
   //* Para futuros errores de indices o constrains con code
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
@@ -154,7 +195,12 @@ export class MembersService {
     );
   }
 
-  private async searchPerson(term: string, searchType: string) {
+  private async searchPerson({
+    term,
+    searchType,
+    limit,
+    offset,
+  }: SearchPersonOptions): Promise<Member[]> {
     let dataPerson: string;
 
     if (/^[^+]*\+[^+]*$/.test(term)) {
@@ -174,6 +220,8 @@ export class MembersService {
       .where(`${searchType} ILIKE :searchTerm`, {
         searchTerm: `%${dataPerson}%`,
       })
+      .skip(offset)
+      .limit(limit)
       .getMany();
 
     if (member.length === 0) {
@@ -184,7 +232,7 @@ export class MembersService {
     return member;
   }
 
-  private validateName(name: string) {
+  private validateName(name: string): string {
     let wordString: string;
 
     if (/^[^+]+(?:\+[^+]+)*\+$/.test(name)) {
@@ -196,5 +244,63 @@ export class MembersService {
       );
     }
     return wordString;
+  }
+
+  private async searchFullname(
+    term: string,
+    limit: number,
+    offset: number,
+  ): Promise<Member[]> {
+    if (!term.includes('-')) {
+      throw new BadRequestException(
+        `Term not valid, use allow '-' for concatc firstname and lastname`,
+      );
+    }
+
+    const [first, second] = term.split('-');
+    const firstName = this.validateName(first);
+    const lastName = this.validateName(second);
+
+    const queryBuilder = this.memberRepository.createQueryBuilder('member');
+    const member = await queryBuilder
+      .where(`member.first_name ILIKE :searchTerm1`, {
+        searchTerm1: `%${firstName}%`,
+      })
+      .andWhere(`member.last_name ILIKE :searchTerm2`, {
+        searchTerm2: `%${lastName}%`,
+      })
+      .skip(offset)
+      .limit(limit)
+      .getMany();
+
+    if (member.length === 0) {
+      throw new BadRequestException(
+        `Not found member with those names: ${firstName} ${lastName}`,
+      );
+    }
+    return member;
+  }
+
+  private async findMembersWithPagination(
+    searchType: string,
+    term: string,
+    limit: number,
+    offset: number,
+  ): Promise<Member[]> {
+    const whereCondition = {};
+    whereCondition[searchType] = term;
+
+    const member = await this.memberRepository.find({
+      where: [whereCondition],
+      take: limit,
+      skip: offset,
+    });
+
+    if (member.length === 0) {
+      throw new BadRequestException(
+        `Not found member with those names: ${term}`,
+      );
+    }
+    return member;
   }
 }

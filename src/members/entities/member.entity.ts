@@ -5,14 +5,14 @@ export class Member {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text', { name: 'firstname' })
-  firstName: string;
+  @Column('text')
+  first_name: string;
 
-  @Column('text', { name: 'lastname' })
-  lastName: string;
+  @Column('text')
+  last_name: string;
 
-  @Column('date', { name: 'datebirth' })
-  dateOfBirth: Date;
+  @Column('date')
+  date_birth: Date;
 
   @Column('int')
   age: number;
@@ -23,17 +23,17 @@ export class Member {
   @Column('text', { unique: true, nullable: true })
   email: string;
 
-  @Column('text', { name: 'maritalstatus' })
-  maritalStatus: string;
+  @Column('text')
+  marital_status: string;
 
-  @Column('int', { default: 0, name: 'numberchildren' })
-  numberChildren: number;
+  @Column('int', { default: 0 })
+  number_children: number;
 
   @Column('text', { nullable: true })
   phone: string;
 
-  @Column('date', { name: 'datejoining' })
-  dateJoinig: Date;
+  @Column('date')
+  date_joinig: Date;
 
   @Column('text')
   nationality: string;
@@ -44,10 +44,10 @@ export class Member {
   //* Antes de cada insercion en DB
   @BeforeInsert()
   updateAge() {
-    this.dateOfBirth = new Date(this.dateOfBirth);
-    this.dateJoinig = new Date(this.dateJoinig);
+    this.date_birth = new Date(this.date_birth);
+    this.date_joinig = new Date(this.date_joinig);
 
-    const ageMiliSeconds = Date.now() - this.dateOfBirth.getTime();
+    const ageMiliSeconds = Date.now() - this.date_birth.getTime();
 
     const ageDate = new Date(ageMiliSeconds);
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);

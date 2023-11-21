@@ -6,8 +6,8 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsPositive,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 import { MaritalStatus } from '../enums/marital-status.enum';
@@ -16,16 +16,18 @@ export class CreateMemberDto {
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  firstName: string;
+  @MaxLength(40)
+  first_name: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  lastName: string;
+  @MaxLength(40)
+  last_name: string;
 
   @IsString()
   @IsNotEmpty()
-  dateOfBirth: string | Date;
+  date_birth: string | Date;
 
   @IsNumber()
   @IsNotEmpty()
@@ -41,19 +43,18 @@ export class CreateMemberDto {
 
   @IsNumber()
   @IsOptional()
-  @IsPositive()
-  numberChildren?: number;
+  number_children?: number;
 
   @IsEnum(MaritalStatus)
   @IsNotEmpty()
-  maritalStatus: string;
+  marital_status: string;
 
   @IsString()
   @IsOptional()
   phone?: string;
 
   @IsString()
-  dateJoinig?: string | Date;
+  date_joinig?: string | Date;
 
   @IsString()
   @IsNotEmpty()
@@ -64,3 +65,5 @@ export class CreateMemberDto {
   @IsNotEmpty()
   roles: string[];
 }
+
+// todo :  agregar min length

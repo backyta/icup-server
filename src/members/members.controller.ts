@@ -12,7 +12,7 @@ import {
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
-import { PaginationDto, QueryTypeDto } from 'src/common/dtos';
+import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
 
 @Controller('members')
 export class MembersController {
@@ -29,8 +29,12 @@ export class MembersController {
   }
 
   @Get(':term')
-  findOne(@Param('term') term: string, @Query() queryType: QueryTypeDto) {
-    return this.membersService.findTerm(term, queryType);
+  findOne(
+    //FIXME : para hacerlo oblugatorio debo usar DTO y class validator.
+    @Param('term') term: string,
+    @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
+  ) {
+    return this.membersService.findTerm(term, searchTypeAndPaginationDto);
   }
 
   @Patch(':id')

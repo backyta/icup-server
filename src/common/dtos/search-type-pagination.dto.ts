@@ -1,7 +1,10 @@
 import { Type } from 'class-transformer';
-import { IsOptional, Min } from 'class-validator';
+import { IsOptional, IsString, Min } from 'class-validator';
 
-export class PaginationDto {
+export class SearchTypeAndPaginationDto {
+  @IsString()
+  type: string;
+
   @IsOptional()
   @Type(() => Number) // No use GlobalPipes with properties transform (eneableImplicitConvertions)
   limit?: number;

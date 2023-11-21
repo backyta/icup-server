@@ -1,9 +1,9 @@
 export enum ValidRoles {
-  Pastor = 'Pastor',
-  CoPastor = 'CoPastor',
-  Preacher = 'Preacher',
-  Member = 'Member',
-  Treasurer = 'Treasurer',
-  Leader = 'Leader',
-  Disciple = 'Disciple',
+  pastor = 'pastor',
+  copastor = 'copastor',
+  preacher = 'preacher',
+  member = 'member',
+  treasurer = 'treasurer',
+  leader = 'leader',
+  disciple = 'disciple',
 }
