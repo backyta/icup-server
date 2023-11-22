@@ -1,4 +1,10 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Member {
@@ -41,12 +47,32 @@ export class Member {
   @Column({ type: 'text', array: true })
   roles: string[];
 
-  //* Antes de cada insercion en DB
+  @Column('bool', { default: true })
+  is_active: boolean;
+
+  //? Agregar fecha de creacion y fecha de actualizacion y usuario que creo y usuario
+
+  @Column('timestamp', { nullable: true })
+  created_at: string | Date;
+
+  //Seria con id de usuario
+  @Column('text', { nullable: true })
+  created_by: string;
+
+  @Column('timestamp', { nullable: true })
+  updated_at: string | Date;
+
+  @Column('text', { nullable: true })
+  updated_by: string;
+
+  //* Antes de cada insercion en DB (esto setea de manera statica)
   @BeforeInsert()
-  updateAge() {
+  @BeforeUpdate()
+  transformToDates() {
     this.date_birth = new Date(this.date_birth);
     this.date_joinig = new Date(this.date_joinig);
 
+    //* Generate age with date_birth
     const ageMiliSeconds = Date.now() - this.date_birth.getTime();
 
     const ageDate = new Date(ageMiliSeconds);
@@ -57,3 +83,4 @@ export class Member {
 }
 
 // TODO : Al final agregar fecha de creacion y fecha de actualizacion segun usuario.
+//! Agregar un boton al consultrar por ID para pantalla aperte de miembro (ahi se actualiza la edad).

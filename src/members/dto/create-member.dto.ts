@@ -25,14 +25,10 @@ export class CreateMemberDto {
   @MaxLength(40)
   last_name: string;
 
+  //! Cuando se mande fecha desde el front siempre sera fecha ahi probar y midificar el string y Date
   @IsString()
   @IsNotEmpty()
   date_birth: string | Date;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @IsOptional()
-  age?: number;
 
   @IsEmail()
   @IsOptional()
@@ -65,5 +61,3 @@ export class CreateMemberDto {
   @IsNotEmpty()
   roles: string[];
 }
-
-// todo :  agregar min length

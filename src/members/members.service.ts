@@ -10,13 +10,13 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Member } from './entities/member.entity';
-import { ValidRoles } from './enums/valid-roles.enum';
-import { PaginationDto } from '../common/dtos/pagination.dto';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { validate as isUUID } from 'uuid';
 import { SearchType } from './enums/search-types.enum';
 import { SearchPersonOptions } from './interfaces/search-person.interface';
-import { SearchTypeAndPaginationDto } from 'src/common/dtos';
+import { ValidRoles } from './enums/valid-roles.enum';
 
+// TODO : EMPEZAR CON RELACIONES POR PASTOR PRIMERO PARA TOMORROW 23/11/23
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MermbersService');
@@ -38,25 +38,28 @@ export class MembersService {
       }
     });
 
+    //! Cuando se mande fecha desde el front(fecha de joining o brith) siempre sera fecha ahi probar y midificar el string y Date
+    //! cambiar el string por uuid cuando se haga autenticacion (relacion)
     try {
-      const member = this.memberRepository.create(createMemberDto);
+      const member = this.memberRepository.create({
+        ...createMemberDto,
+        created_at: new Date(),
+        created_by: 'Kevin',
+      });
       await this.memberRepository.save(member);
 
       return member;
     } catch (error) {
-      this.logger.error(error);
-      // console.log(error);
       this.handleDBExceptions(error);
     }
   }
 
-  //* FIND ALL (PAGINATED)
+  //* FIND ALL (PAGINATED) boton flecha y auemtar el offset de 10 o 20.
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.memberRepository.find({
       take: limit,
       skip: offset,
-      //TODO : relaciones
     });
   }
 
@@ -69,16 +72,20 @@ export class MembersService {
     let member: Member | Member[];
 
     //? Para cuando haiga relaciones
-    //NOTE : add busqueda por id de las "relaciones" como ID copastor o leader
-    //NOTE : hacer type de Relacion (Copastor x id)
-    //NOTE : manejar mayuscilas y minusculaas ver video(LIKE convierte a min todo)
-
-    //FIXME : arreglar todos los badRequest por NotFound Exceptions
-    //FIXME : hacer obligatorio el termino, todo mediante el controlar y su DTO, si no viene colocarmos un default para que al validar de error o no seria necesaro con el validator
+    //NOTE : add en busqueda por id, el id de las "relaciones" como ID copastor o leader
+    //NOTE : hacer type de Relacion (Copastor x id, leader id, casa x id)
+    //NOTE: hacer la interfaz por tablas, y dentro de estas colocar "porque quiere buscar (copastor, leader, nombre, apellido)" las que se crea pertinente
 
     //* Find UUID --> One
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOneBy({ id: term });
+
+      const ageMiliSeconds = Date.now() - new Date(member.date_birth).getTime();
+      const ageDate = new Date(ageMiliSeconds);
+      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+      member.age = age;
+
+      await this.memberRepository.save(member);
     }
 
     //* Find gender --> Many
@@ -146,10 +153,16 @@ export class MembersService {
         );
       }
     }
-    console.log(term);
 
-    if (!isUUID(term) && term === '' && type === SearchType.id) {
-      throw new BadRequestException(`Id no viene en la pericion`);
+    //! General Exceptions
+    if (!isUUID(term) && type === SearchType.id) {
+      throw new BadRequestException(`Not valid UUID`);
+    }
+
+    if (term && !Object.values(SearchType).includes(type as SearchType)) {
+      throw new BadRequestException(
+        `Type not valid, should be: ${Object.values(SearchType).join(', ')}`,
+      );
     }
 
     if (!member) throw new NotFoundException(`Member with ${term} not found`);
@@ -157,26 +170,39 @@ export class MembersService {
     return member;
   }
 
-  //* UPDATE FOR ID Y PAYLOAD
-  //TODO : trabajar en esto tomorrow 22//11
-  update(id: string, updateMemberDto: UpdateMemberDto) {
-    console.log(updateMemberDto);
+  //* UPDATE FOR ID
+  async update(id: string, updateMemberDto: UpdateMemberDto) {
+    //TODO : cambar el string por uuid cuando se haga autenticacion
 
-    return `This action updates a #${id} member`;
+    const member = await this.memberRepository.preload({
+      id: id,
+      updated_at: new Date(),
+      updated_by: 'Kevinxd',
+      ...updateMemberDto,
+    });
+
+    if (!member) throw new NotFoundException(`Member with id: ${id} not found`);
+
+    try {
+      return await this.memberRepository.save(member);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   //* ELIMINAR POR ID
-  // NOTE : ajustar el metodo en futro cuando se integren relaciones.
+  // TODO : ajustar el metodo en futro cuando se integren relaciones.
   async remove(id: string) {
     let member: Member;
 
     if (isUUID(id)) {
       member = await this.memberRepository.findOneBy({ id });
     }
+    member.is_active = false;
 
     if (member) {
       try {
-        await this.memberRepository.remove(member); //? deberia ser como una actualizacion para marcar como inactivo
+        await this.memberRepository.save(member);
       } catch (error) {
         this.logger.error(error);
       }
@@ -186,7 +212,7 @@ export class MembersService {
   }
 
   //! PRIVATE METHODS
-  //* Para futuros errores de indices o constrains con code
+  //* Para futuros errores de indices o constrains con code.
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
@@ -225,7 +251,7 @@ export class MembersService {
       .getMany();
 
     if (member.length === 0) {
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Not found member with those names: ${dataPerson}`,
       );
     }
@@ -274,7 +300,7 @@ export class MembersService {
       .getMany();
 
     if (member.length === 0) {
-      throw new BadRequestException(
+      throw new NotFoundException(
         `Not found member with those names: ${firstName} ${lastName}`,
       );
     }
@@ -297,9 +323,7 @@ export class MembersService {
     });
 
     if (member.length === 0) {
-      throw new BadRequestException(
-        `Not found member with those names: ${term}`,
-      );
+      throw new NotFoundException(`Not found member with those names: ${term}`);
     }
     return member;
   }

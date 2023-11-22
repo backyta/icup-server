@@ -1,7 +1,8 @@
 import { Type } from 'class-transformer';
-import { IsOptional, IsString, Min } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class SearchTypeAndPaginationDto {
+  @IsNotEmpty()
   @IsString()
   type: string;
 

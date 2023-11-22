@@ -30,7 +30,6 @@ export class MembersController {
 
   @Get(':term')
   findOne(
-    //FIXME : para hacerlo oblugatorio debo usar DTO y class validator.
     @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ) {
