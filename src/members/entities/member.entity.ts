@@ -51,6 +51,7 @@ export class Member {
   is_active: boolean;
 
   //? Agregar fecha de creacion y fecha de actualizacion y usuario que creo y usuario
+  //! Se agregaria el id del usuario en creacion y actualizacion (relacion)
 
   @Column('timestamp', { nullable: true })
   created_at: string | Date;

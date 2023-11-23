@@ -12,12 +12,13 @@ import { Repository } from 'typeorm';
 import { Member } from './entities/member.entity';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { validate as isUUID } from 'uuid';
-import { SearchType } from './enums/search-types.enum';
-import { SearchPersonOptions } from './interfaces/search-person.interface';
+import { SearchType } from '../common/enums/search-types.enum';
+// import { SearchPersonOptions } from './interfaces/search-person.interface';
 import { ValidRoles } from './enums/valid-roles.enum';
+import { searchPerson } from '../common/helpers/search-person.helper';
+import { searchFullname } from 'src/common/helpers/search-fullname.helper';
 
-// TODO : EMPEZAR CON RELACIONES POR PASTOR PRIMERO PARA TOMORROW 23/11/23
-//TODO : ANTES DE EMPEZAR UNIR A RAMA MAIN Y SACAR COPIA DE RAMA PASTOR
+// TODO : REGRESAR AQUI PARA HACER RELACIONES CUANDO TENGAMOS LAS DEMAS TABLAS
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MermbersService');
@@ -111,27 +112,34 @@ export class MembersService {
 
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
-      member = await this.searchPerson({
+      member = await searchPerson({
         term,
         searchType: SearchType.firstName,
         limit,
         offset,
+        repository: this.memberRepository,
       });
     }
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName) {
-      member = await this.searchPerson({
+      member = await searchPerson({
         term,
         searchType: SearchType.lastName,
         limit,
         offset,
+        repository: this.memberRepository,
       });
     }
 
     //* Find fullName --> Many
     if (term && type === SearchType.fullName) {
-      member = await this.searchFullname(term, limit, offset);
+      member = await searchFullname({
+        term,
+        limit,
+        offset,
+        repository: this.memberRepository,
+      });
     }
 
     //* Find roles --> Many
@@ -222,91 +230,91 @@ export class MembersService {
     );
   }
 
-  private async searchPerson({
-    term,
-    searchType,
-    limit,
-    offset,
-  }: SearchPersonOptions): Promise<Member[]> {
-    let dataPerson: string;
+  // private async searchPerson({
+  //   term,
+  //   searchType,
+  //   limit,
+  //   offset,
+  // }: SearchPersonOptions): Promise<Member[]> {
+  //   let dataPerson: string;
 
-    if (/^[^+]*\+[^+]*$/.test(term)) {
-      const arrayData = term.split('+');
+  //   if (/^[^+]*\+[^+]*$/.test(term)) {
+  //     const arrayData = term.split('+');
 
-      if (arrayData.length >= 2 && arrayData.includes('')) {
-        dataPerson = arrayData.join('');
-      } else {
-        dataPerson = arrayData.join(' ');
-      }
-    } else {
-      throw new BadRequestException(`Term not valid, only use for concat '+'`);
-    }
+  //     if (arrayData.length >= 2 && arrayData.includes('')) {
+  //       dataPerson = arrayData.join('');
+  //     } else {
+  //       dataPerson = arrayData.join(' ');
+  //     }
+  //   } else {
+  //     throw new BadRequestException(`Term not valid, only use for concat '+'`);
+  //   }
 
-    const queryBuilder = this.memberRepository.createQueryBuilder();
-    const member: Member | Member[] = await queryBuilder
-      .where(`${searchType} ILIKE :searchTerm`, {
-        searchTerm: `%${dataPerson}%`,
-      })
-      .skip(offset)
-      .limit(limit)
-      .getMany();
+  //   const queryBuilder = this.memberRepository.createQueryBuilder();
+  //   const member = await queryBuilder
+  //     .where(`${searchType} ILIKE :searchTerm`, {
+  //       searchTerm: `%${dataPerson}%`,
+  //     })
+  //     .skip(offset)
+  //     .limit(limit)
+  //     .getMany();
 
-    if (member.length === 0) {
-      throw new NotFoundException(
-        `Not found member with those names: ${dataPerson}`,
-      );
-    }
-    return member;
-  }
+  //   if (member.length === 0) {
+  //     throw new NotFoundException(
+  //       `Not found member with those names: ${dataPerson}`,
+  //     );
+  //   }
+  //   return member;
+  // }
 
-  private validateName(name: string): string {
-    let wordString: string;
+  // private validateName(name: string): string {
+  //   let wordString: string;
 
-    if (/^[^+]+(?:\+[^+]+)*\+$/.test(name)) {
-      const sliceWord = name.slice(0, -1);
-      wordString = sliceWord.split('+').join(' ');
-    } else {
-      throw new BadRequestException(
-        `${name} not valid use '+' to finally string`,
-      );
-    }
-    return wordString;
-  }
+  //   if (/^[^+]+(?:\+[^+]+)*\+$/.test(name)) {
+  //     const sliceWord = name.slice(0, -1);
+  //     wordString = sliceWord.split('+').join(' ');
+  //   } else {
+  //     throw new BadRequestException(
+  //       `${name} not valid use '+' to finally string`,
+  //     );
+  //   }
+  //   return wordString;
+  // }
 
-  private async searchFullname(
-    term: string,
-    limit: number,
-    offset: number,
-  ): Promise<Member[]> {
-    if (!term.includes('-')) {
-      throw new BadRequestException(
-        `Term not valid, use allow '-' for concatc firstname and lastname`,
-      );
-    }
+  // private async searchFullname(
+  //   term: string,
+  //   limit: number,
+  //   offset: number,
+  // ): Promise<Member[]> {
+  //   if (!term.includes('-')) {
+  //     throw new BadRequestException(
+  //       `Term not valid, use allow '-' for concatc firstname and lastname`,
+  //     );
+  //   }
 
-    const [first, second] = term.split('-');
-    const firstName = this.validateName(first);
-    const lastName = this.validateName(second);
+  //   const [first, second] = term.split('-');
+  //   const firstName = this.validateName(first);
+  //   const lastName = this.validateName(second);
 
-    const queryBuilder = this.memberRepository.createQueryBuilder('member');
-    const member = await queryBuilder
-      .where(`member.first_name ILIKE :searchTerm1`, {
-        searchTerm1: `%${firstName}%`,
-      })
-      .andWhere(`member.last_name ILIKE :searchTerm2`, {
-        searchTerm2: `%${lastName}%`,
-      })
-      .skip(offset)
-      .limit(limit)
-      .getMany();
+  //   const queryBuilder = this.memberRepository.createQueryBuilder();
+  //   const member = await queryBuilder
+  //     .where(`first_name ILIKE :searchTerm1`, {
+  //       searchTerm1: `%${firstName}%`,
+  //     })
+  //     .andWhere(`last_name ILIKE :searchTerm2`, {
+  //       searchTerm2: `%${lastName}%`,
+  //     })
+  //     .skip(offset)
+  //     .limit(limit)
+  //     .getMany();
 
-    if (member.length === 0) {
-      throw new NotFoundException(
-        `Not found member with those names: ${firstName} ${lastName}`,
-      );
-    }
-    return member;
-  }
+  //   if (member.length === 0) {
+  //     throw new NotFoundException(
+  //       `Not found member with those names: ${firstName} ${lastName}`,
+  //     );
+  //   }
+  //   return member;
+  // }
 
   private async findMembersWithPagination(
     searchType: string,
