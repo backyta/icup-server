@@ -17,6 +17,7 @@ import { SearchPersonOptions } from './interfaces/search-person.interface';
 import { ValidRoles } from './enums/valid-roles.enum';
 
 // TODO : EMPEZAR CON RELACIONES POR PASTOR PRIMERO PARA TOMORROW 23/11/23
+//TODO : ANTES DE EMPEZAR UNIR A RAMA MAIN Y SACAR COPIA DE RAMA PASTOR
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MermbersService');

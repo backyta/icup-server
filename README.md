@@ -11,7 +11,7 @@
 
 In this project, an API is developed to control the membership of a church, the following technologies are used:
 - NestJs
-- coupler
+- Docker
 - TypeORM
 - PostgresSQL
 
@@ -27,7 +27,7 @@ npm install or yarn
 3. Clone the ```.env.template``` and change it to ```.env``` and configure its environment variables.
 4. Raise the DB development, executing the command
 ```
-docker compose -d
+docker compose up -d
 ```
 5. Raise the backend-server dev mode
 ```
