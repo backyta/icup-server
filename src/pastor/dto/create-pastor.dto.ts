@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreatePastorDto {
-  // @IsString()
+  @IsString()
   @IsNotEmpty()
   @IsUUID()
   idMember: string;

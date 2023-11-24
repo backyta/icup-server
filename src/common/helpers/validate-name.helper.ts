@@ -8,8 +8,21 @@ export const validateName = (name: string): string => {
     wordString = sliceWord.split('+').join(' ');
   } else {
     throw new BadRequestException(
-      `${name} not valid use '+' to finally string`,
+      `${!name ? 'empy value' : name} not valid use '+' to finally string`,
     );
   }
   return wordString;
 };
+
+//? What does this?
+//? /^[^+]+(?:\+[^+]+)*\+$/.
+
+//! This Regex validates:
+//* No comienze con signo +
+//* termina con signo +
+//* Puede tener múltiples secciones que consisten en un "+" seguido de uno o más caracteres que no sean un "+".
+
+//! For example:
+//* hola+mundo+
+//* a+b+c+d+
+//* 123+456+789+

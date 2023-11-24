@@ -33,8 +33,21 @@ export const searchFullname = async ({
 
   if (member.length === 0) {
     throw new NotFoundException(
-      `Not found member with those names: ${firstName} ${lastName}`,
+      `No member was found with these names: ${firstName} ${lastName}`,
     );
   }
   return member;
 };
+
+//? What does this?
+//? /^[^+]+(?:\+[^+]+)*\+$/.
+
+//! This Regex validates:
+//* No comienze con signo +
+//* termina con signo +
+//* Puede tener múltiples secciones que consisten en un "+" seguido de uno o más caracteres que no sean un "+".
+
+//! For example:
+//* hola+mundo+
+//* a+b+c+d+
+//* 123+456+789+

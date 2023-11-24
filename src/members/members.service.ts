@@ -17,6 +17,7 @@ import { SearchType } from '../common/enums/search-types.enum';
 import { ValidRoles } from './enums/valid-roles.enum';
 import { searchPerson } from '../common/helpers/search-person.helper';
 import { searchFullname } from 'src/common/helpers/search-fullname.helper';
+import { updateAge } from '../common/helpers/update-age.helper';
 
 // TODO : REGRESAR AQUI PARA HACER RELACIONES CUANDO TENGAMOS LAS DEMAS TABLAS
 @Injectable()
@@ -40,8 +41,7 @@ export class MembersService {
       }
     });
 
-    //! Cuando se mande fecha desde el front(fecha de joining o brith) siempre sera fecha ahi probar y midificar el string y Date
-    //! cambiar el string por uuid cuando se haga autenticacion (relacion)
+    //TODO : cambar el string por uuid cuando se haga autenticacion (creates by) - relacion
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
@@ -81,12 +81,7 @@ export class MembersService {
     //* Find UUID --> One
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOneBy({ id: term });
-
-      const ageMiliSeconds = Date.now() - new Date(member.date_birth).getTime();
-      const ageDate = new Date(ageMiliSeconds);
-      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-      member.age = age;
-
+      member.age = updateAge(member);
       await this.memberRepository.save(member);
     }
 
@@ -158,7 +153,7 @@ export class MembersService {
 
       if (member.length === 0) {
         throw new BadRequestException(
-          `Not found members with those roles: ${rolesArray}`,
+          `Not found members with these roles: ${rolesArray}`,
         );
       }
     }
@@ -181,7 +176,7 @@ export class MembersService {
 
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto) {
-    //TODO : cambar el string por uuid cuando se haga autenticacion
+    //TODO : cambar el string por uuid cuando se haga autenticacion (updated by)
 
     const member = await this.memberRepository.preload({
       id: id,
@@ -261,7 +256,7 @@ export class MembersService {
 
   //   if (member.length === 0) {
   //     throw new NotFoundException(
-  //       `Not found member with those names: ${dataPerson}`,
+  //       `Not found member with these names: ${dataPerson}`,
   //     );
   //   }
   //   return member;
@@ -310,7 +305,7 @@ export class MembersService {
 
   //   if (member.length === 0) {
   //     throw new NotFoundException(
-  //       `Not found member with those names: ${firstName} ${lastName}`,
+  //       `Not found member with these names: ${firstName} ${lastName}`,
   //     );
   //   }
   //   return member;
@@ -332,7 +327,7 @@ export class MembersService {
     });
 
     if (member.length === 0) {
-      throw new NotFoundException(`Not found member with those names: ${term}`);
+      throw new NotFoundException(`Not found member with these names: ${term}`);
     }
     return member;
   }

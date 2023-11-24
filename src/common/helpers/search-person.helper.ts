@@ -9,19 +9,22 @@ export const searchPerson = async ({
   offset,
   repository,
 }: SearchPersonOptions): Promise<Member[]> => {
-  let dataPerson: string;
+  let dataPerson: string | string[];
 
-  if (/^[^+]*\+[^+]*$/.test(term)) {
+  if (/^[A-Za-z]+(?:\+[A-Za-z]+)*\+$/.test(term)) {
     const arrayData = term.split('+');
 
-    if (arrayData.length >= 2 && arrayData.includes('')) {
+    if (arrayData.length === 2 && arrayData.includes('')) {
       dataPerson = arrayData.join('');
+    } else if (arrayData.length >= 3 && arrayData.includes('')) {
+      dataPerson = arrayData.slice(0, -1);
+      dataPerson = dataPerson.join(' ');
     } else {
       dataPerson = arrayData.join(' ');
     }
   } else {
     throw new BadRequestException(
-      `Term not valid, only use for concat '+' to finnally, dont use -`,
+      `Invalid term, only use it to concatenate '+' to the end of the word, do not use '-'`,
     );
   }
 
@@ -36,8 +39,22 @@ export const searchPerson = async ({
 
   if (member.length === 0) {
     throw new NotFoundException(
-      `Not found member with those names: ${dataPerson}`,
+      `No member was found with these ${searchType}: ${dataPerson}`,
     );
   }
   return member;
 };
+
+//? What does this?
+//? /^[A-Za-z]+(?:\+[A-Za-z]+)*\+$/
+
+//! This Regex validates:
+//* Que la cadena no comience con un signo + o cualquier carácter especial, solo letras.
+//* Que no esté vacía y que comience con una o más letras.
+//* Que después de la primera letra, puede haber cero o más secuencias de un + seguido por una o más letras, pero estas secuencias no se capturan.
+//* Que la cadena termine con un signo +.
+
+//! For example:
+//* Kevin+
+//* a+b+c+
+//* Hola+Mundo+

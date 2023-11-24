@@ -37,7 +37,7 @@ export class PastorController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePastorDto: UpdatePastorDto) {
-    return this.pastorService.update(+id, updatePastorDto);
+    return this.pastorService.update(id, updatePastorDto);
   }
 
   @Delete(':id')
