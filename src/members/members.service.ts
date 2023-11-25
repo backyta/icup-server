@@ -13,8 +13,6 @@ import { Member } from './entities/member.entity';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { validate as isUUID } from 'uuid';
 import { SearchType } from '../common/enums/search-types.enum';
-// import { SearchPersonOptions } from './interfaces/search-person.interface';
-import { ValidRoles } from './enums/valid-roles.enum';
 import { searchPerson } from '../common/helpers/search-person.helper';
 import { searchFullname } from 'src/common/helpers/search-fullname.helper';
 import { updateAge } from '../common/helpers/update-age.helper';
@@ -31,16 +29,6 @@ export class MembersService {
 
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
-    const validRoles = Object.values(ValidRoles);
-
-    createMemberDto.roles.map((rol) => {
-      if (!validRoles.includes(rol as ValidRoles)) {
-        throw new BadRequestException(
-          `Not valid role, use the following: ${validRoles}`,
-        );
-      }
-    });
-
     //TODO : cambar el string por uuid cuando se haga autenticacion (creates by) - relacion
     try {
       const member = this.memberRepository.create({
@@ -176,11 +164,10 @@ export class MembersService {
 
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto) {
-    //TODO : cambar el string por uuid cuando se haga autenticacion (updated by)
-
     const member = await this.memberRepository.preload({
       id: id,
       updated_at: new Date(),
+      //? Agregar auth id
       updated_by: 'Kevinxd',
       ...updateMemberDto,
     });
@@ -197,21 +184,19 @@ export class MembersService {
   //* ELIMINAR POR ID
   // TODO : ajustar el metodo en futro cuando se integren relaciones.
   async remove(id: string) {
-    let member: Member;
-
-    if (isUUID(id)) {
-      member = await this.memberRepository.findOneBy({ id });
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
     }
-    member.is_active = false;
 
-    if (member) {
-      try {
-        await this.memberRepository.save(member);
-      } catch (error) {
-        this.logger.error(error);
-      }
-    } else {
-      throw new NotFoundException(`Member with id: ${id} not exits`);
+    const member = await this.memberRepository.preload({
+      id: id,
+      is_active: false,
+    });
+
+    try {
+      await this.memberRepository.save(member);
+    } catch (error) {
+      this.logger.error(error);
     }
   }
 

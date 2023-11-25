@@ -11,6 +11,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { MaritalStatus } from '../enums/marital-status.enum';
+import { ValidRoles } from '../enums/valid-roles.enum';
 
 export class CreateMemberDto {
   @IsString()
@@ -56,7 +57,7 @@ export class CreateMemberDto {
   @IsNotEmpty()
   nationality: string;
 
-  @IsString({ each: true }) // cada uno de los elementos del array tiene que ser string
+  @IsEnum(ValidRoles, { each: true }) // cada uno de los elementos del array tiene que ser algo de tipo Enum
   @IsArray()
   @IsNotEmpty()
   roles: string[];

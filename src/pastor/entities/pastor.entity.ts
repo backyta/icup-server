@@ -13,7 +13,10 @@ export class Pastor {
   id: string;
 
   @Column('int', { default: 0 })
-  countCopastor: number;
+  count_copastor: number;
+
+  @Column('bool', { default: true })
+  is_active: boolean;
 
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
@@ -28,9 +31,6 @@ export class Pastor {
 
   @Column('text', { nullable: true })
   updated_by: string;
-
-  @Column('bool', { default: true })
-  isActive: boolean;
 
   @OneToOne(() => Member, { eager: true }) // Carga el Miembro automáticamente al consultar Pastor
   @JoinColumn({ name: 'member_id' })

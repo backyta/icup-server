@@ -17,7 +17,7 @@ import { SearchType } from '../common/enums/search-types.enum';
 import { searchPerson } from 'src/common/helpers/search-person.helper';
 import { updateAge } from 'src/common/helpers/update-age.helper';
 import { searchFullname } from 'src/common/helpers/search-fullname.helper';
-import { UpdateMemberDto } from '../members/dto/update-member.dto';
+// import { UpdateMemberDto } from '../members/dto/update-member.dto';
 
 @Injectable()
 export class PastorService {
@@ -31,6 +31,7 @@ export class PastorService {
     private readonly pastorRepository: Repository<Pastor>,
   ) {}
 
+  //* CREATE PASTOR
   async create(createPastorDto: CreatePastorDto): Promise<Pastor> {
     const { idMember } = createPastorDto;
 
@@ -50,8 +51,9 @@ export class PastorService {
     try {
       const pastorInstance = this.pastorRepository.create({
         member: member,
-        //TODO : sacar conteo por id (table copastor)
-        countCopastor: 5,
+        //TODO : sacar conteo por id (table copastor), copastorService.queryBuilder hacer conteo aqui y que revise constantement
+        // O hacer un query builder aca consultando la otra entidad y en esta columa pongo el conteo por id de pastor
+        count_copastor: 5,
         created_at: new Date(),
         created_by: 'Kevin',
       });
@@ -62,8 +64,7 @@ export class PastorService {
     }
   }
 
-  //TODO : TRABAJAR EN LA PAGINACION FACIL Y HACER BUSQUEDA SENCILLA POR ID Y NOMBRE APELLIDO DE PASTOR (COPIAR)
-
+  //* FIND ALL (PAGINATED) boton flecha y auemtar el offset de 10 o 20.
   findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.pastorRepository.find({
@@ -72,7 +73,7 @@ export class PastorService {
     });
   }
 
-  //* TERM : id, nombre, apellido
+  //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
@@ -142,47 +143,80 @@ export class PastorService {
     return pastor;
   }
 
-  // TODO : para tomorrow 25/11/23
-  //* UPDATE FOR ID (NO SE NECESITARIA o SI ?)
-  //* Se buscar por nombre o nombre completo, se recibe la info y se pinta en pantalla, se genera una tabla
-  //* visual con boton que diga ver mas o eliminar, en boton ver mas mandamos el ID de pastor, como peticion
-  //* y buscamos por id en el endpint de pastor/:term , devuelve una informacion y pintamos una pantalla
-  //* de presentacion con toda la infor del pastor y su miembro asosciado.
-  //! Al hacer click en actualizar mandamos el member id, y nos manda a una pantalla para actualizar la data
-  //! del miembro, y al actualizat esta data la del pastor asociado al miembro tmb se actualiza segun el id
-
-  //? Problemas, cambiar al pastor por su id de miembro que se asigno al crear
-
-  // La otra opcion seria hacer la ruta de actualizacion de pastor solo con el miembro id, y pregunrar si
-  // se quiere seleccionar otro id de miembro para este pastor.
-  // solo en este caso seria necesario y mas pequenio el endpoint de actualizar pastor.
-  // Seria un pequenio boton al costado que indique re-asignar un id de miembro para este pastor.
-  // Si hace esto actualizamos todo el ID con el DTO, mas facil, y con el otro boton regirigimos.
-
-  //* Y mas abajo un boton de actualizar al miembro asignado al pastor y al hacer esto el id lo ponemos en
-  //* blanco o ocultamos porque sera el mismo.
-
+  //* UPDATE FOR ID
   async update(id: string, updatePastorDto: UpdatePastorDto) {
-    // updatePastorDto.idMember
-    // const pastor = await this.pastorRepository.preload({
-    //   id: id,
-    //   countCopastor: 15,
-    //   updated_at: new Date(),
-    //   updated_by: 'Kevinxd',
-    //   updateMemberDto.
-    // });
-    // if (!pastor) throw new NotFoundException(`Member with id: ${id} not found`);
-    // try {
-    //   return await this.memberRepository.save(pastor);
-    // } catch (error) {
-    //   this.handleDBExceptions(error);
-    // }
+    //? No se podra cambiar el ID de pastor solo su info (incluida miembro)
+    const dataPastor = await this.pastorRepository.findOneBy({ id });
+
+    if (!dataPastor) {
+      throw new NotFoundException(`Pastor not found with id: ${dataPastor.id}`);
+    }
+
+    const member = await this.memberRepository.preload({
+      id: dataPastor.member.id,
+      updated_at: new Date(),
+      //? Colocar usuario cuando se haga auth
+      updated_by: 'Kevinxd',
+      ...updatePastorDto,
+    });
+
+    if (!member)
+      throw new NotFoundException(`Member with id: ${member.id} not found`);
+
+    if (!member.roles.includes('pastor')) {
+      throw new BadRequestException(
+        `This member cannot be assigned as Pastor, his role must contain: ["pastor"]`,
+      );
+    }
+
+    const pastor = await this.pastorRepository.preload({
+      id: id,
+      member: member,
+      //TODO : Contar con query con tabla copastor
+      count_copastor: 16,
+      updated_at: new Date(),
+      updated_by: 'Kevinxd',
+    });
+
+    try {
+      await this.memberRepository.save(member);
+      await this.pastorRepository.save(pastor);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+
+    return pastor;
   }
 
-  //! DELETE: Cuando marque como incativo un pastor, copastor, predicador su isActive del miembro tmb lo hara
-  // TODO : agregar campo de is active para eliminar
-  remove(id: number) {
-    return `This action removes a #${id} pastor`;
+  //* DELETE FOR ID
+  // TODO : tomorrow 26/11 seguir con tabla copastor y hace relaciones con pastor (Conteo) ver excel
+  async remove(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
+    }
+
+    const dataPastor = await this.pastorRepository.findOneBy({ id });
+
+    if (!dataPastor) {
+      throw new NotFoundException(`Pastor with id: ${id} not exits`);
+    }
+
+    const member = await this.memberRepository.preload({
+      id: dataPastor.member.id,
+      is_active: false,
+    });
+
+    const pastor = await this.pastorRepository.preload({
+      id: id,
+      is_active: false,
+    });
+
+    try {
+      await this.memberRepository.save(member);
+      await this.pastorRepository.save(pastor);
+    } catch (error) {
+      this.logger.error(error);
+    }
   }
 
   //! PRIVATE METHODS

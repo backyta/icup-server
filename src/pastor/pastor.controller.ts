@@ -42,6 +42,6 @@ export class PastorController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.pastorService.remove(+id);
+    return this.pastorService.remove(id);
   }
 }
