@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
-import { CreatePastorDto } from './create-pastor.dto';
+import { CreateCoPastorDto } from './create-copastor.dto';
 import {
   IsArray,
   IsEmail,
@@ -15,7 +15,7 @@ import {
 import { MaritalStatus } from 'src/members/enums/marital-status.enum';
 import { ValidRoles } from 'src/members/enums/valid-roles.enum';
 
-export class UpdatePastorDto extends PartialType(CreatePastorDto) {
+export class UpdateCoPastorDto extends PartialType(CreateCoPastorDto) {
   @IsString()
   @IsOptional()
   @IsNotEmpty()

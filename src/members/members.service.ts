@@ -146,6 +146,8 @@ export class MembersService {
       }
     }
 
+    //TODO : agregar filtro por inactivo o activo, aunque no seria del todo necesario porque al sacar todos lo mimbero hace if con los que tiene  el isActive en true.
+
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
       throw new BadRequestException(`Not valid UUID`);

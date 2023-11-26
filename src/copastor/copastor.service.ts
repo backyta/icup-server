@@ -5,23 +5,23 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreatePastorDto } from './dto/create-pastor.dto';
-import { UpdatePastorDto } from './dto/update-pastor.dto';
+import { CreateCoPastorDto } from './dto/create-copastor.dto';
+import { UpdateCoPastorDto } from './dto/update-copastor.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Pastor } from 'src/pastor/entities/pastor.entity';
 import { Member } from 'src/members/entities/member.entity';
 import { Repository } from 'typeorm';
-import { Pastor } from './entities/pastor.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { CoPastor } from './entities/copastor.entity';
+import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
 import { isUUID } from 'class-validator';
-import { SearchType } from '../common/enums/search-types.enum';
-import { searchPerson } from 'src/common/helpers/search-person.helper';
+import { SearchType } from 'src/common/enums/search-types.enum';
 import { updateAge } from 'src/common/helpers/update-age.helper';
+import { searchPerson } from 'src/common/helpers/search-person.helper';
 import { searchFullname } from 'src/common/helpers/search-fullname.helper';
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
 
 @Injectable()
-export class PastorService {
-  private readonly logger = new Logger('PastorService');
+export class CoPastorService {
+  private readonly logger = new Logger('CoPastorService');
 
   constructor(
     @InjectRepository(Member)
@@ -30,38 +30,36 @@ export class PastorService {
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
 
-    @InjectRepository(Pastor)
+    @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
   ) {}
 
-  //* CREATE PASTOR
-  // TODO : terminar esta busqueda por copastor repository cada uno que se pasa en el array y enviarlos para que se graben en la tabla
-  async create(createPastorDto: CreatePastorDto): Promise<any> {
-    const { idMember, idCopastor } = createPastorDto;
+  //* CREATE COPASTOR
+  async create(createCoPastorDto: CreateCoPastorDto) {
+    //* No se necesita validacion en el front hacer la interfaz que ya filtre por rol, y isActive y que muestre solo los miembros que tienen rol de copastor y que muestre todos los pastores para asignar uno.
+    const { idMember, idPastor } = createCoPastorDto;
 
-    const member = await this.memberRepository.findOneBy({
+    const member: Member = await this.memberRepository.findOneBy({
       id: idMember,
     });
 
-    //FIXME : terminar aqui, corregir
-    const copastor = idCopastor.map(async (copastor) => {
-      this.coPastorRepository.findOneBy({
-        id: copastor,
-      });
+    const pastor: Pastor = await this.pastorRepository.findOneBy({
+      id: idPastor,
     });
 
-    const xd = await Promise.all(copastor);
-    console.log(xd);
-
     try {
-      // const pastorInstance = this.pastorRepository.create({
-      //   member: member,
-      //   count_copastor: 5,
-      //   copastor: copastor,
-      //   created_at: new Date(),
-      //   created_by: 'Kevin',
-      // });
-      // return await this.pastorRepository.save(pastorInstance);
+      const coPastorInstance = this.coPastorRepository.create({
+        member: member,
+        pastor: pastor,
+        //* Hacer conteo con la relacion (ver si hacer en actualizacion porque no se han creado casas aun)
+        count_houses: 5,
+        //* Hacer conteo con la relaciond de lideres (ver si hacer en actualizacion porque no se han creado lideres aun)
+        count_leaders: 10,
+        created_at: new Date(),
+        created_by: 'Kevin',
+      });
+
+      return await this.coPastorRepository.save(coPastorInstance);
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -70,31 +68,33 @@ export class PastorService {
   //* FIND ALL (PAGINATED) boton flecha y auemtar el offset de 10 o 20.
   findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.pastorRepository.find({
+    return this.coPastorRepository.find({
       take: limit,
       skip: offset,
-      //TODO : Cargar relaciones, asicuadas cuando se haga busqueda por todo.
+      //TODO : Cargar relaciones, ejemplo, hacerlo cuando hagamols buscar sin ninguna opcion y paginemos debemos cargat toda la info
+      //  relations: {
+      //   images: true, //llena las imagenes, de la relacion cuando se haga el find
+      // }
     });
   }
 
-  //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ) {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
-    let pastor: Pastor | Pastor[];
+    let coPastor: CoPastor | CoPastor[];
 
     //* Find ID --> One
     if (isUUID(term) && type === SearchType.id) {
-      pastor = await this.pastorRepository.findOneBy({ id: term });
-      pastor.member.age = updateAge(pastor.member);
-      await this.pastorRepository.save(pastor);
+      coPastor = await this.coPastorRepository.findOneBy({ id: term });
+      coPastor.member.age = updateAge(coPastor.member);
+      await this.coPastorRepository.save(coPastor);
     }
 
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
-      const resultSearch = await this.searchPastorBy(
+      const resultSearch = await this.searchCoPastorBy(
         term,
         SearchType.firstName,
         limit,
@@ -107,7 +107,7 @@ export class PastorService {
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName) {
-      const resultSearch = await this.searchPastorBy(
+      const resultSearch = await this.searchCoPastorBy(
         term,
         SearchType.lastName,
         limit,
@@ -120,7 +120,7 @@ export class PastorService {
 
     //* Find fullName --> One
     if (term && type === SearchType.fullName) {
-      const resultSearch = await this.searchPastorBy(
+      const resultSearch = await this.searchCoPastorBy(
         term,
         SearchType.fullName,
         limit,
@@ -142,55 +142,62 @@ export class PastorService {
       );
     }
 
-    if (!pastor) throw new NotFoundException(`Member with ${term} not found`);
+    if (!coPastor) throw new NotFoundException(`Member with ${term} not found`);
 
-    return pastor;
+    return coPastor;
   }
 
   //* UPDATE FOR ID
-  async update(id: string, updatePastorDto: UpdatePastorDto) {
-    const dataPastor = await this.pastorRepository.findOneBy({ id });
-
-    if (!dataPastor) {
-      throw new NotFoundException(`Pastor not found with id: ${dataPastor.id}`);
+  async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
     }
 
-    if (!dataPastor.member.id)
+    const dataCoPastor = await this.coPastorRepository.findOneBy({ id });
+
+    if (!dataCoPastor) {
       throw new NotFoundException(
-        `Member with id: ${dataPastor.member.id} not found`,
+        `CoPastor not found with id: ${dataCoPastor.id}`,
+      );
+    }
+
+    if (!dataCoPastor.member.id)
+      throw new NotFoundException(
+        `Member with id: ${dataCoPastor.member.id} not found`,
       );
 
-    if (!dataPastor.member.roles.includes('pastor')) {
+    if (!dataCoPastor.member.roles.includes('pastor')) {
       throw new BadRequestException(
         `This member cannot be assigned as Pastor, his role must contain: ["pastor"]`,
       );
     }
 
     const member = await this.memberRepository.preload({
-      id: dataPastor.member.id,
+      id: dataCoPastor.member.id,
       updated_at: new Date(),
       //? Colocar usuario cuando se haga auth
       updated_by: 'Kevinxd',
-      ...updatePastorDto,
+      ...updateCoPastorDto,
     });
 
-    const pastor = await this.pastorRepository.preload({
+    const coPastor = await this.coPastorRepository.preload({
       id: id,
       member: member,
       //TODO : Contar con query con tabla copastor
-      count_copastor: 16,
+      count_houses: 16,
+      count_leaders: 11,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
 
     try {
       await this.memberRepository.save(member);
-      await this.pastorRepository.save(pastor);
+      await this.coPastorRepository.save(coPastor);
     } catch (error) {
       this.handleDBExceptions(error);
     }
 
-    return pastor;
+    return coPastor;
   }
 
   //* DELETE FOR ID
@@ -199,25 +206,25 @@ export class PastorService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataPastor = await this.pastorRepository.findOneBy({ id });
+    const dataCoPastor = await this.coPastorRepository.findOneBy({ id });
 
-    if (!dataPastor) {
-      throw new NotFoundException(`Pastor with id: ${id} not exits`);
+    if (!dataCoPastor) {
+      throw new NotFoundException(`CoPastor with id: ${id} not exits`);
     }
 
     const member = await this.memberRepository.preload({
-      id: dataPastor.member.id,
+      id: dataCoPastor.member.id,
       is_active: false,
     });
 
-    const pastor = await this.pastorRepository.preload({
+    const coPastor = await this.coPastorRepository.preload({
       id: id,
       is_active: false,
     });
 
     try {
       await this.memberRepository.save(member);
-      await this.pastorRepository.save(pastor);
+      await this.coPastorRepository.save(coPastor);
     } catch (error) {
       this.logger.error(error);
     }
@@ -233,13 +240,13 @@ export class PastorService {
     );
   }
 
-  private searchPastorBy = async (
+  private searchCoPastorBy = async (
     term: string,
     searchType: SearchType,
     limit: number,
     offset: number,
     repository: Repository<Member>,
-  ): Promise<Pastor | Pastor[]> => {
+  ) => {
     //* Para find by first or last name
     if (searchType === 'first_name' || searchType === 'last_name') {
       const members = await searchPerson({
@@ -250,32 +257,32 @@ export class PastorService {
         repository,
       });
 
-      const pastorMembers = members.filter((member) =>
-        member.roles.includes('pastor'),
+      const coPastorMembers = members.filter((member) =>
+        member.roles.includes('copastor'),
       );
 
-      if (pastorMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'Pastor'`);
+      if (coPastorMembers.length === 0) {
+        throw new NotFoundException(`Not found member with roles 'copastor'`);
       }
 
-      const pastores = await this.pastorRepository.find();
+      const coPastores = await this.coPastorRepository.find();
 
-      const newPastorMembers = pastorMembers.map((member) => {
-        const newPastores = pastores.filter(
-          (pastor) => pastor.member.id === member.id,
+      const newCoPastorMembers = coPastores.map((member) => {
+        const newCoPastores = coPastores.filter(
+          (coPastor) => coPastor.member.id === member.id,
         );
-        return newPastores;
+        return newCoPastores;
       });
 
-      const ArrayPastorMembersFlattened = newPastorMembers.flat();
+      const ArrayCoPastorMembersFlattened = newCoPastorMembers.flat();
 
-      if (ArrayPastorMembersFlattened.length === 0) {
+      if (ArrayCoPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
           `Not found pastor with these names ${term.slice(0, -1)}`,
         );
       }
 
-      return ArrayPastorMembersFlattened;
+      return ArrayCoPastorMembersFlattened;
     }
 
     //* Para find by full_name
@@ -287,35 +294,35 @@ export class PastorService {
         repository,
       });
 
-      const pastorMembers = members.filter((member) =>
-        member.roles.includes('pastor'),
+      const coPastorMembers = members.filter((member) =>
+        member.roles.includes('copastor'),
       );
 
-      if (pastorMembers.length === 0) {
+      if (coPastorMembers.length === 0) {
         throw new NotFoundException(`Not found member with roles 'Pastor'`);
       }
 
-      const pastores = await this.pastorRepository.find();
+      const coPastores = await this.pastorRepository.find();
 
-      const newPastorMembers = pastorMembers.map((member) => {
-        const newPastores = pastores.filter(
-          (pastor) => pastor.member.id === member.id,
+      const newCoPastorMembers = coPastorMembers.map((member) => {
+        const newCoPastores = coPastores.filter(
+          (coPastor) => coPastor.member.id === member.id,
         );
-        return newPastores;
+        return newCoPastores;
       });
 
-      const ArrayPastorMembersFlattened = newPastorMembers.flat();
+      const ArrayCoPastorMembersFlattened = newCoPastorMembers.flat();
 
-      if (ArrayPastorMembersFlattened.length === 0) {
+      if (ArrayCoPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found pastor with these names ${term
+          `Not found coPastor with these names ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,
         );
       }
 
-      return ArrayPastorMembersFlattened;
+      return ArrayCoPastorMembersFlattened;
     }
   };
 }
