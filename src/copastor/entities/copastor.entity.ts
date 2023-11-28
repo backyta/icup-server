@@ -1,9 +1,10 @@
-import { Member } from 'src/members/entities/member.entity';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
+import { Member } from '../../members/entities/member.entity';
+import { Pastor } from '../../pastor/entities/pastor.entity';
 import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -39,9 +40,12 @@ export class CoPastor {
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  @OneToOne(() => Pastor, { eager: true }) // Carga el Miembro automáticamente al consultar Pastor
-  @JoinColumn({ name: 'pastor_id' })
-  pastor: Member;
+  // @OneToOne(() => Pastor, { eager: true }) // Carga el Miembro automáticamente al consultar Pastor
+  // @JoinColumn({ name: 'pastor_id' })
+  // pastor: Member;
+
+  @ManyToOne(() => Pastor, (pastor) => pastor.copastores)
+  pastor: Pastor;
 
   //* Hacer relacion many to One con lideres y setear conteo en columna
   //* Relacion con lideres y con residencias

@@ -1,5 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { SearchPersonOptions } from 'src/common/interfaces/search-person.interface';
+import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';
 import { Member } from '../../members/entities/member.entity';
 
 export const searchPerson = async ({
@@ -8,7 +8,7 @@ export const searchPerson = async ({
   limit,
   offset,
   repository,
-}: SearchPersonOptions): Promise<Member[]> => {
+}: SearchPersonOptions<Member>): Promise<Member[]> => {
   let dataPerson: string | string[];
 
   if (/^[A-Za-z]+(?:\+[A-Za-z]+)*\+$/.test(term)) {

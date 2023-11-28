@@ -26,7 +26,6 @@ export class CreateMemberDto {
   @MaxLength(40)
   last_name: string;
 
-  //! Cuando se mande fecha desde el front siempre sera fecha ahi probar y midificar el string y Date
   @IsString()
   @IsNotEmpty()
   date_birth: string | Date;
@@ -57,7 +56,7 @@ export class CreateMemberDto {
   @IsNotEmpty()
   nationality: string;
 
-  @IsEnum(ValidRoles, { each: true }) // cada uno de los elementos del array tiene que ser algo de tipo Enum
+  @IsEnum(ValidRoles, { each: true })
   @IsArray()
   @IsNotEmpty()
   roles: string[];

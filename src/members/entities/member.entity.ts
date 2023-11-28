@@ -50,9 +50,6 @@ export class Member {
   @Column('bool', { default: true })
   is_active: boolean;
 
-  //? Agregar fecha de creacion y fecha de actualizacion y usuario que creo y usuario
-  //! Se agregaria el id del usuario en creacion y actualizacion (relacion)
-
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
@@ -66,7 +63,6 @@ export class Member {
   @Column('text', { nullable: true })
   updated_by: string;
 
-  //* Antes de cada insercion en DB (esto setea de manera statica)
   @BeforeInsert()
   @BeforeUpdate()
   transformToDates() {
@@ -82,6 +78,3 @@ export class Member {
     this.age = age;
   }
 }
-
-// TODO : Al final agregar fecha de creacion y fecha de actualizacion segun usuario.
-//! Agregar un boton al consultrar por ID para pantalla aperte de miembro (ahi se actualiza la edad).

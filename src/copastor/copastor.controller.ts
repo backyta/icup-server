@@ -11,7 +11,7 @@ import {
 import { CoPastorService } from './copastor.service';
 import { CreateCoPastorDto } from './dto/create-copastor.dto';
 import { UpdateCoPastorDto } from './dto/update-copastor.dto';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Controller('copastor')
 export class CopastorController {

@@ -1,9 +1,12 @@
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
+import { CoPastor } from '../../copastor/entities/copastor.entity';
 import { Member } from '../../members/entities/member.entity';
 import {
+  //BeforeInsert,
+  //BeforeUpdate,
   Column,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -32,13 +35,21 @@ export class Pastor {
   updated_by: string;
 
   //* Relation columns
+  //! Colocar en Miembro relacion One to One.
   @OneToOne(() => Member, { eager: true })
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  @OneToOne(() => CoPastor, { eager: true })
-  @JoinColumn({ name: 'copastor_id' })
-  copastor: CoPastor[];
+  @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { eager: true })
+  //@JoinColumn({ name: 'copastores_id' })
+  copastores: CoPastor[];
+
+  //* Probar
+  // @BeforeInsert()
+  // @BeforeUpdate()
+  // countCopastores() {
+  //   this.count_copastor = this.copastor ? this.copastor.length : 0;
+  // }
 }
 
 //! Se agregaria el id del usuario en creacion y actualizacion (relacion) CRATED by

@@ -8,7 +8,7 @@ export const searchFullname = async ({
   limit,
   offset,
   repository,
-}: SearchFullnameOptions): Promise<Member[]> => {
+}: SearchFullnameOptions<Member>): Promise<Member[]> => {
   if (!term.includes('-')) {
     throw new BadRequestException(
       `Term not valid, use allow '-' for concatc firstname and lastname`,

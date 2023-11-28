@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreatePastorDto {
   @IsString()
@@ -8,5 +14,6 @@ export class CreatePastorDto {
 
   @IsArray()
   @IsNotEmpty()
-  idCopastor: string[];
+  @IsOptional()
+  idCopastores?: string[];
 }

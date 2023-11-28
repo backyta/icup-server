@@ -5,18 +5,19 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
+
+import { Pastor } from './entities/pastor.entity';
 import { CreatePastorDto } from './dto/create-pastor.dto';
 import { UpdatePastorDto } from './dto/update-pastor.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Member } from 'src/members/entities/member.entity';
-import { Repository } from 'typeorm';
-import { Pastor } from './entities/pastor.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { isUUID } from 'class-validator';
+
+import { Member } from '../members/entities/member.entity';
+
 import { SearchType } from '../common/enums/search-types.enum';
-import { searchPerson } from 'src/common/helpers/search-person.helper';
-import { updateAge } from 'src/common/helpers/update-age.helper';
-import { searchFullname } from 'src/common/helpers/search-fullname.helper';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { searchPerson, updateAge, searchFullname } from '../common/helpers';
 import { CoPastor } from 'src/copastor/entities/copastor.entity';
 
 @Injectable()
@@ -30,38 +31,44 @@ export class PastorService {
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
 
-    @InjectRepository(Pastor)
+    //! Aqui hay depenedncia ciclica
+    @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
   ) {}
 
   //* CREATE PASTOR
-  // TODO : terminar esta busqueda por copastor repository cada uno que se pasa en el array y enviarlos para que se graben en la tabla
   async create(createPastorDto: CreatePastorDto): Promise<any> {
-    const { idMember, idCopastor } = createPastorDto;
+    const { idMember, idCopastores = [] } = createPastorDto;
 
     const member = await this.memberRepository.findOneBy({
       id: idMember,
     });
 
-    //FIXME : terminar aqui, corregir
-    const copastor = idCopastor.map(async (copastor) => {
-      this.coPastorRepository.findOneBy({
-        id: copastor,
-      });
-    });
+    const copastoresId: CoPastor[] = await Promise.all(
+      idCopastores.map(async (copastorId: string) => {
+        return await this.coPastorRepository.findOneBy({
+          id: copastorId,
+        });
+      }),
+    );
+    //* ya funciono el grabar por array de copastores en pastor, pero no se muestra en la relacion
+    //* pero cuando se colsulta con el eager, su se muestra ahi se hace el conteo.
+    //! OJO el registro de pastor no se peude borrar porque esta amarrado al Copastor, se debe eliminar
+    //! Primero el copastor.
 
-    const xd = await Promise.all(copastor);
-    console.log(xd);
-
+    //TODO : 29/11 hacer la validacion de is_acvite en true para las 3 entidades
+    //TODO : 29/11 hacer la validacion de UUID en toda las entidades si existe (ver copastor)
+    //TODO : hacer la actuliazacion de pastor y ver si al agregar copastores al array, se genera la dependencia.
     try {
-      // const pastorInstance = this.pastorRepository.create({
-      //   member: member,
-      //   count_copastor: 5,
-      //   copastor: copastor,
-      //   created_at: new Date(),
-      //   created_by: 'Kevin',
-      // });
-      // return await this.pastorRepository.save(pastorInstance);
+      const pastorInstance = this.pastorRepository.create({
+        member: member,
+        created_at: new Date(),
+        copastores: copastoresId,
+        count_copastor: copastoresId ? copastoresId.length : 0,
+        //NOTE : cambiar por id de usuario
+        created_by: 'Kevin',
+      });
+      return await this.pastorRepository.save(pastorInstance);
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -73,7 +80,11 @@ export class PastorService {
     return this.pastorRepository.find({
       take: limit,
       skip: offset,
-      //TODO : Cargar relaciones, asicuadas cuando se haga busqueda por todo.
+      //NOTE : agregar relations para cargarlas al buscar por todas
+      // relations: {
+      //   member: true,
+      //   copastor: true,
+      // },
     });
   }
 
@@ -87,11 +98,13 @@ export class PastorService {
 
     //* Find ID --> One
     if (isUUID(term) && type === SearchType.id) {
+      // NOTE: buscar solo por ID y cargar las demas relaciones para que al consultar eager toda la data.
       pastor = await this.pastorRepository.findOneBy({ id: term });
       pastor.member.age = updateAge(pastor.member);
       await this.pastorRepository.save(pastor);
     }
 
+    //TODO : hacer que todas las consultas tengan el is_active : true
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
       const resultSearch = await this.searchPastorBy(
@@ -149,6 +162,8 @@ export class PastorService {
 
   //* UPDATE FOR ID
   async update(id: string, updatePastorDto: UpdatePastorDto) {
+    const { idCopastores } = updatePastorDto;
+
     const dataPastor = await this.pastorRepository.findOneBy({ id });
 
     if (!dataPastor) {
@@ -166,20 +181,23 @@ export class PastorService {
       );
     }
 
+    //TODO : ver si el Conteo de copastores se puede hacer con @BeforeEach (Probar)
     const member = await this.memberRepository.preload({
       id: dataPastor.member.id,
       updated_at: new Date(),
-      //? Colocar usuario cuando se haga auth
+      // NOTE: cambiar por uuid en relacion con User
       updated_by: 'Kevinxd',
       ...updatePastorDto,
     });
 
+    //NOTE : la seleccion de copastores disponibles, se hara desde una consulta en la tabla CoPastor. (Ver notion)
     const pastor = await this.pastorRepository.preload({
       id: id,
       member: member,
-      //TODO : Contar con query con tabla copastor
-      count_copastor: 16,
+      //copastor: null,
+      count_copastor: idCopastores ? idCopastores.length : 0,
       updated_at: new Date(),
+      //NOTE : cambiar por id de usuario
       updated_by: 'Kevinxd',
     });
 
@@ -195,6 +213,7 @@ export class PastorService {
 
   //* DELETE FOR ID
   async remove(id: string) {
+    //TODO : pensar en que si se equivocan , si quieren eliminar por completo o marcar como inactivo
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }

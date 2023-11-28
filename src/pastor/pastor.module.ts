@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { PastorService } from './pastor.service';
-import { PastorController } from './pastor.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Pastor } from './entities/pastor.entity';
-import { MembersModule } from 'src/members/members.module';
-import { CopastorModule } from 'src/copastor/copastor.module';
+
+import { PastorController } from './pastor.controller';
+import { PastorService } from './pastor.service';
+
+import { MembersModule } from '../members/members.module';
+import { CopastorModule } from '../copastor/copastor.module';
 
 @Module({
   controllers: [PastorController],

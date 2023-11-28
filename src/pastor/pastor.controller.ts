@@ -11,6 +11,7 @@ import {
 import { PastorService } from './pastor.service';
 import { CreatePastorDto } from './dto/create-pastor.dto';
 import { UpdatePastorDto } from './dto/update-pastor.dto';
+
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Controller('pastor')

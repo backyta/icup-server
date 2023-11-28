@@ -5,19 +5,20 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
+
 import { CreateCoPastorDto } from './dto/create-copastor.dto';
 import { UpdateCoPastorDto } from './dto/update-copastor.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
-import { Member } from 'src/members/entities/member.entity';
-import { Repository } from 'typeorm';
+import { Pastor } from '../pastor/entities/pastor.entity';
+import { Member } from '../members/entities/member.entity';
+
 import { CoPastor } from './entities/copastor.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
-import { isUUID } from 'class-validator';
-import { SearchType } from 'src/common/enums/search-types.enum';
-import { updateAge } from 'src/common/helpers/update-age.helper';
-import { searchPerson } from 'src/common/helpers/search-person.helper';
-import { searchFullname } from 'src/common/helpers/search-fullname.helper';
+
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { updateAge, searchPerson, searchFullname } from '../common/helpers';
+import { SearchType } from '../common/enums/search-types.enum';
 
 @Injectable()
 export class CoPastorService {
@@ -42,10 +43,13 @@ export class CoPastorService {
     const member: Member = await this.memberRepository.findOneBy({
       id: idMember,
     });
+    console.log(member);
 
     const pastor: Pastor = await this.pastorRepository.findOneBy({
       id: idPastor,
     });
+    //*Problema en PASTOR CONM exceso de llamadas.
+    console.log(pastor);
 
     try {
       const coPastorInstance = this.coPastorRepository.create({
@@ -61,6 +65,8 @@ export class CoPastorService {
 
       return await this.coPastorRepository.save(coPastorInstance);
     } catch (error) {
+      console.log(error);
+
       this.handleDBExceptions(error);
     }
   }
@@ -88,6 +94,10 @@ export class CoPastorService {
     //* Find ID --> One
     if (isUUID(term) && type === SearchType.id) {
       coPastor = await this.coPastorRepository.findOneBy({ id: term });
+      //! AGREGAR ESTA VALIDACIONES PARA TODOS
+      if (!coPastor) {
+        throw new BadRequestException(`No se encontro Copastor con este UUID`);
+      }
       coPastor.member.age = updateAge(coPastor.member);
       await this.coPastorRepository.save(coPastor);
     }

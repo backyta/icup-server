@@ -1,8 +1,8 @@
 import { Repository } from 'typeorm';
 
-export interface SearchFullnameOptions {
+export interface SearchFullnameOptions<T> {
   term: string;
   limit: number;
   offset: number;
-  repository: Repository<any>;
+  repository: Repository<T>;
 }

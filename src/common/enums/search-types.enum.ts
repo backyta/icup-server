@@ -5,5 +5,6 @@ export enum SearchType {
   firstName = 'first_name',
   lastName = 'last_name',
   fullName = 'full_name',
+  isActive = 'is_active',
   roles = 'roles',
 }
