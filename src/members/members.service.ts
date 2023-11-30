@@ -30,6 +30,7 @@ export class MembersService {
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
     // NOTE: aniadir la creacion de su direccion con relacion (OnetoMany)
+    //* Crear un objeto anidados y crarlo junto con el mimbro addres., barriendo y asignado sus propiedades addre.contry, ...
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
@@ -51,6 +52,7 @@ export class MembersService {
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.memberRepository.find({
+      where: { is_active: true },
       take: limit,
       skip: offset,
       //NOTE : agregar relations para cargarlas al buscar por todas
@@ -68,8 +70,14 @@ export class MembersService {
     //* Find UUID --> One
     // NOTE: buscar solo por ID y cargar las demas relaciones eager en tru en la relaciones.
     if (isUUID(term) && type === SearchType.id) {
-      member = await this.memberRepository.findOneBy({ id: term });
+      member = await this.memberRepository.findOne({
+        where: { id: term },
+        //!Cargar relaciones.
+      });
 
+      if (!member) {
+        throw new BadRequestException(`No se encontro Pastor con este UUID`);
+      }
       if (!member.is_active) {
         throw new BadRequestException(`Member should is active`);
       }
@@ -151,6 +159,7 @@ export class MembersService {
           roles: rolesArray,
         })
         .skip(offset)
+        .andWhere(`member.is_active =:isActive`, { isActive: true })
         .limit(limit)
         .getMany();
 
@@ -230,17 +239,39 @@ export class MembersService {
     offset: number,
   ): Promise<Member[]> {
     const whereCondition = {};
-    whereCondition[searchType] = term;
+    try {
+      if (searchType === 'is_active') {
+        whereCondition[searchType] = term;
 
-    const member = await this.memberRepository.find({
+        const members = await this.memberRepository.find({
+          where: [whereCondition],
+          take: limit,
+          skip: offset,
+        });
+
+        if (members.length === 0) {
+          throw new NotFoundException(
+            `Not found member with these names: ${term}`,
+          );
+        }
+        return members;
+      }
+    } catch (error) {
+      throw new BadRequestException(`This term is not a valid boolean value`);
+    }
+
+    whereCondition[searchType] = term;
+    whereCondition['is_active'] = true;
+
+    const members = await this.memberRepository.find({
       where: [whereCondition],
       take: limit,
       skip: offset,
     });
 
-    if (member.length === 0) {
+    if (members.length === 0) {
       throw new NotFoundException(`Not found member with these names: ${term}`);
     }
-    return member;
+    return members;
   }
 }

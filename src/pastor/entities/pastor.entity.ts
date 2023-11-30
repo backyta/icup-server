@@ -40,16 +40,8 @@ export class Pastor {
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { eager: true })
-  //@JoinColumn({ name: 'copastores_id' })
+  @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { nullable: true })
   copastores: CoPastor[];
-
-  //* Probar
-  // @BeforeInsert()
-  // @BeforeUpdate()
-  // countCopastores() {
-  //   this.count_copastor = this.copastor ? this.copastor.length : 0;
-  // }
 }
 
 //! Se agregaria el id del usuario en creacion y actualizacion (relacion) CRATED by

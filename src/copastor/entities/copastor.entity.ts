@@ -44,7 +44,8 @@ export class CoPastor {
   // @JoinColumn({ name: 'pastor_id' })
   // pastor: Member;
 
-  @ManyToOne(() => Pastor, (pastor) => pastor.copastores)
+  @ManyToOne(() => Pastor, { eager: true, nullable: true })
+  @JoinColumn({ name: 'pastor_id' })
   pastor: Pastor;
 
   //* Hacer relacion many to One con lideres y setear conteo en columna

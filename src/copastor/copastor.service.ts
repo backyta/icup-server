@@ -36,6 +36,7 @@ export class CoPastorService {
   ) {}
 
   //* CREATE COPASTOR
+  // TODO : despues de terminar el Pastor, seguimos con copastor porbando cada ruta y corrigiendo.
   async create(createCoPastorDto: CreateCoPastorDto) {
     //* No se necesita validacion en el front hacer la interfaz que ya filtre por rol, y isActive y que muestre solo los miembros que tienen rol de copastor y que muestre todos los pastores para asignar uno.
     const { idMember, idPastor } = createCoPastorDto;
@@ -43,7 +44,6 @@ export class CoPastorService {
     const member: Member = await this.memberRepository.findOneBy({
       id: idMember,
     });
-    console.log(member);
 
     const pastor: Pastor = await this.pastorRepository.findOneBy({
       id: idPastor,
@@ -77,7 +77,7 @@ export class CoPastorService {
     return this.coPastorRepository.find({
       take: limit,
       skip: offset,
-      //TODO : Cargar relaciones, ejemplo, hacerlo cuando hagamols buscar sin ninguna opcion y paginemos debemos cargat toda la info
+      //NOTE : Cargar relaciones, ejemplo, hacerlo cuando hagamols buscar sin ninguna opcion y paginemos debemos cargat toda la info
       //  relations: {
       //   images: true, //llena las imagenes, de la relacion cuando se haga el find
       // }
@@ -94,10 +94,15 @@ export class CoPastorService {
     //* Find ID --> One
     if (isUUID(term) && type === SearchType.id) {
       coPastor = await this.coPastorRepository.findOneBy({ id: term });
-      //! AGREGAR ESTA VALIDACIONES PARA TODOS
+
       if (!coPastor) {
         throw new BadRequestException(`No se encontro Copastor con este UUID`);
       }
+
+      if (!coPastor.is_active) {
+        throw new BadRequestException(`CoPastor should is active`);
+      }
+
       coPastor.member.age = updateAge(coPastor.member);
       await this.coPastorRepository.save(coPastor);
     }
@@ -152,7 +157,8 @@ export class CoPastorService {
       );
     }
 
-    if (!coPastor) throw new NotFoundException(`Member with ${term} not found`);
+    if (!coPastor)
+      throw new NotFoundException(`CoPastor with ${term} not found`);
 
     return coPastor;
   }
@@ -279,7 +285,8 @@ export class CoPastorService {
 
       const newCoPastorMembers = coPastores.map((member) => {
         const newCoPastores = coPastores.filter(
-          (coPastor) => coPastor.member.id === member.id,
+          (coPastor) =>
+            coPastor.member.id === member.id && coPastor.is_active === true,
         );
         return newCoPastores;
       });
@@ -316,7 +323,8 @@ export class CoPastorService {
 
       const newCoPastorMembers = coPastorMembers.map((member) => {
         const newCoPastores = coPastores.filter(
-          (coPastor) => coPastor.member.id === member.id,
+          (coPastor) =>
+            coPastor.member.id === member.id && coPastor.is_active === true,
         );
         return newCoPastores;
       });

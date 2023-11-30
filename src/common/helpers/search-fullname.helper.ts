@@ -28,6 +28,7 @@ export const searchFullname = async ({
       searchTerm2: `%${lastName}%`,
     })
     .skip(offset)
+    .andWhere(`is_active =:isActive`, { isActive: true })
     .limit(limit)
     .getMany();
 

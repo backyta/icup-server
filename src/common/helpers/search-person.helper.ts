@@ -33,6 +33,7 @@ export const searchPerson = async ({
     .where(`${searchType} ILIKE :searchTerm`, {
       searchTerm: `%${dataPerson}%`,
     })
+    .andWhere(`is_active =:isActive`, { isActive: true })
     .skip(offset)
     .limit(limit)
     .getMany();
