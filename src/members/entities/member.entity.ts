@@ -78,3 +78,5 @@ export class Member {
     this.age = age;
   }
 }
+
+//TODO : agregar earger en true cuando tengas ma relaciones en esta entidad, para que los metodos que usen este modulo se cargen autonmaticaente.

@@ -40,10 +40,6 @@ export class CoPastor {
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  // @OneToOne(() => Pastor, { eager: true }) // Carga el Miembro automáticamente al consultar Pastor
-  // @JoinColumn({ name: 'pastor_id' })
-  // pastor: Member;
-
   @ManyToOne(() => Pastor, { eager: true, nullable: true })
   @JoinColumn({ name: 'pastor_id' })
   pastor: Pastor;

@@ -35,11 +35,11 @@ export class Pastor {
   updated_by: string;
 
   //* Relation columns
-  //! Colocar en Miembro relacion One to One.
   @OneToOne(() => Member, { eager: true })
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
+  //NOTE : Al actualizar si el id del pastor le asigno otro copastores, gracias a esta relacion, se actualiza el id del pastor en la tabla copastor.
   @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { nullable: true })
   copastores: CoPastor[];
 }

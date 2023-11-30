@@ -10,10 +10,10 @@ export class CreatePastorDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  idMember: string;
+  id_member: string;
 
   @IsArray()
   @IsNotEmpty()
   @IsOptional()
-  idCopastores?: string[];
+  id_copastores?: string[];
 }

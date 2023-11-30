@@ -17,7 +17,9 @@ import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { searchPerson, searchFullname, updateAge } from '../common/helpers';
 
-// TODO : HACER RELACION CON BIDIRECCIONAL CON TABLA DIRECCION Y CON LAS DEMAS
+// TODO : HACER RELACION CON BIDIRECCIONAL CON TABLA DIRECCION Y CON LAS DEMAS, cuando creemos miembro
+// tmbs e crara su direccion, ver si se puede poblar o carga la relacion en members para que al consultar
+// en las demas relaciones tmb salga la direccion del member.
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MermbersService');
@@ -216,6 +218,10 @@ export class MembersService {
       is_active: false,
     });
 
+    //TODO : terminar members y pastor, y de ahi continuar con copastor.
+    //TODO : 01/12 al marcar inactivo el miembro, tmb se colocaran inactivos sus relaciones (copastor, lider) OneToOne
+    //! Habra dependencias ciclica.
+    //! Agregar columas descritas en el excel.
     try {
       await this.memberRepository.save(member);
     } catch (error) {

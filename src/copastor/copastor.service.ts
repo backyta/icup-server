@@ -217,6 +217,7 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
+  //TODO : Aplicar is active en false para sus relaciones que tengan el mismo campo.
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);

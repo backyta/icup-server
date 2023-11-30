@@ -38,24 +38,46 @@ export class PastorService {
 
   //* CREATE PASTOR
   async create(createPastorDto: CreatePastorDto): Promise<any> {
-    const { idMember, idCopastores = [] } = createPastorDto;
+    const { id_member, id_copastores } = createPastorDto;
 
     const member = await this.memberRepository.findOneBy({
-      id: idMember,
+      id: id_member,
     });
 
-    //NOTE : llenando la relacion de copastores.
-    const copastoresId: CoPastor[] = await Promise.all(
-      idCopastores.map(async (copastorId: string) => {
+    if (!member.roles.includes('pastor')) {
+      throw new BadRequestException(
+        `El id_member debe tener el rol de "Pastor"`,
+      );
+    }
+
+    if (!id_copastores) {
+      try {
+        const pastorInstance = this.pastorRepository.create({
+          member: member,
+          created_at: new Date(),
+          copastores: null,
+          count_copastor: id_copastores ? id_copastores.length : 0,
+          //NOTE : cambiar por id de usuario
+          created_by: 'Kevin',
+        });
+
+        return await this.pastorRepository.save(pastorInstance);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    const copastorInstances: CoPastor[] = await Promise.all(
+      id_copastores.map(async (copastorId: string) => {
         return await this.coPastorRepository.findOneBy({
           id: copastorId,
         });
       }),
     );
 
-    if (copastoresId.length === 0) {
+    if (copastorInstances.length === 0) {
       throw new BadRequestException(
-        `Not found copastores with these id: ${idCopastores}`,
+        `Not found copastores with these id: ${id_copastores}`,
       );
     }
 
@@ -63,8 +85,8 @@ export class PastorService {
       const pastorInstance = this.pastorRepository.create({
         member: member,
         created_at: new Date(),
-        copastores: copastoresId,
-        count_copastor: copastoresId ? copastoresId.length : 0,
+        copastores: copastorInstances,
+        count_copastor: id_copastores ? id_copastores.length : 0,
         //NOTE : cambiar por id de usuario
         created_by: 'Kevin',
       });
@@ -114,7 +136,6 @@ export class PastorService {
       await this.pastorRepository.save(pastor);
     }
 
-    //TODO : agregar cargar relation: ['copastores']
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
       const resultSearch = await this.searchPastorBy(
@@ -154,6 +175,8 @@ export class PastorService {
       return resultSearch;
     }
 
+    //TODO : 01/12 Agregar busqueda por inactivo a los demas pastor copastor, lider, para buscar pastores inactivos lideres o coapstores
+
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
       throw new BadRequestException(`Not valid UUID`);
@@ -171,9 +194,8 @@ export class PastorService {
   }
 
   //* UPDATE FOR ID
-  //TODO : probar actualizar, si al cambiar el meber aqui cambia en la tabla member
   async update(id: string, updatePastorDto: UpdatePastorDto) {
-    const { idCopastores } = updatePastorDto;
+    const { id_copastores, roles } = updatePastorDto;
 
     const dataPastor = await this.pastorRepository.findOneBy({ id });
 
@@ -181,35 +203,38 @@ export class PastorService {
       throw new NotFoundException(`Pastor not found with id: ${dataPastor.id}`);
     }
 
-    if (!dataPastor.member.id)
-      throw new NotFoundException(
-        `Member with id: ${dataPastor.member.id} not found`,
-      );
-
     if (!dataPastor.member.roles.includes('pastor')) {
       throw new BadRequestException(
         `This member cannot be assigned as Pastor, his role must contain: ["pastor"]`,
       );
     }
 
-    const copastoresId: CoPastor[] = await Promise.all(
-      idCopastores.map(async (copastorId: string) => {
+    if (!id_copastores) {
+      throw new BadRequestException(`El campo idCopastores es requerido`);
+    }
+
+    if (!roles.includes('pastor')) {
+      throw new BadRequestException(`Roles should includes require ['pastor']`);
+    }
+
+    const copastorInstances: CoPastor[] = await Promise.all(
+      id_copastores.map(async (copastorId: string) => {
         return await this.coPastorRepository.findOneBy({
           id: copastorId,
         });
       }),
     );
 
-    if (copastoresId.length === 0) {
+    if (copastorInstances.length === 0) {
       throw new BadRequestException(
-        `Not found copastores with these id: ${idCopastores}`,
+        `Not found copastores with these id: ${id_copastores}`,
       );
     }
 
     const member = await this.memberRepository.preload({
       id: dataPastor.member.id,
       updated_at: new Date(),
-      // NOTE: cambiar por uuid en relacion con User, aqui se actualiza el mimbro y el de su tabla.
+      // NOTE: cambiar por uuid en relacion con User, actualizar el user y su relacion en la tabla User con Pastor(crated) o no sera necesario?
       updated_by: 'Kevinxd',
       ...updatePastorDto,
     });
@@ -217,8 +242,8 @@ export class PastorService {
     const pastor = await this.pastorRepository.preload({
       id: id,
       member: member,
-      copastores: copastoresId,
-      count_copastor: idCopastores ? idCopastores.length : 0,
+      copastores: copastorInstances,
+      count_copastor: id_copastores ? id_copastores.length : 0,
       updated_at: new Date(),
       //NOTE : cambiar por id de usuario
       updated_by: 'Kevinxd',
@@ -230,6 +255,11 @@ export class PastorService {
     } catch (error) {
       this.handleDBExceptions(error);
     }
+
+    pastor.copastores.map((copastor) => {
+      copastor.pastor.id = id;
+      return copastor;
+    });
 
     return pastor;
   }
@@ -246,7 +276,6 @@ export class PastorService {
       throw new NotFoundException(`Pastor with id: ${id} not exits`);
     }
 
-    //TODO : agregar otro boton que sea eliminar permanentemente.
     const member = await this.memberRepository.preload({
       id: dataPastor.member.id,
       is_active: false,
@@ -300,7 +329,9 @@ export class PastorService {
         throw new NotFoundException(`Not found member with roles 'Pastor'`);
       }
 
-      const pastores = await this.pastorRepository.find();
+      const pastores = await this.pastorRepository.find({
+        relations: ['copastores'],
+      });
 
       const newPastorMembers = pastorMembers.map((member) => {
         const newPastores = pastores.filter(
@@ -338,7 +369,9 @@ export class PastorService {
         throw new NotFoundException(`Not found member with roles 'Pastor'`);
       }
 
-      const pastores = await this.pastorRepository.find();
+      const pastores = await this.pastorRepository.find({
+        relations: ['copastores'],
+      });
 
       const newPastorMembers = pastorMembers.map((member) => {
         const newPastores = pastores.filter(
