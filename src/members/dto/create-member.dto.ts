@@ -7,6 +7,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -14,6 +15,7 @@ import { MaritalStatus } from '../enums/marital-status.enum';
 import { ValidRoles } from '../enums/valid-roles.enum';
 
 export class CreateMemberDto {
+  //* Info member
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
@@ -37,13 +39,13 @@ export class CreateMemberDto {
   @IsIn(['male', 'female'])
   gender: string;
 
-  @IsNumber()
-  @IsOptional()
-  number_children?: number;
-
   @IsEnum(MaritalStatus)
   @IsNotEmpty()
   marital_status: string;
+
+  @IsNumber()
+  @IsOptional()
+  number_children?: number;
 
   @IsString()
   @IsOptional()
@@ -54,10 +56,62 @@ export class CreateMemberDto {
 
   @IsString()
   @IsNotEmpty()
-  nationality: string;
+  origin_country: string;
 
   @IsEnum(ValidRoles, { each: true })
   @IsArray()
   @IsNotEmpty()
   roles: string[];
+
+  //* Info adress
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(10)
+  residence_country?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  departament?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  province: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(20)
+  district: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(50)
+  address: string;
+
+  //* Relations
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  their_family_home_id?: string;
+
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  their_pastor_id?: string;
+
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  their_copastor_id?: string;
+
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  their_preacher_id?: string;
 }

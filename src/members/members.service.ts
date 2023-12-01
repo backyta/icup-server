@@ -16,10 +16,9 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { searchPerson, searchFullname, updateAge } from '../common/helpers';
+import { Pastor } from 'src/pastor/entities/pastor.entity';
+import { CoPastor } from 'src/copastor/entities/copastor.entity';
 
-// TODO : HACER RELACION CON BIDIRECCIONAL CON TABLA DIRECCION Y CON LAS DEMAS, cuando creemos miembro
-// tmbs e crara su direccion, ver si se puede poblar o carga la relacion en members para que al consultar
-// en las demas relaciones tmb salga la direccion del member.
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MermbersService');
@@ -27,12 +26,48 @@ export class MembersService {
   constructor(
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
+
+    @InjectRepository(Pastor)
+    private readonly pastorRepository: Repository<Pastor>,
+
+    @InjectRepository(CoPastor)
+    private readonly coPastorRepository: Repository<CoPastor>,
   ) {}
 
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
-    // NOTE: aniadir la creacion de su direccion con relacion (OnetoMany)
-    //* Crear un objeto anidados y crarlo junto con el mimbro addres., barriendo y asignado sus propiedades addre.contry, ...
+    const { roles, their_pastor_id, their_copastor_id } = createMemberDto;
+
+    const pastor = this.pastorRepository.findOneBy({ id: their_pastor_id });
+    const coPastor = this.coPastorRepository.findOneBy({
+      id: their_copastor_id,
+    });
+
+    //TODO : falta hacer el preacher y su casa, validaciones.
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not found pastor with id: ${their_pastor_id}`,
+      );
+    }
+
+    if (!coPastor) {
+      throw new NotFoundException(
+        `Not found pastor with id: ${their_copastor_id}`,
+      );
+    }
+
+    if (roles.includes('pastor') && their_pastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un Pastor a un miembro con rol Pastor`,
+      );
+    }
+
+    if (roles.includes('copastor') && their_copastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un Copastor a un miembro con rol CoPastor`,
+      );
+    }
+
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
@@ -57,7 +92,6 @@ export class MembersService {
       where: { is_active: true },
       take: limit,
       skip: offset,
-      //NOTE : agregar relations para cargarlas al buscar por todas
     });
   }
 
@@ -70,11 +104,11 @@ export class MembersService {
     let member: Member | Member[];
 
     //* Find UUID --> One
-    // NOTE: buscar solo por ID y cargar las demas relaciones eager en tru en la relaciones.
+
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOne({
         where: { id: term },
-        //!Cargar relaciones.
+        relations: ['their_copastor_id', 'their_pastor_id'],
       });
 
       if (!member) {
@@ -218,12 +252,24 @@ export class MembersService {
       is_active: false,
     });
 
-    //TODO : terminar members y pastor, y de ahi continuar con copastor.
-    //TODO : 01/12 al marcar inactivo el miembro, tmb se colocaran inactivos sus relaciones (copastor, lider) OneToOne
-    //! Habra dependencias ciclica.
-    //! Agregar columas descritas en el excel.
+    const pastores = await this.pastorRepository.find();
+
+    const pastorMember = pastores.find((pastor) => pastor.member.id === id);
+
+    if (!pastorMember) {
+      throw new NotFoundException(`Not found pastor`);
+    }
+
+    const pastor = await this.pastorRepository.preload({
+      id: pastorMember.id,
+      is_active: false,
+    });
+    //TODO :  02/12 hacer para copastor, preacher, primero crear el copastor y arreglar
+    //TODO : 02/12 comenzar con copastor y verificar cada metodo
+
     try {
       await this.memberRepository.save(member);
+      await this.pastorRepository.save(pastor);
     } catch (error) {
       this.logger.error(error);
     }

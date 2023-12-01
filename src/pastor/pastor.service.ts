@@ -31,7 +31,6 @@ export class PastorService {
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
 
-    //! Aqui hay depenedncia ciclica
     @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
   ) {}
@@ -175,7 +174,29 @@ export class PastorService {
       return resultSearch;
     }
 
-    //TODO : 01/12 Agregar busqueda por inactivo a los demas pastor copastor, lider, para buscar pastores inactivos lideres o coapstores
+    //* Find isActive --> Many
+    if (term && type === SearchType.isActive) {
+      const whereCondition = {};
+      try {
+        whereCondition[type] = term;
+
+        const pastores = await this.pastorRepository.find({
+          where: [whereCondition],
+          take: limit,
+          skip: offset,
+          relations: ['copastores'],
+        });
+
+        if (pastores.length === 0) {
+          throw new NotFoundException(
+            `Not found member with these names: ${term}`,
+          );
+        }
+        return pastores;
+      } catch (error) {
+        throw new BadRequestException(`This term is not a valid boolean value`);
+      }
+    }
 
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
@@ -287,10 +308,12 @@ export class PastorService {
     });
 
     try {
-      await this.memberRepository.save(member);
-      await this.pastorRepository.save(pastor);
+      await Promise.all([
+        this.memberRepository.save(member),
+        this.pastorRepository.save(pastor),
+      ]);
     } catch (error) {
-      this.logger.error(error);
+      this.handleDBExceptions(error);
     }
   }
 

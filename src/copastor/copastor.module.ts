@@ -13,7 +13,7 @@ import { PastorModule } from '../pastor/pastor.module';
   providers: [CoPastorService],
   imports: [
     TypeOrmModule.forFeature([CoPastor]),
-    MembersModule,
+    forwardRef(() => MembersModule),
     forwardRef(() => PastorModule),
   ],
   exports: [TypeOrmModule, CoPastorService],

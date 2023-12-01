@@ -146,6 +146,29 @@ export class CoPastorService {
       return resultSearch;
     }
 
+    //* Find isActive --> Many
+    if (term && type === SearchType.isActive) {
+      const whereCondition = {};
+      try {
+        whereCondition[type] = term;
+
+        const coPastores = await this.coPastorRepository.find({
+          where: [whereCondition],
+          take: limit,
+          skip: offset,
+        });
+
+        if (coPastores.length === 0) {
+          throw new NotFoundException(
+            `Not found member with these names: ${term}`,
+          );
+        }
+        return coPastores;
+      } catch (error) {
+        throw new BadRequestException(`This term is not a valid boolean value`);
+      }
+    }
+
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
       throw new BadRequestException(`Not valid UUID`);
