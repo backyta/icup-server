@@ -4,11 +4,11 @@ export class CreateCoPastorDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  idMember: string;
+  id_member: string;
 
   @IsString()
   @IsNotEmpty()
   @IsUUID()
   @IsOptional()
-  idPastor?: string;
+  id_pastor?: string;
 }

@@ -4,7 +4,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -40,7 +39,7 @@ export class CoPastor {
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  @ManyToOne(() => Pastor, { eager: true, nullable: true })
+  @OneToOne(() => Pastor, { eager: true, nullable: true })
   @JoinColumn({ name: 'pastor_id' })
   pastor: Pastor;
 

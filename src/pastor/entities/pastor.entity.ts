@@ -35,13 +35,15 @@ export class Pastor {
   updated_by: string;
 
   //* Relation columns
+  //! Hacer eliminacion en cascara si, se elimina un member tmb su pasto, y viceversa
+  //! Igual con copastor y pracher para evitar esata resticciones al querer borrar o no ? (estudiar)
   @OneToOne(() => Member, { eager: true })
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
   //NOTE : Al actualizar si el id del pastor le asigno otro copastores, gracias a esta relacion, se actualiza el id del pastor en la tabla copastor.
   @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { nullable: true })
-  copastores: CoPastor[];
+  copastores: CoPastor[]; // esto no se mostrara en la tabla, pero la cargamos aparte.
 }
 
 //! Se agregaria el id del usuario en creacion y actualizacion (relacion) CRATED by

@@ -38,24 +38,6 @@ export class MembersService {
   async create(createMemberDto: CreateMemberDto) {
     const { roles, their_pastor_id, their_copastor_id } = createMemberDto;
 
-    const pastor = this.pastorRepository.findOneBy({ id: their_pastor_id });
-    const coPastor = this.coPastorRepository.findOneBy({
-      id: their_copastor_id,
-    });
-
-    //TODO : falta hacer el preacher y su casa, validaciones.
-    if (!pastor) {
-      throw new NotFoundException(
-        `Not found pastor with id: ${their_pastor_id}`,
-      );
-    }
-
-    if (!coPastor) {
-      throw new NotFoundException(
-        `Not found pastor with id: ${their_copastor_id}`,
-      );
-    }
-
     if (roles.includes('pastor') && their_pastor_id) {
       throw new BadRequestException(
         `No se puede asignar un Pastor a un miembro con rol Pastor`,
@@ -64,13 +46,32 @@ export class MembersService {
 
     if (roles.includes('copastor') && their_copastor_id) {
       throw new BadRequestException(
-        `No se puede asignar un Copastor a un miembro con rol CoPastor`,
+        `No se puede asignar un coPastor a un miembro con rol coPastor`,
       );
     }
+
+    // if (roles.includes('preacher') && their_preacher_id) {
+    //   throw new BadRequestException(
+    //     `No se puede asignar un Preacher a un miembro con rol Preacher`,
+    //   );
+    // }
+
+    //TODO : falta hacer lo de preacher y su casa.
+    const pastor = await this.pastorRepository.findOneBy({
+      id: their_pastor_id,
+    });
+    const coPastor = await this.coPastorRepository.findOneBy({
+      id: their_copastor_id,
+    });
+    // const preacher = this.preacherRepository.findOneBy({
+    //   id: their_preacher_id,
+    // });
 
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
+        their_copastor_id: coPastor,
+        their_pastor_id: pastor,
         created_at: new Date(),
         // NOTE: cambiar por uuid en relacion con User
         created_by: 'Kevin',
@@ -79,8 +80,6 @@ export class MembersService {
 
       return member;
     } catch (error) {
-      console.log(error);
-
       this.handleDBExceptions(error);
     }
   }
@@ -92,9 +91,11 @@ export class MembersService {
       where: { is_active: true },
       take: limit,
       skip: offset,
+      relations: ['their_pastor_id', 'their_copastor_id'],
     });
   }
 
+  // TODO : agregar preacher y casa para cargar relaciones(despues)
   //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
   async findTerm(
     term: string,
@@ -224,12 +225,58 @@ export class MembersService {
 
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto) {
+    const { roles, their_copastor_id, their_pastor_id } = updateMemberDto;
+
+    const dataMember = await this.memberRepository.findOneBy({ id });
+
+    if (!dataMember) {
+      throw new NotFoundException(`Member not found with id: ${id}`);
+    }
+
+    //TODO : Agregar preacher y casa cuando llege a esa relacion.
+    if (!their_copastor_id || !their_pastor_id) {
+      throw new BadRequestException(
+        `El campo their_copastor_id, their_pastor_id es requerido`,
+      );
+    }
+
+    if (!roles) {
+      throw new BadRequestException(`El campo roles, es requerido`);
+    }
+
+    if (roles.includes('pastor') && their_pastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un Pastor a un miembro con rol Pastor`,
+      );
+    }
+
+    if (roles.includes('copastor') && their_copastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un coPastor a un miembro con rol coPastor`,
+      );
+    }
+
+    // if (roles.includes('preacher') && their_preacher_id) {
+    //   throw new BadRequestException(
+    //     `No se puede asignar un Preacher a un miembro con rol Preacher`,
+    //   );
+    // }
+
+    const pastor = await this.pastorRepository.findOneBy({
+      id: their_pastor_id,
+    });
+    const coPastor = await this.coPastorRepository.findOneBy({
+      id: their_copastor_id,
+    });
+
     const member = await this.memberRepository.preload({
+      ...updateMemberDto,
       id: id,
+      their_copastor_id: coPastor,
+      their_pastor_id: pastor,
       updated_at: new Date(),
       // NOTE: cambiar por uuid en relacion con User
       updated_by: 'Kevinxd',
-      ...updateMemberDto,
     });
 
     if (!member) throw new NotFoundException(`Member with id: ${id} not found`);
@@ -247,31 +294,65 @@ export class MembersService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
+    const dataMember = await this.memberRepository.findOneBy({ id: id });
+    if (!dataMember) {
+      throw new BadRequestException(`Member with id ${id} not exist`);
+    }
+
     const member = await this.memberRepository.preload({
       id: id,
       is_active: false,
     });
 
-    const pastores = await this.pastorRepository.find();
-
-    const pastorMember = pastores.find((pastor) => pastor.member.id === id);
-
-    if (!pastorMember) {
-      throw new NotFoundException(`Not found pastor`);
+    let pastor: Pastor;
+    if (dataMember.roles.includes('pastor')) {
+      const pastores = await this.pastorRepository.find();
+      const pastorMember = pastores.find((pastor) => pastor.member.id === id);
+      if (!pastorMember) {
+        throw new NotFoundException(`Not found pastor`);
+      }
+      pastor = await this.pastorRepository.preload({
+        id: pastorMember.id,
+        is_active: false,
+      });
     }
 
-    const pastor = await this.pastorRepository.preload({
-      id: pastorMember.id,
-      is_active: false,
-    });
-    //TODO :  02/12 hacer para copastor, preacher, primero crear el copastor y arreglar
-    //TODO : 02/12 comenzar con copastor y verificar cada metodo
+    let coPastor: CoPastor;
+    if (member.roles.includes('copastor')) {
+      const coPastores = await this.coPastorRepository.find();
+      const coPastorMember = coPastores.find(
+        (coPastor) => coPastor.member.id === id,
+      );
+      if (!coPastorMember) {
+        throw new NotFoundException(`Not found pastor`);
+      }
+      coPastor = await this.coPastorRepository.preload({
+        id: coPastorMember.id,
+        is_active: false,
+      });
+    }
+
+    // let preacher: Preacher;
+    // if (member.roles.includes('preacher')) {
+    //   const preachers = await this.preacherRepository.find();
+    //   const preacherMember = preacher.find(
+    //     (preaacher) => preacher.member.id === id,
+    //   );
+    //   if (!preacherMember) {
+    //     throw new NotFoundException(`Not found pastor`);
+    //   }
+    //   coPastor = await this.coPastorRepository.preload({
+    //     id: preacherMember.id,
+    //     is_active: false,
+    //   });
+    // }
 
     try {
       await this.memberRepository.save(member);
       await this.pastorRepository.save(pastor);
+      await this.pastorRepository.save(coPastor);
     } catch (error) {
-      this.logger.error(error);
+      this.handleDBExceptions(error);
     }
   }
 
@@ -291,14 +372,15 @@ export class MembersService {
     offset: number,
   ): Promise<Member[]> {
     const whereCondition = {};
-    try {
-      if (searchType === 'is_active') {
+    if (searchType === 'is_active') {
+      try {
         whereCondition[searchType] = term;
 
         const members = await this.memberRepository.find({
           where: [whereCondition],
           take: limit,
           skip: offset,
+          relations: ['their_pastor_id', 'their_copastor_id'],
         });
 
         if (members.length === 0) {
@@ -307,9 +389,9 @@ export class MembersService {
           );
         }
         return members;
+      } catch (error) {
+        throw new BadRequestException(`This term is not a valid boolean value`);
       }
-    } catch (error) {
-      throw new BadRequestException(`This term is not a valid boolean value`);
     }
 
     whereCondition[searchType] = term;
@@ -319,6 +401,7 @@ export class MembersService {
       where: [whereCondition],
       take: limit,
       skip: offset,
+      relations: ['their_pastor_id', 'their_copastor_id'],
     });
 
     if (members.length === 0) {

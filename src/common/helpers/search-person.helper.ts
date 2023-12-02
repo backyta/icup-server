@@ -28,12 +28,15 @@ export const searchPerson = async ({
     );
   }
 
-  const queryBuilder = repository.createQueryBuilder();
+  const queryBuilder = repository.createQueryBuilder('member');
   const member = await queryBuilder
-    .where(`${searchType} ILIKE :searchTerm`, {
+    .leftJoinAndSelect('member.their_pastor_id', 'rel1')
+    .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+    // .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+    .where(`member.${searchType} ILIKE :searchTerm`, {
       searchTerm: `%${dataPerson}%`,
     })
-    .andWhere(`is_active =:isActive`, { isActive: true })
+    .andWhere(`member.is_active =:isActive`, { isActive: true })
     .skip(offset)
     .limit(limit)
     .getMany();

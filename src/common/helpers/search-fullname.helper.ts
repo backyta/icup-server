@@ -19,16 +19,18 @@ export const searchFullname = async ({
   const firstName = validateName(first);
   const lastName = validateName(second);
 
-  const queryBuilder = repository.createQueryBuilder();
+  const queryBuilder = repository.createQueryBuilder('member');
   const member = await queryBuilder
-    .where(`first_name ILIKE :searchTerm1`, {
+    .leftJoinAndSelect('member.their_pastor_id', 'rel1')
+    .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+    .where(`member.first_name ILIKE :searchTerm1`, {
       searchTerm1: `%${firstName}%`,
     })
-    .andWhere(`last_name ILIKE :searchTerm2`, {
+    .andWhere(`member.last_name ILIKE :searchTerm2`, {
       searchTerm2: `%${lastName}%`,
     })
     .skip(offset)
-    .andWhere(`is_active =:isActive`, { isActive: true })
+    .andWhere(`member.is_active =:isActive`, { isActive: true })
     .limit(limit)
     .getMany();
 

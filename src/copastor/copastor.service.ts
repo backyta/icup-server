@@ -39,17 +39,32 @@ export class CoPastorService {
   // TODO : despues de terminar el Pastor, seguimos con copastor porbando cada ruta y corrigiendo.
   async create(createCoPastorDto: CreateCoPastorDto) {
     //* No se necesita validacion en el front hacer la interfaz que ya filtre por rol, y isActive y que muestre solo los miembros que tienen rol de copastor y que muestre todos los pastores para asignar uno.
-    const { idMember, idPastor } = createCoPastorDto;
+    const { id_member, id_pastor } = createCoPastorDto;
 
-    const member: Member = await this.memberRepository.findOneBy({
-      id: idMember,
+    const member = await this.memberRepository.findOneBy({
+      id: id_member,
     });
 
-    const pastor: Pastor = await this.pastorRepository.findOneBy({
-      id: idPastor,
+    if (!id_pastor) {
+      try {
+        const coPastorInstance = this.coPastorRepository.create({
+          member: member,
+          pastor: null,
+          count_houses: 5,
+          count_leaders: 10,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        return await this.coPastorRepository.save(coPastorInstance);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    const pastor = await this.pastorRepository.findOneBy({
+      id: id_pastor,
     });
-    //*Problema en PASTOR CONM exceso de llamadas.
-    console.log(pastor);
 
     try {
       const coPastorInstance = this.coPastorRepository.create({
@@ -65,8 +80,6 @@ export class CoPastorService {
 
       return await this.coPastorRepository.save(coPastorInstance);
     } catch (error) {
-      console.log(error);
-
       this.handleDBExceptions(error);
     }
   }

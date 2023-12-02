@@ -36,7 +36,7 @@ export class PastorService {
   ) {}
 
   //* CREATE PASTOR
-  async create(createPastorDto: CreatePastorDto): Promise<any> {
+  async create(createPastorDto: CreatePastorDto): Promise<Pastor> {
     const { id_member, id_copastores } = createPastorDto;
 
     const member = await this.memberRepository.findOneBy({
@@ -46,6 +46,12 @@ export class PastorService {
     if (!member.roles.includes('pastor')) {
       throw new BadRequestException(
         `El id_member debe tener el rol de "Pastor"`,
+      );
+    }
+
+    if (!member.is_active) {
+      throw new BadRequestException(
+        `The property is_active in member must be a true value"`,
       );
     }
 
@@ -66,7 +72,7 @@ export class PastorService {
       }
     }
 
-    const copastorInstances: CoPastor[] = await Promise.all(
+    const copastorInstances = await Promise.all(
       id_copastores.map(async (copastorId: string) => {
         return await this.coPastorRepository.findOneBy({
           id: copastorId,
@@ -74,9 +80,9 @@ export class PastorService {
       }),
     );
 
-    if (copastorInstances.length === 0) {
+    if (copastorInstances.includes(null)) {
       throw new BadRequestException(
-        `Not found copastores with these id: ${id_copastores}`,
+        `The id_copastors[] must be a valid copastor_id`,
       );
     }
 
@@ -95,7 +101,7 @@ export class PastorService {
     }
   }
 
-  //* FIND ALL (PAGINATED) boton flecha y auemtar el offset de 10 o 20.
+  //* FIND ALL (PAGINATED)
   findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.pastorRepository.find({
@@ -215,19 +221,14 @@ export class PastorService {
   }
 
   //* UPDATE FOR ID
+  //TODO : probar
   async update(id: string, updatePastorDto: UpdatePastorDto) {
     const { id_copastores, roles } = updatePastorDto;
 
     const dataPastor = await this.pastorRepository.findOneBy({ id });
 
     if (!dataPastor) {
-      throw new NotFoundException(`Pastor not found with id: ${dataPastor.id}`);
-    }
-
-    if (!dataPastor.member.roles.includes('pastor')) {
-      throw new BadRequestException(
-        `This member cannot be assigned as Pastor, his role must contain: ["pastor"]`,
-      );
+      throw new NotFoundException(`Pastor not found with id: ${id}`);
     }
 
     if (!id_copastores) {
@@ -238,7 +239,7 @@ export class PastorService {
       throw new BadRequestException(`Roles should includes require ['pastor']`);
     }
 
-    const copastorInstances: CoPastor[] = await Promise.all(
+    const copastorInstances = await Promise.all(
       id_copastores.map(async (copastorId: string) => {
         return await this.coPastorRepository.findOneBy({
           id: copastorId,
@@ -246,46 +247,65 @@ export class PastorService {
       }),
     );
 
-    if (copastorInstances.length === 0) {
+    if (copastorInstances.includes(null)) {
       throw new BadRequestException(
-        `Not found copastores with these id: ${id_copastores}`,
+        `The id_copastors[] must be a valid copastor_id`,
       );
     }
 
     const member = await this.memberRepository.preload({
+      ...updatePastorDto,
       id: dataPastor.member.id,
       updated_at: new Date(),
       // NOTE: cambiar por uuid en relacion con User, actualizar el user y su relacion en la tabla User con Pastor(crated) o no sera necesario?
       updated_by: 'Kevinxd',
-      ...updatePastorDto,
     });
+    //* Problema cuando se intenta actualizar los copastores de relacion , se intenta setear el pastor_id
+    //* en la tabla copastor, en cada copastor para identificarlo con id_pastor, pero como ya existe lanza el error
+    //FIXME: arreglar esto 03/12
+    //? No seria necesario tener un array de copastores, seria mucha dependencia ciclica, porque no mejor
+    //? hacemos un query de la tabla copastor, dentro del pastor(create/ actualizat) y los id que coincidan
+    //? se haga conteo y se saque el id de sus copastores y la info para setear en la vista
+    //? Colocar un watcher que observe cambios cada vez que se consulte el pastor, asi como en la edad.
+    //* Ver si al actualizar el copastor colocandole un id_pastor, se hace la relacion o se poluta el array de copastores.
+    // const pastor = await this.pastorRepository.preload({
+    //   id: id,
+    //   member: member,
+    //   copastores: copastorInstances,
+    //   count_copastor: id_copastores ? id_copastores.length : 0,
+    //   updated_at: new Date(),
+    //   //NOTE : cambiar por id de usuario
+    //   updated_by: 'Kevinxd',
+    // });
 
-    const pastor = await this.pastorRepository.preload({
-      id: id,
-      member: member,
-      copastores: copastorInstances,
-      count_copastor: id_copastores ? id_copastores.length : 0,
-      updated_at: new Date(),
-      //NOTE : cambiar por id de usuario
-      updated_by: 'Kevinxd',
-    });
+    dataPastor.member = member;
+    dataPastor.copastores = copastorInstances;
+    dataPastor.count_copastor = id_copastores ? id_copastores.length : 0;
+    dataPastor.updated_at = new Date();
+    dataPastor.updated_by = 'Kevinxd';
 
     try {
       await this.memberRepository.save(member);
-      await this.pastorRepository.save(pastor);
+      await this.pastorRepository.save(dataPastor);
     } catch (error) {
+      console.log('xdddaa');
+
+      console.log(error);
+
       this.handleDBExceptions(error);
     }
+    // console.log('xdd');
 
-    pastor.copastores.map((copastor) => {
-      copastor.pastor.id = id;
-      return copastor;
-    });
+    // pastor.copastores.map((copastor) => {
+    //   copastor.pastor.id = id;
+    //   return copastor;
+    // });
 
-    return pastor;
+    return dataPastor;
   }
 
   //* DELETE FOR ID
+  //TODO : probar
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
