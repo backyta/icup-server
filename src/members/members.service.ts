@@ -304,20 +304,26 @@ export class MembersService {
       is_active: false,
     });
 
-    let pastor: Pastor;
+    //TODO : Falta hacer el preacher
     if (dataMember.roles.includes('pastor')) {
       const pastores = await this.pastorRepository.find();
       const pastorMember = pastores.find((pastor) => pastor.member.id === id);
       if (!pastorMember) {
         throw new NotFoundException(`Not found pastor`);
       }
-      pastor = await this.pastorRepository.preload({
+      const pastor = await this.pastorRepository.preload({
         id: pastorMember.id,
         is_active: false,
       });
+
+      try {
+        await this.memberRepository.save(member);
+        await this.pastorRepository.save(pastor);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
     }
 
-    let coPastor: CoPastor;
     if (member.roles.includes('copastor')) {
       const coPastores = await this.coPastorRepository.find();
       const coPastorMember = coPastores.find(
@@ -326,13 +332,19 @@ export class MembersService {
       if (!coPastorMember) {
         throw new NotFoundException(`Not found pastor`);
       }
-      coPastor = await this.coPastorRepository.preload({
+      const coPastor = await this.coPastorRepository.preload({
         id: coPastorMember.id,
         is_active: false,
       });
+
+      try {
+        await this.memberRepository.save(member);
+        await this.pastorRepository.save(coPastor);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
     }
 
-    // let preacher: Preacher;
     // if (member.roles.includes('preacher')) {
     //   const preachers = await this.preacherRepository.find();
     //   const preacherMember = preacher.find(
@@ -341,19 +353,17 @@ export class MembersService {
     //   if (!preacherMember) {
     //     throw new NotFoundException(`Not found pastor`);
     //   }
-    //   coPastor = await this.coPastorRepository.preload({
+    //   [preacher] = await this.preacherRepository.preload({
     //     id: preacherMember.id,
     //     is_active: false,
     //   });
+    // try {
+    //   await this.memberRepository.save(member);
+    //   await this.pastorRepository.save(preacher);
+    // } catch (error) {
+    //   this.handleDBExceptions(error);
     // }
-
-    try {
-      await this.memberRepository.save(member);
-      await this.pastorRepository.save(pastor);
-      await this.pastorRepository.save(coPastor);
-    } catch (error) {
-      this.handleDBExceptions(error);
-    }
+    // }
   }
 
   //! PRIVATE METHODS

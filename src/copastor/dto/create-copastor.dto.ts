@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
 
 export class CreateCoPastorDto {
   @IsString()
@@ -9,6 +9,5 @@ export class CreateCoPastorDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  @IsOptional()
-  id_pastor?: string;
+  id_pastor: string;
 }

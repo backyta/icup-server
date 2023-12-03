@@ -20,6 +20,7 @@ import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { updateAge, searchPerson, searchFullname } from '../common/helpers';
 import { SearchType } from '../common/enums/search-types.enum';
 
+//TODO : crear las demas tablas, para ir avanzando, y modificar las propiedades de la Entidad, their_pastor.
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');
@@ -36,43 +37,43 @@ export class CoPastorService {
   ) {}
 
   //* CREATE COPASTOR
-  // TODO : despues de terminar el Pastor, seguimos con copastor porbando cada ruta y corrigiendo.
   async create(createCoPastorDto: CreateCoPastorDto) {
-    //* No se necesita validacion en el front hacer la interfaz que ya filtre por rol, y isActive y que muestre solo los miembros que tienen rol de copastor y que muestre todos los pastores para asignar uno.
     const { id_member, id_pastor } = createCoPastorDto;
 
     const member = await this.memberRepository.findOneBy({
       id: id_member,
     });
 
-    if (!id_pastor) {
-      try {
-        const coPastorInstance = this.coPastorRepository.create({
-          member: member,
-          pastor: null,
-          count_houses: 5,
-          count_leaders: 10,
-          created_at: new Date(),
-          created_by: 'Kevin',
-        });
+    if (!member) {
+      throw new NotFoundException(`Not faound Member with id ${id_member}`);
+    }
 
-        return await this.coPastorRepository.save(coPastorInstance);
-      } catch (error) {
-        this.handleDBExceptions(error);
-      }
+    if (!member.roles.includes('copastor')) {
+      throw new BadRequestException(
+        `El id_member debe tener el rol de "Pastor"`,
+      );
+    }
+
+    if (!member.is_active) {
+      throw new BadRequestException(
+        `The property is_active in member must be a true value"`,
+      );
     }
 
     const pastor = await this.pastorRepository.findOneBy({
       id: id_pastor,
     });
 
+    if (!pastor) {
+      throw new NotFoundException(`Not faound Pastor with id ${id_member}`);
+    }
+    // ! Aqui no mandar todo en undefined las cas y lederes y en buscar ahi se actualiza
+    //TODO : Hacer las mismas consultas de pastor, para setear aqui el array lideres y residencias y luego hacer el count
     try {
       const coPastorInstance = this.coPastorRepository.create({
         member: member,
         pastor: pastor,
-        //* Hacer conteo con la relacion (ver si hacer en actualizacion porque no se han creado casas aun)
         count_houses: 5,
-        //* Hacer conteo con la relaciond de lideres (ver si hacer en actualizacion porque no se han creado lideres aun)
         count_leaders: 10,
         created_at: new Date(),
         created_by: 'Kevin',
@@ -90,10 +91,6 @@ export class CoPastorService {
     return this.coPastorRepository.find({
       take: limit,
       skip: offset,
-      //NOTE : Cargar relaciones, ejemplo, hacerlo cuando hagamols buscar sin ninguna opcion y paginemos debemos cargat toda la info
-      //  relations: {
-      //   images: true, //llena las imagenes, de la relacion cuando se haga el find
-      // }
     });
   }
 
@@ -115,6 +112,8 @@ export class CoPastorService {
       if (!coPastor.is_active) {
         throw new BadRequestException(`CoPastor should is active`);
       }
+
+      //TODO : hacer aqui las mismas consultas para generar el array y el conteo
 
       coPastor.member.age = updateAge(coPastor.member);
       await this.coPastorRepository.save(coPastor);
@@ -232,10 +231,10 @@ export class CoPastorService {
       ...updateCoPastorDto,
     });
 
+    //TODO : hacer las mismas consultas para sacar el conteo y array, al actualiza se setea al igual que buscar por ID.
     const coPastor = await this.coPastorRepository.preload({
       id: id,
       member: member,
-      //TODO : Contar con query con tabla copastor
       count_houses: 16,
       count_leaders: 11,
       updated_at: new Date(),
@@ -253,7 +252,7 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
-  //TODO : Aplicar is active en false para sus relaciones que tengan el mismo campo.
+  //TODO : Aplicar is active en false pero aqui ya no iria pastor, porque seria independiente.
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
