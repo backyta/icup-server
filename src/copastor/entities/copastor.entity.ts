@@ -17,7 +17,7 @@ export class CoPastor {
   count_houses: number;
 
   @Column('int', { default: 0 })
-  count_leaders: number;
+  count_preachers: number;
 
   @Column('bool', { default: true })
   is_active: boolean;
@@ -40,8 +40,8 @@ export class CoPastor {
   member: Member;
 
   @OneToOne(() => Pastor, { eager: true, nullable: true })
-  @JoinColumn({ name: 'pastor_id' })
-  pastor: Pastor;
+  @JoinColumn({ name: 'their_pastor_id' })
+  their_pastor: Pastor;
 
   //* Hacer relacion many to One con lideres y setear conteo en columna
   //* Relacion con lideres y con residencias

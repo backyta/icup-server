@@ -108,7 +108,7 @@ export class PastorService {
       //* Conteo de copastores desde otro repository
       const allCopastores = await this.coPastorRepository.find();
       const listCopastores = allCopastores.filter(
-        (copastor) => copastor.pastor.id === term,
+        (copastor) => copastor.their_pastor.id === term,
       );
 
       const newListCopastoresID = listCopastores.map(
@@ -218,7 +218,7 @@ export class PastorService {
     const allCopastores = await this.coPastorRepository.find();
 
     const listCopastores = allCopastores.filter(
-      (copastor) => copastor.pastor.id === id,
+      (copastor) => copastor.their_pastor.id === id,
     );
 
     const listCopastoresID = listCopastores.map((copastores) => copastores.id);

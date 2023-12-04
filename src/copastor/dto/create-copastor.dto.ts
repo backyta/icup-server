@@ -9,5 +9,5 @@ export class CreateCoPastorDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  id_pastor: string;
+  their_pastor: string;
 }

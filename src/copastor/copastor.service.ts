@@ -38,7 +38,7 @@ export class CoPastorService {
 
   //* CREATE COPASTOR
   async create(createCoPastorDto: CreateCoPastorDto) {
-    const { id_member, id_pastor } = createCoPastorDto;
+    const { id_member, their_pastor } = createCoPastorDto;
 
     const member = await this.memberRepository.findOneBy({
       id: id_member,
@@ -61,20 +61,19 @@ export class CoPastorService {
     }
 
     const pastor = await this.pastorRepository.findOneBy({
-      id: id_pastor,
+      id: their_pastor,
     });
 
     if (!pastor) {
       throw new NotFoundException(`Not faound Pastor with id ${id_member}`);
     }
-    // ! Aqui no mandar todo en undefined las cas y lederes y en buscar ahi se actualiza
-    //TODO : Hacer las mismas consultas de pastor, para setear aqui el array lideres y residencias y luego hacer el count
+
     try {
       const coPastorInstance = this.coPastorRepository.create({
         member: member,
-        pastor: pastor,
+        their_pastor: pastor,
         count_houses: 5,
-        count_leaders: 10,
+        count_preachers: 10,
         created_at: new Date(),
         created_by: 'Kevin',
       });
@@ -113,7 +112,21 @@ export class CoPastorService {
         throw new BadRequestException(`CoPastor should is active`);
       }
 
-      //TODO : hacer aqui las mismas consultas para generar el array y el conteo
+      //* Conteo de Casas desde otro repository
+      // const allFamilyHouses = await this.familyHousesRepository.find();
+      // const listCopastores = allFamilyHouses.filter(
+      //   (home) => home.their_pastor.id === term,
+      // );
+
+      // const newListCopastoresID = listCopastores.map(
+      //   (copastores) => copastores.id,
+      // );
+
+      //* Conteo de Preachers desde otro repository
+
+      // pastor.member.age = updateAge(pastor.member);
+      // pastor.count_copastor = listCopastores.length;
+      // pastor.copastores = newListCopastoresID;
 
       coPastor.member.age = updateAge(coPastor.member);
       await this.coPastorRepository.save(coPastor);
@@ -236,7 +249,7 @@ export class CoPastorService {
       id: id,
       member: member,
       count_houses: 16,
-      count_leaders: 11,
+      count_preachers: 11,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
@@ -252,7 +265,7 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
-  //TODO : Aplicar is active en false pero aqui ya no iria pastor, porque seria independiente.
+  //TODO : Aplicar is active en false pero aqui ya no iria their_pastor, porque seria independiente.
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
