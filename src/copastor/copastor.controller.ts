@@ -28,7 +28,7 @@ export class CopastorController {
   }
 
   @Get(':term')
-  findOne(
+  findTerm(
     @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ) {

@@ -13,7 +13,10 @@ export class Pastor {
   id: string;
 
   @Column('int', { default: 0 })
-  count_copastor: number;
+  count_copastores: number;
+
+  @Column('int', { default: 0 })
+  count_preachers: number;
 
   @Column('bool', { default: true })
   is_active: boolean;
@@ -32,6 +35,9 @@ export class Pastor {
 
   @Column('uuid', { array: true, nullable: true })
   copastores: string[];
+
+  @Column('uuid', { array: true, nullable: true })
+  preachers: string[];
 
   //* Relation columns
   @OneToOne(() => Member, { eager: true })

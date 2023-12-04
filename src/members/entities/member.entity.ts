@@ -1,5 +1,6 @@
 import { CoPastor } from 'src/copastor/entities/copastor.entity';
 import { Pastor } from 'src/pastor/entities/pastor.entity';
+import { Preacher } from 'src/preacher/entities/preacher.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -94,15 +95,15 @@ export class Member {
   //! de manera recursiva, y al no encontrar da error, igual con el copastor.
   @OneToOne(() => Pastor)
   @JoinColumn({ name: 'their_pastor_id' })
-  their_pastor_id: Pastor;
+  their_pastor: Pastor;
 
   @OneToOne(() => CoPastor)
   @JoinColumn({ name: 'their_copastor_id' })
-  their_copastor_id: CoPastor;
+  their_copastor: CoPastor;
 
-  // @OneToOne(() => Preacher, { eager: true })
-  // @JoinColumn({ name: 'preacher_id' })
-  // their_preacher: CoPastor;
+  @OneToOne(() => Preacher)
+  @JoinColumn({ name: 'their_preacher_id' })
+  their_preacher: Preacher;
 
   //* Functions internas
   @BeforeInsert()

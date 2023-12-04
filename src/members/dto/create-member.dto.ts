@@ -95,23 +95,23 @@ export class CreateMemberDto {
   address: string;
 
   //* Relations
-  @IsString()
-  @IsUUID()
-  @IsOptional()
-  their_family_home_id?: string;
+  // @IsString()
+  // @IsUUID()
+  // @IsOptional()
+  // their_family_home?: string | ;
 
   @IsString()
   @IsUUID()
   @IsOptional()
-  their_pastor_id?: string;
+  their_pastor?: string;
 
   @IsString()
   @IsUUID()
   @IsOptional()
-  their_copastor_id?: string;
+  their_copastor?: string;
 
   @IsString()
   @IsUUID()
   @IsOptional()
-  their_preacher_id?: string;
+  their_preacher?: string;
 }

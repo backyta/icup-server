@@ -18,6 +18,7 @@ import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { searchPerson, searchFullname, updateAge } from '../common/helpers';
 import { Pastor } from 'src/pastor/entities/pastor.entity';
 import { CoPastor } from 'src/copastor/entities/copastor.entity';
+import { Preacher } from 'src/preacher/entities/preacher.entity';
 
 @Injectable()
 export class MembersService {
@@ -32,19 +33,23 @@ export class MembersService {
 
     @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
+
+    @InjectRepository(Preacher)
+    private readonly preacherRepository: Repository<Preacher>,
   ) {}
 
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
-    const { roles, their_pastor_id, their_copastor_id } = createMemberDto;
+    const { roles, their_pastor, their_copastor, their_preacher } =
+      createMemberDto;
 
-    if (roles.includes('pastor') && their_pastor_id) {
+    if (roles.includes('pastor') && their_pastor) {
       throw new BadRequestException(
         `No se puede asignar un Pastor a un miembro con rol Pastor`,
       );
     }
 
-    if (roles.includes('copastor') && their_copastor_id) {
+    if (roles.includes('copastor') && their_copastor) {
       throw new BadRequestException(
         `No se puede asignar un coPastor a un miembro con rol coPastor`,
       );
@@ -58,22 +63,26 @@ export class MembersService {
 
     //TODO : falta hacer lo de preacher y su casa.
     const pastor = await this.pastorRepository.findOneBy({
-      id: their_pastor_id,
+      id: their_pastor,
     });
     const coPastor = await this.coPastorRepository.findOneBy({
-      id: their_copastor_id,
+      id: their_copastor,
     });
-    // const preacher = this.preacherRepository.findOneBy({
-    //   id: their_preacher_id,
-    // });
 
+    const preacher = await this.preacherRepository.findOneBy({
+      id: their_preacher,
+    });
+
+    //! Si deberia poder creaese con todos sus propiedades, pero tmb podrian estar en null
+    // FIXME: CORREGIR ESTO TOMORROW Y LO DEMAS
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
-        their_copastor_id: coPastor,
-        their_pastor_id: pastor,
-        created_at: new Date(),
+        their_copastor: coPastor,
+        their_pastor: pastor,
+        their_preacher: preacher,
         // NOTE: cambiar por uuid en relacion con User
+        created_at: new Date(),
         created_by: 'Kevin',
       });
       await this.memberRepository.save(member);
@@ -225,7 +234,7 @@ export class MembersService {
 
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto) {
-    const { roles, their_copastor_id, their_pastor_id } = updateMemberDto;
+    const { roles, their_copastor, their_pastor } = updateMemberDto;
 
     const dataMember = await this.memberRepository.findOneBy({ id });
 
@@ -234,7 +243,7 @@ export class MembersService {
     }
 
     //TODO : Agregar preacher y casa cuando llege a esa relacion.
-    if (!their_copastor_id || !their_pastor_id) {
+    if (!their_copastor || !their_pastor) {
       throw new BadRequestException(
         `El campo their_copastor_id, their_pastor_id es requerido`,
       );
@@ -244,13 +253,13 @@ export class MembersService {
       throw new BadRequestException(`El campo roles, es requerido`);
     }
 
-    if (roles.includes('pastor') && their_pastor_id) {
+    if (roles.includes('pastor') && their_pastor) {
       throw new BadRequestException(
         `No se puede asignar un Pastor a un miembro con rol Pastor`,
       );
     }
 
-    if (roles.includes('copastor') && their_copastor_id) {
+    if (roles.includes('copastor') && their_copastor) {
       throw new BadRequestException(
         `No se puede asignar un coPastor a un miembro con rol coPastor`,
       );
@@ -263,20 +272,20 @@ export class MembersService {
     // }
 
     const pastor = await this.pastorRepository.findOneBy({
-      id: their_pastor_id,
+      id: their_pastor,
     });
     const coPastor = await this.coPastorRepository.findOneBy({
-      id: their_copastor_id,
+      id: their_copastor,
     });
 
     const member = await this.memberRepository.preload({
-      ...updateMemberDto,
       id: id,
-      their_copastor_id: coPastor,
-      their_pastor_id: pastor,
       updated_at: new Date(),
       // NOTE: cambiar por uuid en relacion con User
       updated_by: 'Kevinxd',
+      ...updateMemberDto,
+      their_copastor: coPastor,
+      their_pastor: pastor,
     });
 
     if (!member) throw new NotFoundException(`Member with id: ${id} not found`);

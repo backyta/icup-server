@@ -19,8 +19,9 @@ import { CoPastor } from './entities/copastor.entity';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { updateAge, searchPerson, searchFullname } from '../common/helpers';
 import { SearchType } from '../common/enums/search-types.enum';
+import { Preacher } from 'src/preacher/entities/preacher.entity';
 
-//TODO : crear las demas tablas, para ir avanzando, y modificar las propiedades de la Entidad, their_pastor.
+//TODO : probar endpoints con preacher service
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');
@@ -34,6 +35,12 @@ export class CoPastorService {
 
     @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
+
+    @InjectRepository(Preacher)
+    private readonly preacherRepository: Repository<Preacher>,
+
+    // @InjectRepository(FamilyHouses)
+    // private readonly familyHousesRepository: Repository<FamilyHouses>,
   ) {}
 
   //* CREATE COPASTOR
@@ -68,12 +75,16 @@ export class CoPastorService {
       throw new NotFoundException(`Not faound Pastor with id ${id_member}`);
     }
 
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
+      );
+    }
+
     try {
       const coPastorInstance = this.coPastorRepository.create({
         member: member,
         their_pastor: pastor,
-        count_houses: 5,
-        count_preachers: 10,
         created_at: new Date(),
         created_by: 'Kevin',
       });
@@ -112,7 +123,8 @@ export class CoPastorService {
         throw new BadRequestException(`CoPastor should is active`);
       }
 
-      //* Conteo de Casas desde otro repository
+      //TODO : hacer familyHouses igual que preachers
+      //* Conteo y asignacion de Casas
       // const allFamilyHouses = await this.familyHousesRepository.find();
       // const listCopastores = allFamilyHouses.filter(
       //   (home) => home.their_pastor.id === term,
@@ -122,13 +134,22 @@ export class CoPastorService {
       //   (copastores) => copastores.id,
       // );
 
-      //* Conteo de Preachers desde otro repository
+      //* Conteo y asignacion de Preachers
+      const allPreachers = await this.preacherRepository.find();
+      const listPreachers = allPreachers.filter(
+        (preacher) => preacher.their_pastor.id === term,
+      );
 
-      // pastor.member.age = updateAge(pastor.member);
-      // pastor.count_copastor = listCopastores.length;
-      // pastor.copastores = newListCopastoresID;
+      const newListPreachersID = listPreachers.map(
+        (copastores) => copastores.id,
+      );
+
+      //?NOTE : en un futuro se puede agregar supervisores al pastor y copastor y toda la jerarquia que tenga
+      coPastor.count_preachers = listPreachers.length;
+      coPastor.preachers = newListPreachersID;
 
       coPastor.member.age = updateAge(coPastor.member);
+
       await this.coPastorRepository.save(coPastor);
     }
 
@@ -185,7 +206,7 @@ export class CoPastorService {
 
         if (coPastores.length === 0) {
           throw new NotFoundException(
-            `Not found member with these names: ${term}`,
+            `Not found coPastores with these names: ${term}`,
           );
         }
         return coPastores;
@@ -213,6 +234,8 @@ export class CoPastorService {
 
   //* UPDATE FOR ID
   async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
+    const { their_pastor } = updateCoPastorDto;
+
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -220,9 +243,7 @@ export class CoPastorService {
     const dataCoPastor = await this.coPastorRepository.findOneBy({ id });
 
     if (!dataCoPastor) {
-      throw new NotFoundException(
-        `CoPastor not found with id: ${dataCoPastor.id}`,
-      );
+      throw new NotFoundException(`CoPastor not found with id: ${id}`);
     }
 
     if (!dataCoPastor.member.id)
@@ -236,6 +257,39 @@ export class CoPastorService {
       );
     }
 
+    let pastor: Pastor;
+    if (!their_pastor) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: dataCoPastor.their_pastor.id,
+      });
+    } else {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+    }
+
+    if (!pastor) {
+      throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
+    }
+    // TODO
+    //* Conteo y asignacion de Casas
+    // const allFamilyHouses = await this.familyHousesRepository.find();
+    // const listCopastores = allFamilyHouses.filter(
+    //   (home) => home.their_pastor.id === term,
+    // );
+
+    // const newListCopastoresID = listCopastores.map(
+    //   (copastores) => copastores.id,
+    // );
+
+    //* Conteo y asignacion de Preachers
+    const allPreachers = await this.preacherRepository.find();
+    const listPreachers = allPreachers.filter(
+      (preacher) => preacher.their_pastor.id === id,
+    );
+
+    const listPreachersID = listPreachers.map((copastores) => copastores.id);
+
     const member = await this.memberRepository.preload({
       id: dataCoPastor.member.id,
       updated_at: new Date(),
@@ -244,12 +298,14 @@ export class CoPastorService {
       ...updateCoPastorDto,
     });
 
-    //TODO : hacer las mismas consultas para sacar el conteo y array, al actualiza se setea al igual que buscar por ID.
     const coPastor = await this.coPastorRepository.preload({
       id: id,
       member: member,
+      their_pastor: pastor,
+      // houses:,
       count_houses: 16,
-      count_preachers: 11,
+      preachers: listPreachersID,
+      count_preachers: listPreachers.length,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
@@ -265,7 +321,6 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
-  //TODO : Aplicar is active en false pero aqui ya no iria their_pastor, porque seria independiente.
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -291,7 +346,7 @@ export class CoPastorService {
       await this.memberRepository.save(member);
       await this.coPastorRepository.save(coPastor);
     } catch (error) {
-      this.logger.error(error);
+      this.handleDBExceptions(error);
     }
   }
 
@@ -332,7 +387,7 @@ export class CoPastorService {
 
       const coPastores = await this.coPastorRepository.find();
 
-      const newCoPastorMembers = coPastores.map((member) => {
+      const newCoPastorMembers = coPastorMembers.map((member) => {
         const newCoPastores = coPastores.filter(
           (coPastor) =>
             coPastor.member.id === member.id && coPastor.is_active === true,
@@ -344,7 +399,7 @@ export class CoPastorService {
 
       if (ArrayCoPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found pastor with these names ${term.slice(0, -1)}`,
+          `Not found coPastor with these names ${term.slice(0, -1)}`,
         );
       }
 
@@ -368,7 +423,7 @@ export class CoPastorService {
         throw new NotFoundException(`Not found member with roles 'Pastor'`);
       }
 
-      const coPastores = await this.pastorRepository.find();
+      const coPastores = await this.coPastorRepository.find();
 
       const newCoPastorMembers = coPastorMembers.map((member) => {
         const newCoPastores = coPastores.filter(

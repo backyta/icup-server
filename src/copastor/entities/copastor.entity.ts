@@ -34,6 +34,12 @@ export class CoPastor {
   @Column('text', { nullable: true })
   updated_by: string;
 
+  @Column('uuid', { array: true, nullable: true })
+  preachers: string[];
+
+  @Column('uuid', { array: true, nullable: true })
+  family_houses: string[];
+
   //* Relations Column
   @OneToOne(() => Member, { eager: true }) // Carga el Miembro automáticamente al consultar Pastor
   @JoinColumn({ name: 'member_id' })

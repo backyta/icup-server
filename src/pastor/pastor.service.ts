@@ -19,6 +19,7 @@ import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { searchPerson, updateAge, searchFullname } from '../common/helpers';
 import { CoPastor } from 'src/copastor/entities/copastor.entity';
+import { Preacher } from 'src/preacher/entities/preacher.entity';
 
 @Injectable()
 export class PastorService {
@@ -33,6 +34,11 @@ export class PastorService {
 
     @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
+
+    @InjectRepository(Preacher)
+    private readonly preacherRepository: Repository<Preacher>,
+
+    //TODO : asignar casas al pastor tmb
   ) {}
 
   //* CREATE PASTOR
@@ -84,6 +90,7 @@ export class PastorService {
   }
 
   //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
+  //! Ya que esto es demasiado codigo y creacera se puede hacer un endpoint con solo el id @Param y agreagrle pagination DTO
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
@@ -105,19 +112,32 @@ export class PastorService {
         throw new BadRequestException(`Pastor should is active`);
       }
 
-      //* Conteo de copastores desde otro repository
+      //* Conteo y asignacion de copastores
       const allCopastores = await this.coPastorRepository.find();
       const listCopastores = allCopastores.filter(
         (copastor) => copastor.their_pastor.id === term,
       );
 
-      const newListCopastoresID = listCopastores.map(
+      const listCopastoresID = listCopastores.map(
         (copastores) => copastores.id,
       );
 
+      //* Conteo y asignacion de preachers
+      const allPreachers = await this.preacherRepository.find();
+      const listPreachers = allPreachers.filter(
+        (preacher) => preacher.their_pastor.id === term,
+      );
+
+      const listPreachersID = listPreachers.map((copastores) => copastores.id);
+
+      pastor.count_copastores = listCopastores.length;
+      pastor.copastores = listCopastoresID;
+
+      pastor.preachers = listPreachersID;
+      pastor.count_preachers = listPreachers.length;
+
       pastor.member.age = updateAge(pastor.member);
-      pastor.count_copastor = listCopastores.length;
-      pastor.copastores = newListCopastoresID;
+
       await this.pastorRepository.save(pastor);
     }
 
@@ -174,7 +194,7 @@ export class PastorService {
 
         if (pastores.length === 0) {
           throw new NotFoundException(
-            `Not found member with these names: ${term}`,
+            `Not found Pastores with these names: ${term}`,
           );
         }
         return pastores;
@@ -200,7 +220,6 @@ export class PastorService {
   }
 
   //* UPDATE FOR ID
-  //TODO : probar
   async update(id: string, updatePastorDto: UpdatePastorDto) {
     const { roles } = updatePastorDto;
 
@@ -214,14 +233,21 @@ export class PastorService {
       throw new BadRequestException(`Roles should includes require ['pastor']`);
     }
 
-    //* Conteo de copastores desde otro repository
+    //* Conteo de copastores
     const allCopastores = await this.coPastorRepository.find();
-
     const listCopastores = allCopastores.filter(
       (copastor) => copastor.their_pastor.id === id,
     );
 
     const listCopastoresID = listCopastores.map((copastores) => copastores.id);
+
+    //* Conteo y asignacion de preachers
+    const allPreachers = await this.preacherRepository.find();
+    const listPreachers = allPreachers.filter(
+      (preacher) => preacher.their_pastor.id === id,
+    );
+
+    const listPreachersID = listPreachers.map((copastores) => copastores.id);
 
     const member = await this.memberRepository.preload({
       ...updatePastorDto,
@@ -234,8 +260,10 @@ export class PastorService {
     const pastor = await this.pastorRepository.preload({
       id: id,
       member: member,
-      count_copastor: listCopastores.length,
+      count_copastores: listCopastores.length,
       copastores: listCopastoresID,
+      count_preachers: listPreachers.length,
+      preachers: listPreachersID,
       updated_at: new Date(),
       //NOTE : cambiar por id de usuario
       updated_by: 'Kevinxd',

@@ -29,7 +29,7 @@ export class PastorController {
   }
 
   @Get(':term')
-  findOne(
+  findTerm(
     @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ) {
