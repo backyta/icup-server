@@ -5,19 +5,20 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateMemberDto } from './dto/create-member.dto';
-import { UpdateMemberDto } from './dto/update-member.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Member } from './entities/member.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { validate as isUUID } from 'uuid';
-import { SearchType } from './enums/search-types.enum';
-import { SearchPersonOptions } from './interfaces/search-person.interface';
-import { ValidRoles } from './enums/valid-roles.enum';
 
-// TODO : EMPEZAR CON RELACIONES POR PASTOR PRIMERO PARA TOMORROW 23/11/23
-//TODO : ANTES DE EMPEZAR UNIR A RAMA MAIN Y SACAR COPIA DE RAMA PASTOR
+import { Member } from './entities/member.entity';
+import { CreateMemberDto } from './dto/create-member.dto';
+import { UpdateMemberDto } from './dto/update-member.dto';
+
+import { SearchType } from '../common/enums/search-types.enum';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { searchPerson, searchFullname, updateAge } from '../common/helpers';
+import { Pastor } from 'src/pastor/entities/pastor.entity';
+import { CoPastor } from 'src/copastor/entities/copastor.entity';
+
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MermbersService');
@@ -25,26 +26,54 @@ export class MembersService {
   constructor(
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
+
+    @InjectRepository(Pastor)
+    private readonly pastorRepository: Repository<Pastor>,
+
+    @InjectRepository(CoPastor)
+    private readonly coPastorRepository: Repository<CoPastor>,
   ) {}
 
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
-    const validRoles = Object.values(ValidRoles);
+    const { roles, their_pastor_id, their_copastor_id } = createMemberDto;
 
-    createMemberDto.roles.map((rol) => {
-      if (!validRoles.includes(rol as ValidRoles)) {
-        throw new BadRequestException(
-          `Not valid role, use the following: ${validRoles}`,
-        );
-      }
+    if (roles.includes('pastor') && their_pastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un Pastor a un miembro con rol Pastor`,
+      );
+    }
+
+    if (roles.includes('copastor') && their_copastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un coPastor a un miembro con rol coPastor`,
+      );
+    }
+
+    // if (roles.includes('preacher') && their_preacher_id) {
+    //   throw new BadRequestException(
+    //     `No se puede asignar un Preacher a un miembro con rol Preacher`,
+    //   );
+    // }
+
+    //TODO : falta hacer lo de preacher y su casa.
+    const pastor = await this.pastorRepository.findOneBy({
+      id: their_pastor_id,
     });
+    const coPastor = await this.coPastorRepository.findOneBy({
+      id: their_copastor_id,
+    });
+    // const preacher = this.preacherRepository.findOneBy({
+    //   id: their_preacher_id,
+    // });
 
-    //! Cuando se mande fecha desde el front(fecha de joining o brith) siempre sera fecha ahi probar y midificar el string y Date
-    //! cambiar el string por uuid cuando se haga autenticacion (relacion)
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
+        their_copastor_id: coPastor,
+        their_pastor_id: pastor,
         created_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
         created_by: 'Kevin',
       });
       await this.memberRepository.save(member);
@@ -59,11 +88,14 @@ export class MembersService {
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.memberRepository.find({
+      where: { is_active: true },
       take: limit,
       skip: offset,
+      relations: ['their_pastor_id', 'their_copastor_id'],
     });
   }
 
+  // TODO : agregar preacher y casa para cargar relaciones(despues)
   //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
   async findTerm(
     term: string,
@@ -72,20 +104,22 @@ export class MembersService {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let member: Member | Member[];
 
-    //? Para cuando haiga relaciones
-    //NOTE : add en busqueda por id, el id de las "relaciones" como ID copastor o leader
-    //NOTE : hacer type de Relacion (Copastor x id, leader id, casa x id)
-    //NOTE: hacer la interfaz por tablas, y dentro de estas colocar "porque quiere buscar (copastor, leader, nombre, apellido)" las que se crea pertinente
-
     //* Find UUID --> One
+
     if (isUUID(term) && type === SearchType.id) {
-      member = await this.memberRepository.findOneBy({ id: term });
+      member = await this.memberRepository.findOne({
+        where: { id: term },
+        relations: ['their_copastor_id', 'their_pastor_id'],
+      });
 
-      const ageMiliSeconds = Date.now() - new Date(member.date_birth).getTime();
-      const ageDate = new Date(ageMiliSeconds);
-      const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-      member.age = age;
+      if (!member) {
+        throw new BadRequestException(`No se encontro Pastor con este UUID`);
+      }
+      if (!member.is_active) {
+        throw new BadRequestException(`Member should is active`);
+      }
 
+      member.age = updateAge(member);
       await this.memberRepository.save(member);
     }
 
@@ -109,29 +143,46 @@ export class MembersService {
       );
     }
 
+    //* Find isActive --> Many
+    if (term && type === SearchType.isActive) {
+      member = await this.findMembersWithPagination(
+        SearchType.isActive,
+        term,
+        limit,
+        offset,
+      );
+    }
+
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
-      member = await this.searchPerson({
+      member = await searchPerson({
         term,
         searchType: SearchType.firstName,
         limit,
         offset,
+        repository: this.memberRepository,
       });
     }
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName) {
-      member = await this.searchPerson({
+      member = await searchPerson({
         term,
         searchType: SearchType.lastName,
         limit,
         offset,
+        repository: this.memberRepository,
       });
     }
 
     //* Find fullName --> Many
     if (term && type === SearchType.fullName) {
-      member = await this.searchFullname(term, limit, offset);
+      member = await searchFullname({
+        term,
+        limit,
+        offset,
+        repository: this.memberRepository,
+      });
     }
 
     //* Find roles --> Many
@@ -145,12 +196,13 @@ export class MembersService {
           roles: rolesArray,
         })
         .skip(offset)
+        .andWhere(`member.is_active =:isActive`, { isActive: true })
         .limit(limit)
         .getMany();
 
       if (member.length === 0) {
         throw new BadRequestException(
-          `Not found members with those roles: ${rolesArray}`,
+          `Not found members with these roles: ${rolesArray}`,
         );
       }
     }
@@ -173,13 +225,58 @@ export class MembersService {
 
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto) {
-    //TODO : cambar el string por uuid cuando se haga autenticacion
+    const { roles, their_copastor_id, their_pastor_id } = updateMemberDto;
+
+    const dataMember = await this.memberRepository.findOneBy({ id });
+
+    if (!dataMember) {
+      throw new NotFoundException(`Member not found with id: ${id}`);
+    }
+
+    //TODO : Agregar preacher y casa cuando llege a esa relacion.
+    if (!their_copastor_id || !their_pastor_id) {
+      throw new BadRequestException(
+        `El campo their_copastor_id, their_pastor_id es requerido`,
+      );
+    }
+
+    if (!roles) {
+      throw new BadRequestException(`El campo roles, es requerido`);
+    }
+
+    if (roles.includes('pastor') && their_pastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un Pastor a un miembro con rol Pastor`,
+      );
+    }
+
+    if (roles.includes('copastor') && their_copastor_id) {
+      throw new BadRequestException(
+        `No se puede asignar un coPastor a un miembro con rol coPastor`,
+      );
+    }
+
+    // if (roles.includes('preacher') && their_preacher_id) {
+    //   throw new BadRequestException(
+    //     `No se puede asignar un Preacher a un miembro con rol Preacher`,
+    //   );
+    // }
+
+    const pastor = await this.pastorRepository.findOneBy({
+      id: their_pastor_id,
+    });
+    const coPastor = await this.coPastorRepository.findOneBy({
+      id: their_copastor_id,
+    });
 
     const member = await this.memberRepository.preload({
-      id: id,
-      updated_at: new Date(),
-      updated_by: 'Kevinxd',
       ...updateMemberDto,
+      id: id,
+      their_copastor_id: coPastor,
+      their_pastor_id: pastor,
+      updated_at: new Date(),
+      // NOTE: cambiar por uuid en relacion con User
+      updated_by: 'Kevinxd',
     });
 
     if (!member) throw new NotFoundException(`Member with id: ${id} not found`);
@@ -192,120 +289,90 @@ export class MembersService {
   }
 
   //* ELIMINAR POR ID
-  // TODO : ajustar el metodo en futro cuando se integren relaciones.
   async remove(id: string) {
-    let member: Member;
-
-    if (isUUID(id)) {
-      member = await this.memberRepository.findOneBy({ id });
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
     }
-    member.is_active = false;
 
-    if (member) {
+    const dataMember = await this.memberRepository.findOneBy({ id: id });
+    if (!dataMember) {
+      throw new BadRequestException(`Member with id ${id} not exist`);
+    }
+
+    const member = await this.memberRepository.preload({
+      id: id,
+      is_active: false,
+    });
+
+    //TODO : Falta hacer el preacher
+    if (dataMember.roles.includes('pastor')) {
+      const pastores = await this.pastorRepository.find();
+      const pastorMember = pastores.find((pastor) => pastor.member.id === id);
+      if (!pastorMember) {
+        throw new NotFoundException(`Not found pastor`);
+      }
+      const pastor = await this.pastorRepository.preload({
+        id: pastorMember.id,
+        is_active: false,
+      });
+
       try {
         await this.memberRepository.save(member);
+        await this.pastorRepository.save(pastor);
       } catch (error) {
-        this.logger.error(error);
+        this.handleDBExceptions(error);
       }
-    } else {
-      throw new NotFoundException(`Member with id: ${id} not exits`);
     }
+
+    if (member.roles.includes('copastor')) {
+      const coPastores = await this.coPastorRepository.find();
+      const coPastorMember = coPastores.find(
+        (coPastor) => coPastor.member.id === id,
+      );
+      if (!coPastorMember) {
+        throw new NotFoundException(`Not found pastor`);
+      }
+      const coPastor = await this.coPastorRepository.preload({
+        id: coPastorMember.id,
+        is_active: false,
+      });
+
+      try {
+        await this.memberRepository.save(member);
+        await this.pastorRepository.save(coPastor);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    // if (member.roles.includes('preacher')) {
+    //   const preachers = await this.preacherRepository.find();
+    //   const preacherMember = preacher.find(
+    //     (preaacher) => preacher.member.id === id,
+    //   );
+    //   if (!preacherMember) {
+    //     throw new NotFoundException(`Not found pastor`);
+    //   }
+    //   [preacher] = await this.preacherRepository.preload({
+    //     id: preacherMember.id,
+    //     is_active: false,
+    //   });
+    // try {
+    //   await this.memberRepository.save(member);
+    //   await this.pastorRepository.save(preacher);
+    // } catch (error) {
+    //   this.handleDBExceptions(error);
+    // }
+    // }
   }
 
   //! PRIVATE METHODS
-  //* Para futuros errores de indices o constrains con code.
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
     throw new InternalServerErrorException(
       'Unexpected errors, check server logs',
     );
-  }
-
-  private async searchPerson({
-    term,
-    searchType,
-    limit,
-    offset,
-  }: SearchPersonOptions): Promise<Member[]> {
-    let dataPerson: string;
-
-    if (/^[^+]*\+[^+]*$/.test(term)) {
-      const arrayData = term.split('+');
-
-      if (arrayData.length >= 2 && arrayData.includes('')) {
-        dataPerson = arrayData.join('');
-      } else {
-        dataPerson = arrayData.join(' ');
-      }
-    } else {
-      throw new BadRequestException(`Term not valid, only use for concat '+'`);
-    }
-
-    const queryBuilder = this.memberRepository.createQueryBuilder();
-    const member: Member | Member[] = await queryBuilder
-      .where(`${searchType} ILIKE :searchTerm`, {
-        searchTerm: `%${dataPerson}%`,
-      })
-      .skip(offset)
-      .limit(limit)
-      .getMany();
-
-    if (member.length === 0) {
-      throw new NotFoundException(
-        `Not found member with those names: ${dataPerson}`,
-      );
-    }
-    return member;
-  }
-
-  private validateName(name: string): string {
-    let wordString: string;
-
-    if (/^[^+]+(?:\+[^+]+)*\+$/.test(name)) {
-      const sliceWord = name.slice(0, -1);
-      wordString = sliceWord.split('+').join(' ');
-    } else {
-      throw new BadRequestException(
-        `${name} not valid use '+' to finally string`,
-      );
-    }
-    return wordString;
-  }
-
-  private async searchFullname(
-    term: string,
-    limit: number,
-    offset: number,
-  ): Promise<Member[]> {
-    if (!term.includes('-')) {
-      throw new BadRequestException(
-        `Term not valid, use allow '-' for concatc firstname and lastname`,
-      );
-    }
-
-    const [first, second] = term.split('-');
-    const firstName = this.validateName(first);
-    const lastName = this.validateName(second);
-
-    const queryBuilder = this.memberRepository.createQueryBuilder('member');
-    const member = await queryBuilder
-      .where(`member.first_name ILIKE :searchTerm1`, {
-        searchTerm1: `%${firstName}%`,
-      })
-      .andWhere(`member.last_name ILIKE :searchTerm2`, {
-        searchTerm2: `%${lastName}%`,
-      })
-      .skip(offset)
-      .limit(limit)
-      .getMany();
-
-    if (member.length === 0) {
-      throw new NotFoundException(
-        `Not found member with those names: ${firstName} ${lastName}`,
-      );
-    }
-    return member;
   }
 
   private async findMembersWithPagination(
@@ -315,17 +382,41 @@ export class MembersService {
     offset: number,
   ): Promise<Member[]> {
     const whereCondition = {};
-    whereCondition[searchType] = term;
+    if (searchType === 'is_active') {
+      try {
+        whereCondition[searchType] = term;
 
-    const member = await this.memberRepository.find({
+        const members = await this.memberRepository.find({
+          where: [whereCondition],
+          take: limit,
+          skip: offset,
+          relations: ['their_pastor_id', 'their_copastor_id'],
+        });
+
+        if (members.length === 0) {
+          throw new NotFoundException(
+            `Not found member with these names: ${term}`,
+          );
+        }
+        return members;
+      } catch (error) {
+        throw new BadRequestException(`This term is not a valid boolean value`);
+      }
+    }
+
+    whereCondition[searchType] = term;
+    whereCondition['is_active'] = true;
+
+    const members = await this.memberRepository.find({
       where: [whereCondition],
       take: limit,
       skip: offset,
+      relations: ['their_pastor_id', 'their_copastor_id'],
     });
 
-    if (member.length === 0) {
-      throw new NotFoundException(`Not found member with those names: ${term}`);
+    if (members.length === 0) {
+      throw new NotFoundException(`Not found member with these names: ${term}`);
     }
-    return member;
+    return members;
   }
 }

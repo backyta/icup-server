@@ -1,13 +1,18 @@
+import { CoPastor } from 'src/copastor/entities/copastor.entity';
+import { Pastor } from 'src/pastor/entities/pastor.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 export class Member {
+  //* Info member
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -42,7 +47,7 @@ export class Member {
   date_joinig: Date;
 
   @Column('text')
-  nationality: string;
+  origin_country: string;
 
   @Column({ type: 'text', array: true })
   roles: string[];
@@ -50,8 +55,24 @@ export class Member {
   @Column('bool', { default: true })
   is_active: boolean;
 
-  //? Agregar fecha de creacion y fecha de actualizacion y usuario que creo y usuario
+  //* Info adress
 
+  @Column('text', { default: 'Peru' })
+  residence_country: string;
+
+  @Column('text', { default: 'Lima' })
+  departament: string;
+
+  @Column('text', { default: 'Lima' })
+  province: string;
+
+  @Column('text')
+  district: string;
+
+  @Column('text')
+  address: string;
+
+  //* Info register and update date
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
@@ -65,7 +86,25 @@ export class Member {
   @Column('text', { nullable: true })
   updated_by: string;
 
-  //* Antes de cada insercion en DB (esto setea de manera statica)
+  //* Relations
+  // @OneToOne(() => FamilyHome, { eager: true })
+  // @JoinColumn({ name: 'family_home_id' })
+  // its_family_home: FamilyHome;
+  //! Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor
+  //! de manera recursiva, y al no encontrar da error, igual con el copastor.
+  @OneToOne(() => Pastor)
+  @JoinColumn({ name: 'their_pastor_id' })
+  their_pastor_id: Pastor;
+
+  @OneToOne(() => CoPastor)
+  @JoinColumn({ name: 'their_copastor_id' })
+  their_copastor_id: CoPastor;
+
+  // @OneToOne(() => Preacher, { eager: true })
+  // @JoinColumn({ name: 'preacher_id' })
+  // their_preacher: CoPastor;
+
+  //* Functions internas
   @BeforeInsert()
   @BeforeUpdate()
   transformToDates() {
@@ -82,5 +121,4 @@ export class Member {
   }
 }
 
-// TODO : Al final agregar fecha de creacion y fecha de actualizacion segun usuario.
-//! Agregar un boton al consultrar por ID para pantalla aperte de miembro (ahi se actualiza la edad).
+//TODO : agregar earger en true cuando tengas ma relaciones en esta entidad, para que los metodos que usen este modulo se cargen autonmaticaente.

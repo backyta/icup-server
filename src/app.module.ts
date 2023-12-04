@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MembersModule } from './members/members.module';
 import { CommonModule } from './common/common.module';
+import { PastorModule } from './pastor/pastor.module';
+import { CopastorModule } from './copastor/copastor.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { CommonModule } from './common/common.module';
     }),
     MembersModule,
     CommonModule,
+    PastorModule,
+    CopastorModule,
   ],
 })
 export class AppModule {}

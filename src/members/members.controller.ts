@@ -12,7 +12,7 @@ import {
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Controller('members')
 export class MembersController {
