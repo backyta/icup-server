@@ -290,12 +290,14 @@ export class CoPastorService {
 
     const listPreachersID = listPreachers.map((copastores) => copastores.id);
 
+    //NOTE : este miembro que es un copastor, si actualizamos su tabla copastor, en su pastor asgignado, tmb deberia cambiar en su tabla miembro, para que trengan el mismo pastor
     const member = await this.memberRepository.preload({
       id: dataCoPastor.member.id,
+      ...updateCoPastorDto,
       updated_at: new Date(),
+      their_pastor: pastor,
       //? Colocar usuario cuando se haga auth
       updated_by: 'Kevinxd',
-      ...updateCoPastorDto,
     });
 
     const coPastor = await this.coPastorRepository.preload({

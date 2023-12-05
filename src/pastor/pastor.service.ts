@@ -220,10 +220,12 @@ export class PastorService {
   }
 
   //* UPDATE FOR ID
+  //NOTE : solo se modifica su miembro o su is_active del pastor
   async update(id: string, updatePastorDto: UpdatePastorDto) {
     const { roles } = updatePastorDto;
 
     const dataPastor = await this.pastorRepository.findOneBy({ id });
+    console.log(dataPastor);
 
     if (!dataPastor) {
       throw new NotFoundException(`Pastor not found with id: ${id}`);
@@ -235,8 +237,10 @@ export class PastorService {
 
     //* Conteo de copastores
     const allCopastores = await this.coPastorRepository.find();
+    console.log(allCopastores);
+
     const listCopastores = allCopastores.filter(
-      (copastor) => copastor.their_pastor.id === id,
+      (copastor) => copastor.their_pastor.id === dataPastor.id,
     );
 
     const listCopastoresID = listCopastores.map((copastores) => copastores.id);
@@ -244,14 +248,14 @@ export class PastorService {
     //* Conteo y asignacion de preachers
     const allPreachers = await this.preacherRepository.find();
     const listPreachers = allPreachers.filter(
-      (preacher) => preacher.their_pastor.id === id,
+      (preacher) => preacher.their_pastor.id === dataPastor.id,
     );
 
     const listPreachersID = listPreachers.map((copastores) => copastores.id);
 
     const member = await this.memberRepository.preload({
-      ...updatePastorDto,
       id: dataPastor.member.id,
+      ...updatePastorDto,
       updated_at: new Date(),
       // NOTE: cambiar por uuid en relacion con User
       updated_by: 'Kevinxd',

@@ -7,7 +7,7 @@ import {
   Column,
   Entity,
   JoinColumn,
-  OneToOne,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -93,15 +93,15 @@ export class Member {
   // its_family_home: FamilyHome;
   //! Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor
   //! de manera recursiva, y al no encontrar da error, igual con el copastor.
-  @OneToOne(() => Pastor)
+  @ManyToOne(() => Pastor, { nullable: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 
-  @OneToOne(() => CoPastor)
+  @ManyToOne(() => CoPastor, { nullable: true })
   @JoinColumn({ name: 'their_copastor_id' })
   their_copastor: CoPastor;
 
-  @OneToOne(() => Preacher)
+  @ManyToOne(() => Preacher, { nullable: true })
   @JoinColumn({ name: 'their_preacher_id' })
   their_preacher: Preacher;
 

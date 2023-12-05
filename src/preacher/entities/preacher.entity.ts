@@ -5,6 +5,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -40,11 +41,11 @@ export class Preacher {
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  @OneToOne(() => CoPastor, { eager: true })
+  @ManyToOne(() => CoPastor, { eager: true })
   @JoinColumn({ name: 'their_copastor_id' })
   their_copastor: CoPastor;
 
-  @OneToOne(() => Pastor, { eager: true })
+  @ManyToOne(() => Pastor, { eager: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 }

@@ -4,6 +4,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -45,7 +46,12 @@ export class CoPastor {
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
-  @OneToOne(() => Pastor, { eager: true, nullable: true })
+  //! Error aqui de Unique, solo puede tener un pastor por cada copastor, deberia ser muchos copastores pueden tener un pastor
+  // @OneToOne(() => Pastor, { eager: true, nullable: true })
+  // @JoinColumn({ name: 'their_pastor_id' })
+  // their_pastor: Pastor;
+
+  @ManyToOne(() => Pastor)
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 

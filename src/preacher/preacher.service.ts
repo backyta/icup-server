@@ -46,8 +46,9 @@ export class PreacherService {
     const { id_member, their_pastor, their_copastor } = createPreacherDto;
 
     //* Validation member
-    const member = await this.memberRepository.findOneBy({
-      id: id_member,
+    const member = await this.memberRepository.findOne({
+      where: { id: id_member },
+      relations: ['their_copastor', 'their_pastor'],
     });
 
     if (!member) {
@@ -96,18 +97,43 @@ export class PreacherService {
       );
     }
 
-    try {
-      const preacherInstance = this.preacherRepository.create({
-        member: member,
+    //* Si existe info en el member de pastor y copastor setearlo en preacher, si no existe usar el del
+    //* DTO en el req.body.
+    if (member.their_copastor && member.their_pastor) {
+      try {
+        const preacherInstance = this.preacherRepository.create({
+          member: member,
+          their_pastor: member.their_pastor,
+          their_copastor: member.their_copastor,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        return await this.preacherRepository.save(preacherInstance);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    } else {
+      const dataMember = await this.memberRepository.preload({
+        id: member.id,
         their_pastor: pastor,
         their_copastor: copastor,
-        created_at: new Date(),
-        created_by: 'Kevin',
       });
 
-      return await this.coPastorRepository.save(preacherInstance);
-    } catch (error) {
-      this.handleDBExceptions(error);
+      try {
+        const preacherInstance = this.preacherRepository.create({
+          member: member,
+          their_pastor: pastor,
+          their_copastor: copastor,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        await this.memberRepository.save(dataMember);
+        return await this.preacherRepository.save(preacherInstance);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
     }
   }
 
@@ -238,14 +264,15 @@ export class PreacherService {
     return preacher;
   }
 
+  //* UPDATE PREACHER
   async update(id: string, updatePreacherDto: UpdatePreacherDto) {
-    const { their_copastor, their_pastor } = updatePreacherDto;
+    const { roles, their_copastor, their_pastor } = updatePreacherDto;
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataPreacher = await this.coPastorRepository.findOneBy({ id });
+    const dataPreacher = await this.preacherRepository.findOneBy({ id });
 
     if (!dataPreacher) {
       throw new NotFoundException(`Preacher not found with id: ${id}`);
@@ -262,26 +289,56 @@ export class PreacherService {
       );
     }
 
-    const pastor = await this.pastorRepository.findOneBy({ id: their_pastor });
-    if (!pastor) {
-      throw new NotFoundException(`Pastor not found with id ${their_pastor}`);
+    let pastor: Pastor;
+    if (!their_pastor) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: dataPreacher.their_pastor.id,
+      });
+    } else {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
     }
 
-    const copastor = await this.coPastorRepository.findOneBy({
-      id: their_copastor,
-    });
+    if (!pastor) {
+      throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
+    }
+
+    let copastor: CoPastor;
+    if (!their_copastor) {
+      copastor = await this.coPastorRepository.findOneBy({
+        id: dataPreacher.their_copastor.id,
+      });
+    } else {
+      copastor = await this.coPastorRepository.findOneBy({
+        id: their_copastor,
+      });
+    }
+
     if (!copastor) {
       throw new NotFoundException(
-        `CoPastor not found with id ${their_copastor}`,
+        `CoPastor Not found with id ${their_copastor}`,
+      );
+    }
+
+    if (
+      !roles.includes('preacher') ||
+      roles.includes('pastor') ||
+      roles.includes('copastor')
+    ) {
+      throw new BadRequestException(
+        `Solo se permite admite rol de Preacher o Member`,
       );
     }
 
     const member = await this.memberRepository.preload({
+      ...updatePreacherDto,
       id: dataPreacher.member.id,
       updated_at: new Date(),
+      their_pastor: pastor,
+      their_copastor: copastor,
       //? Colocar usuario cuando se haga auth.
       updated_by: 'Kevinxd',
-      ...updatePreacherDto,
     });
 
     //TODO : hacer las mismas consultas para sacar el conteo y array, al actualiza se setea al igual que buscar por ID.
