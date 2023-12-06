@@ -7,6 +7,7 @@ import { PastorService } from './pastor.service';
 
 import { MembersModule } from '../members/members.module';
 import { CopastorModule } from '../copastor/copastor.module';
+import { PreacherModule } from 'src/preacher/preacher.module';
 
 @Module({
   controllers: [PastorController],
@@ -15,6 +16,7 @@ import { CopastorModule } from '../copastor/copastor.module';
     TypeOrmModule.forFeature([Pastor]),
     forwardRef(() => MembersModule),
     CopastorModule,
+    PreacherModule,
   ],
   exports: [TypeOrmModule, PastorService],
 })

@@ -5,9 +5,4 @@ export class CreatePastorDto {
   @IsNotEmpty()
   @IsUUID()
   id_member: string;
-
-  // @IsArray()
-  // @IsNotEmpty()
-  // @IsOptional()
-  // id_copastores?: string[];
 }
