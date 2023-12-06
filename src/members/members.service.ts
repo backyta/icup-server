@@ -38,10 +38,23 @@ export class MembersService {
     private readonly preacherRepository: Repository<Preacher>,
   ) {}
 
+  // TODO : unir a rama main el preacher y empezar con casa familiar
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
     const { roles, their_pastor, their_copastor, their_preacher } =
       createMemberDto;
+
+    //! Validacion de roles
+    if (
+      (roles.includes('pastor') && roles.includes('copastor')) ||
+      (roles.includes('pastor') && roles.includes('preacher'))
+    ) {
+      throw new BadRequestException(`No se puede asignar una jerarquia menor`);
+    }
+
+    if (roles.includes('copastor') && roles.includes('preacher')) {
+      throw new BadRequestException(`No se puede asignar una jerarquia menor`);
+    }
 
     if (roles.includes('pastor') && their_pastor) {
       throw new BadRequestException(
@@ -49,6 +62,7 @@ export class MembersService {
       );
     }
 
+    //! Validacion de roles y theirs leaders
     if (
       (roles.includes('pastor') && their_copastor) ||
       (roles.includes('pastor') && their_preacher)
@@ -137,7 +151,7 @@ export class MembersService {
     });
   }
 
-  // TODO : agregar preacher y casa para cargar relaciones(despues)
+  // TODO : agregar casa a la relacion
   //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
   async findTerm(
     term: string,
@@ -147,11 +161,10 @@ export class MembersService {
     let member: Member | Member[];
 
     //* Find UUID --> One
-
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOne({
         where: { id: term },
-        relations: ['their_copastor_id', 'their_pastor_id'],
+        relations: ['their_copastor_id', 'their_pastor_id', 'their_preacher'],
       });
 
       if (!member) {
@@ -332,17 +345,7 @@ export class MembersService {
       );
     }
 
-    if (
-      !roles.includes('preacher') ||
-      roles.includes('pastor') ||
-      roles.includes('copastor')
-    ) {
-      throw new BadRequestException(
-        `Solo se permite admite rol de Preacher o Member`,
-      );
-    }
-
-    //* Actualizar tmb su pastor copastor o preacher
+    //* Validacion de roles
 
     if (
       (dataMember.roles.includes('pastor') && roles.includes('copastor')) ||
@@ -360,8 +363,10 @@ export class MembersService {
     }
 
     //! Asignacion de data si es pastor
+    let member: Member;
+
     if (dataMember.roles.includes('pastor') && roles.includes('pastor')) {
-      const member = await this.memberRepository.preload({
+      member = await this.memberRepository.preload({
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
@@ -371,22 +376,11 @@ export class MembersService {
         their_pastor: null,
         their_preacher: null,
       });
-
-      if (!member) {
-        throw new NotFoundException(`Member with id: ${id} not found`);
-      }
-
-      try {
-        return await this.memberRepository.save(member);
-      } catch (error) {
-        this.handleDBExceptions(error);
-      }
     }
 
     //! Asignacion de data si es coPastor
-    //TODO : aqui empezar a corregir
     if (dataMember.roles.includes('copastor') && roles.includes('copastor')) {
-      const member = await this.memberRepository.preload({
+      member = await this.memberRepository.preload({
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
@@ -396,25 +390,29 @@ export class MembersService {
         their_copastor: null,
         their_preacher: null,
       });
-      // todo : validar si datamenter copastor y roles aumenta a pastor, cambiar their
-      //TODO : Hacaer un solo if
-      if (!member) {
-        throw new NotFoundException(`Member with id: ${id} not found`);
-      }
-
-      // TODO : hacer un solo try  con memeber en let
-      try {
-        return await this.memberRepository.save(member);
-      } catch (error) {
-        this.handleDBExceptions(error);
-      }
     }
 
-    //TODO : Retomar 06/12
-    //TODO : si el rol cambia tmb modificar sus funciones de their
+    //* Si un coPastor se transforma a Pastor
+    if (
+      dataMember.roles.includes('copastor') &&
+      !roles.includes('copastor') &&
+      roles.includes('pastor')
+    ) {
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: null,
+        their_copastor: null,
+        their_preacher: null,
+      });
+    }
+
     //! Asignacion de data si es Pracher
     if (dataMember.roles.includes('preacher') && roles.includes('preacher')) {
-      const member = await this.memberRepository.preload({
+      member = await this.memberRepository.preload({
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
@@ -424,32 +422,57 @@ export class MembersService {
         their_copastor: copastor,
         their_preacher: null,
       });
-
-      if (!member) {
-        throw new NotFoundException(`Member with id: ${id} not found`);
-      }
-
-      try {
-        return await this.memberRepository.save(member);
-      } catch (error) {
-        this.handleDBExceptions(error);
-      }
     }
 
-    //TODO : Agregar preacher y casa cuando llege a esa relacion.
+    //* Si un Preacher se transforma a CoPastor
+    if (
+      dataMember.roles.includes('preacher') &&
+      !roles.includes('preacher') &&
+      roles.includes('copastor')
+    ) {
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: pastor,
+        their_copastor: null,
+        their_preacher: null,
+      });
+    }
 
-    const member = await this.memberRepository.preload({
-      ...updateMemberDto,
-      id: id,
-      updated_at: new Date(),
-      // NOTE: cambiar por uuid en relacion con User
-      updated_by: 'Kevinxd',
-      their_copastor: coPastor,
-      their_pastor: pastor,
-      their_preacher: pastor, //! corregir
-    });
+    //! Asignacion de data si es Member
+    if (dataMember.roles.includes('member') && roles.includes('member')) {
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: pastor,
+        their_copastor: copastor,
+        their_preacher: preacher,
+      });
+    }
 
-    if (!member) throw new NotFoundException(`Member with id: ${id} not found`);
+    //* Si un Member se transforma a Preacher
+    if (dataMember.roles.includes('member') && roles.includes('preacher')) {
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: pastor,
+        their_copastor: copastor,
+        their_preacher: null,
+      });
+    }
+
+    if (!member) {
+      throw new NotFoundException(`Member with id: ${id} not found`);
+    }
 
     try {
       return await this.memberRepository.save(member);
@@ -474,7 +497,6 @@ export class MembersService {
       is_active: false,
     });
 
-    //TODO : Falta hacer el preacher
     if (dataMember.roles.includes('pastor')) {
       const pastores = await this.pastorRepository.find();
       const pastorMember = pastores.find((pastor) => pastor.member.id === id);
@@ -499,9 +521,11 @@ export class MembersService {
       const coPastorMember = coPastores.find(
         (coPastor) => coPastor.member.id === id,
       );
+
       if (!coPastorMember) {
         throw new NotFoundException(`Not found pastor`);
       }
+
       const coPastor = await this.coPastorRepository.preload({
         id: coPastorMember.id,
         is_active: false,
@@ -515,25 +539,28 @@ export class MembersService {
       }
     }
 
-    // if (member.roles.includes('preacher')) {
-    //   const preachers = await this.preacherRepository.find();
-    //   const preacherMember = preacher.find(
-    //     (preaacher) => preacher.member.id === id,
-    //   );
-    //   if (!preacherMember) {
-    //     throw new NotFoundException(`Not found pastor`);
-    //   }
-    //   [preacher] = await this.preacherRepository.preload({
-    //     id: preacherMember.id,
-    //     is_active: false,
-    //   });
-    // try {
-    //   await this.memberRepository.save(member);
-    //   await this.pastorRepository.save(preacher);
-    // } catch (error) {
-    //   this.handleDBExceptions(error);
-    // }
-    // }
+    if (member.roles.includes('preacher')) {
+      const preachers = await this.preacherRepository.find();
+      const preacherMember = preachers.find(
+        (preacher) => preacher.member.id === id,
+      );
+
+      if (!preacherMember) {
+        throw new NotFoundException(`Not found pastor`);
+      }
+
+      const preacher = await this.preacherRepository.preload({
+        id: preacherMember.id,
+        is_active: false,
+      });
+
+      try {
+        await this.memberRepository.save(member);
+        await this.pastorRepository.save(preacher);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
   }
 
   //! PRIVATE METHODS

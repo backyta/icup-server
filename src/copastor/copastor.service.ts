@@ -41,11 +41,17 @@ export class CoPastorService {
 
     // @InjectRepository(FamilyHouses)
     // private readonly familyHousesRepository: Repository<FamilyHouses>,
+
+    //NOTE : en un futuro se puede agregar supervisores al pastor y copastor y toda la jerarquia que tenga
   ) {}
 
   //* CREATE COPASTOR
   async create(createCoPastorDto: CreateCoPastorDto) {
     const { id_member, their_pastor } = createCoPastorDto;
+
+    if (!their_pastor) {
+      throw new BadRequestException(`Propety their_pastor not should empty`);
+    }
 
     const member = await this.memberRepository.findOneBy({
       id: id_member,
@@ -81,17 +87,39 @@ export class CoPastorService {
       );
     }
 
-    try {
-      const coPastorInstance = this.coPastorRepository.create({
-        member: member,
+    if (member.their_pastor) {
+      try {
+        const coPastorInstance = this.coPastorRepository.create({
+          member: member,
+          their_pastor: member.their_pastor,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        return await this.coPastorRepository.save(coPastorInstance);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    } else {
+      //! Si no viene seteo lo del DTO en mi member y en mi copastor
+      const dataMember = await this.memberRepository.preload({
+        id: member.id,
         their_pastor: pastor,
-        created_at: new Date(),
-        created_by: 'Kevin',
       });
 
-      return await this.coPastorRepository.save(coPastorInstance);
-    } catch (error) {
-      this.handleDBExceptions(error);
+      try {
+        const preacherInstance = this.preacherRepository.create({
+          member: member,
+          their_pastor: pastor,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        await this.memberRepository.save(dataMember);
+        return await this.preacherRepository.save(preacherInstance);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
     }
   }
 
@@ -144,7 +172,6 @@ export class CoPastorService {
         (copastores) => copastores.id,
       );
 
-      //?NOTE : en un futuro se puede agregar supervisores al pastor y copastor y toda la jerarquia que tenga
       coPastor.count_preachers = listPreachers.length;
       coPastor.preachers = newListPreachersID;
 
@@ -234,26 +261,39 @@ export class CoPastorService {
 
   //* UPDATE FOR ID
   async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
-    const { their_pastor } = updateCoPastorDto;
+    const { roles, their_pastor, id_member } = updateCoPastorDto;
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataCoPastor = await this.coPastorRepository.findOneBy({ id });
+    if (!roles.includes('copastor')) {
+      throw new BadRequestException(`Roles should includes ['copastor']`);
+    }
 
+    const dataCoPastor = await this.coPastorRepository.findOneBy({ id });
     if (!dataCoPastor) {
       throw new NotFoundException(`CoPastor not found with id: ${id}`);
     }
 
-    if (!dataCoPastor.member.id)
-      throw new NotFoundException(
-        `Member with id: ${dataCoPastor.member.id} not found`,
-      );
+    let member: Member;
+    if (!id_member) {
+      member = await this.memberRepository.findOneBy({
+        id: dataCoPastor.member.id,
+      });
+    } else {
+      member = await this.memberRepository.findOneBy({
+        id: id_member,
+      });
+    }
 
-    if (!dataCoPastor.member.roles.includes('pastor')) {
+    if (!member) {
+      throw new NotFoundException(`Member Not found with id ${id_member}`);
+    }
+
+    if (!member.roles.includes('copastor')) {
       throw new BadRequestException(
-        `This member cannot be assigned as Pastor, his role must contain: ["pastor"]`,
+        `No se puede asignar este miembro como Copastor, falta rol: ['copastor']`,
       );
     }
 
@@ -271,6 +311,7 @@ export class CoPastorService {
     if (!pastor) {
       throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
     }
+
     // TODO
     //* Conteo y asignacion de Casas
     // const allFamilyHouses = await this.familyHousesRepository.find();
@@ -290,9 +331,9 @@ export class CoPastorService {
 
     const listPreachersID = listPreachers.map((copastores) => copastores.id);
 
-    //NOTE : este miembro que es un copastor, si actualizamos su tabla copastor, en su pastor asgignado, tmb deberia cambiar en su tabla miembro, para que trengan el mismo pastor
-    const member = await this.memberRepository.preload({
-      id: dataCoPastor.member.id,
+    //* Asignacion de pastor a member y a copastor (igual referencia, se cambia en ambas tablas)
+    const dataMember = await this.memberRepository.preload({
+      id: member.id,
       ...updateCoPastorDto,
       updated_at: new Date(),
       their_pastor: pastor,
@@ -302,7 +343,7 @@ export class CoPastorService {
 
     const coPastor = await this.coPastorRepository.preload({
       id: id,
-      member: member,
+      member: dataMember,
       their_pastor: pastor,
       // houses:,
       count_houses: 16,

@@ -18,7 +18,6 @@ import { isUUID } from 'class-validator';
 import { SearchType } from 'src/common/enums/search-types.enum';
 import { searchFullname, searchPerson, updateAge } from 'src/common/helpers';
 
-//TODO : Vincular con Member (falta)
 //TODO : finalizando recien pasar a Entidad familyHouses
 @Injectable()
 export class PreacherService {
@@ -97,8 +96,7 @@ export class PreacherService {
       );
     }
 
-    //* Si existe info en el member de pastor y copastor setearlo en preacher, si no existe usar el del
-    //* DTO en el req.body.
+    //* Si existe info en el member lo seteo, si no uso el del DTO
     if (member.their_copastor && member.their_pastor) {
       try {
         const preacherInstance = this.preacherRepository.create({
@@ -114,6 +112,7 @@ export class PreacherService {
         this.handleDBExceptions(error);
       }
     } else {
+      //! Si no tiene seteo lo que viene en el DTO en mi member y tmb en mi pracher
       const dataMember = await this.memberRepository.preload({
         id: member.id,
         their_pastor: pastor,

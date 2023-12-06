@@ -38,7 +38,7 @@ export class PastorService {
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
 
-    //TODO : asignar casas al pastor tmb
+    //NOTE : conteo y asignacion de casas en un futuro cuando haiga mas pastores.
   ) {}
 
   //* CREATE PASTOR
@@ -220,19 +220,38 @@ export class PastorService {
   }
 
   //* UPDATE FOR ID
-  //NOTE : solo se modifica su miembro o su is_active del pastor
   async update(id: string, updatePastorDto: UpdatePastorDto) {
-    const { roles } = updatePastorDto;
+    const { roles, id_member } = updatePastorDto;
 
     const dataPastor = await this.pastorRepository.findOneBy({ id });
-    console.log(dataPastor);
 
     if (!dataPastor) {
       throw new NotFoundException(`Pastor not found with id: ${id}`);
     }
 
     if (!roles.includes('pastor')) {
-      throw new BadRequestException(`Roles should includes require ['pastor']`);
+      throw new BadRequestException(`Roles should includes ['pastor']`);
+    }
+
+    let member: Member;
+    if (!id_member) {
+      member = await this.memberRepository.findOneBy({
+        id: dataPastor.member.id,
+      });
+    } else {
+      member = await this.memberRepository.findOneBy({
+        id: id_member,
+      });
+    }
+
+    if (!member) {
+      throw new NotFoundException(`Member Not found with id ${id_member}`);
+    }
+
+    if (!member.roles.includes('pastor')) {
+      throw new BadRequestException(
+        `No se puede asignar este miembro como Pastor, falta rol: ['Pastor']`,
+      );
     }
 
     //* Conteo de copastores
@@ -253,8 +272,8 @@ export class PastorService {
 
     const listPreachersID = listPreachers.map((copastores) => copastores.id);
 
-    const member = await this.memberRepository.preload({
-      id: dataPastor.member.id,
+    const dataMember = await this.memberRepository.preload({
+      id: member.id,
       ...updatePastorDto,
       updated_at: new Date(),
       // NOTE: cambiar por uuid en relacion con User
@@ -263,7 +282,7 @@ export class PastorService {
 
     const pastor = await this.pastorRepository.preload({
       id: id,
-      member: member,
+      member: dataMember,
       count_copastores: listCopastores.length,
       copastores: listCopastoresID,
       count_preachers: listPreachers.length,

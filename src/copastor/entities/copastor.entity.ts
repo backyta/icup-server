@@ -51,7 +51,7 @@ export class CoPastor {
   // @JoinColumn({ name: 'their_pastor_id' })
   // their_pastor: Pastor;
 
-  @ManyToOne(() => Pastor)
+  @ManyToOne(() => Pastor, { eager: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 
