@@ -1,4 +1,5 @@
 import { CoPastor } from 'src/copastor/entities/copastor.entity';
+import { FamilyHome } from 'src/family-home/entities/family-home.entity';
 import { Pastor } from 'src/pastor/entities/pastor.entity';
 import { Preacher } from 'src/preacher/entities/preacher.entity';
 import {
@@ -88,11 +89,13 @@ export class Member {
   updated_by: string;
 
   //* Relations
-  // @OneToOne(() => FamilyHome, { eager: true })
-  // @JoinColumn({ name: 'family_home_id' })
-  // its_family_home: FamilyHome;
   //! Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor
   //! de manera recursiva, y al no encontrar da error, igual con el copastor.
+
+  @ManyToOne(() => FamilyHome, { eager: true })
+  @JoinColumn({ name: 'family_home_id' })
+  their_family_home: FamilyHome;
+
   @ManyToOne(() => Pastor, { nullable: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
@@ -121,5 +124,3 @@ export class Member {
     this.age = age;
   }
 }
-
-//TODO : agregar earger en true cuando tengas ma relaciones en esta entidad, para que los metodos que usen este modulo se cargen autonmaticaente.

@@ -21,6 +21,7 @@ export class Pastor {
   @Column('bool', { default: true })
   is_active: boolean;
 
+  //* User create and updated
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
@@ -33,6 +34,7 @@ export class Pastor {
   @Column('text', { nullable: true })
   updated_by: string;
 
+  //* Array id (data)
   @Column('uuid', { array: true, nullable: true })
   copastores: string[];
 

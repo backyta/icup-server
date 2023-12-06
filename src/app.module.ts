@@ -6,6 +6,7 @@ import { CommonModule } from './common/common.module';
 import { PastorModule } from './pastor/pastor.module';
 import { CopastorModule } from './copastor/copastor.module';
 import { PreacherModule } from './preacher/preacher.module';
+import { FamilyHomeModule } from './family-home/family-home.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PreacherModule } from './preacher/preacher.module';
     PastorModule,
     CopastorModule,
     PreacherModule,
+    FamilyHomeModule,
   ],
 })
 export class AppModule {}

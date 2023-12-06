@@ -6,6 +6,7 @@ import { Member } from './entities/member.entity';
 import { PastorModule } from 'src/pastor/pastor.module';
 import { CopastorModule } from 'src/copastor/copastor.module';
 import { PreacherModule } from 'src/preacher/preacher.module';
+import { FamilyHomeModule } from 'src/family-home/family-home.module';
 
 @Module({
   controllers: [MembersController],
@@ -15,6 +16,7 @@ import { PreacherModule } from 'src/preacher/preacher.module';
     PastorModule,
     CopastorModule,
     PreacherModule,
+    FamilyHomeModule,
   ],
   exports: [TypeOrmModule, MembersService],
 })

@@ -19,6 +19,7 @@ import { searchPerson, searchFullname, updateAge } from '../common/helpers';
 import { Pastor } from 'src/pastor/entities/pastor.entity';
 import { CoPastor } from 'src/copastor/entities/copastor.entity';
 import { Preacher } from 'src/preacher/entities/preacher.entity';
+import { FamilyHome } from 'src/family-home/entities/family-home.entity';
 
 @Injectable()
 export class MembersService {
@@ -36,13 +37,20 @@ export class MembersService {
 
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
+
+    @InjectRepository(FamilyHome)
+    private readonly familyHomeRepository: Repository<FamilyHome>,
   ) {}
 
-  // TODO : unir a rama main el preacher y empezar con casa familiar
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto) {
-    const { roles, their_pastor, their_copastor, their_preacher } =
-      createMemberDto;
+    const {
+      roles,
+      their_pastor,
+      their_copastor,
+      their_preacher,
+      their_family_home,
+    } = createMemberDto;
 
     //! Validacion de roles
     if (
@@ -93,8 +101,7 @@ export class MembersService {
       );
     }
 
-    //TODO : falta hacer su casa.
-    //* Validaciones Pastor, Copastor, Preacher
+    //* Validaciones Pastor, Copastor, Preacher, Casa
     let pastor: Pastor;
     if (!their_pastor) {
       pastor = null;
@@ -114,7 +121,7 @@ export class MembersService {
     }
 
     let preacher: Preacher;
-    if (!preacher) {
+    if (!their_preacher) {
       preacher = null;
     } else {
       preacher = await this.preacherRepository.findOneBy({
@@ -122,16 +129,28 @@ export class MembersService {
       });
     }
 
+    let familyHome: FamilyHome;
+    if (!their_family_home) {
+      familyHome = null;
+    } else {
+      familyHome = await this.familyHomeRepository.findOneBy({
+        id: their_family_home,
+      });
+    }
+
+    //* Creaccion de Instancia
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
         their_copastor: copastor,
         their_pastor: pastor,
         their_preacher: preacher,
+        their_family_home: familyHome,
         // NOTE: cambiar por uuid en relacion con User
         created_at: new Date(),
         created_by: 'Kevin',
       });
+
       await this.memberRepository.save(member);
 
       return member;
@@ -147,11 +166,15 @@ export class MembersService {
       where: { is_active: true },
       take: limit,
       skip: offset,
-      relations: ['their_pastor_id', 'their_copastor_id'],
+      relations: [
+        'their_pastor_id',
+        'their_copastor_id',
+        'their_family_home',
+        'their_preacher',
+      ],
     });
   }
 
-  // TODO : agregar casa a la relacion
   //* FIND POR TERMINO Y TIPO DE BUSQUEDA (FILTRO)
   async findTerm(
     term: string,
@@ -164,7 +187,12 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOne({
         where: { id: term },
-        relations: ['their_copastor_id', 'their_pastor_id', 'their_preacher'],
+        relations: [
+          'their_copastor_id',
+          'their_pastor_id',
+          'their_preacher',
+          'their_family_home',
+        ],
       });
 
       if (!member) {
@@ -258,6 +286,54 @@ export class MembersService {
       if (member.length === 0) {
         throw new BadRequestException(
           `Not found members with these roles: ${rolesArray}`,
+        );
+      }
+    }
+
+    //* Find Members for their_copastor --> Many
+    if (isUUID(term) && type === SearchType.their_copastor) {
+      member = await this.memberRepository
+        .createQueryBuilder('member')
+        .where('member.their_preacher = :term', { term })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (member.length === 0) {
+        throw new BadRequestException(
+          `No se encontro Members con este their_copastor : ${term} `,
+        );
+      }
+    }
+
+    //* Find Members for their_preacher --> Many
+    if (isUUID(term) && type === SearchType.their_preacher) {
+      member = await this.memberRepository
+        .createQueryBuilder('member')
+        .where('member.their_copastor = :term', { term })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (member.length === 0) {
+        throw new BadRequestException(
+          `No se encontro Members con este their_preacher : ${term} `,
+        );
+      }
+    }
+
+    //* Find Members for their_FamilyHome --> Many
+    if (isUUID(term) && type === SearchType.their_family_home) {
+      member = await this.memberRepository
+        .createQueryBuilder('member')
+        .where('member.their_family_home = :term', { term })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (member.length === 0) {
+        throw new BadRequestException(
+          `No se encontro Members con este their_family_home : ${term} `,
         );
       }
     }
@@ -362,6 +438,13 @@ export class MembersService {
       );
     }
 
+    // TODO : revisar y corregir los their_family_home
+    //todo : con esto se termina el create member con todoas las demas relaciones, luego seguir terminando
+    //todo : los endpoints de familyhome, y probar.
+
+    //TODO : hacer apuntes de como funciona la cracion de todo desde miembro, pastor, copastor, etc. una vez
+    //* que se termine todos hacer esos apuntes.
+
     //! Asignacion de data si es pastor
     let member: Member;
 
@@ -375,6 +458,7 @@ export class MembersService {
         their_copastor: null,
         their_pastor: null,
         their_preacher: null,
+        their_family_home: null,
       });
     }
 
@@ -389,6 +473,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: null,
         their_preacher: null,
+        their_family_home: null,
       });
     }
 
@@ -407,6 +492,7 @@ export class MembersService {
         their_pastor: null,
         their_copastor: null,
         their_preacher: null,
+        their_family_home: null,
       });
     }
 
@@ -421,6 +507,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: null,
+        their_family_home: null,
       });
     }
 
@@ -439,6 +526,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: null,
         their_preacher: null,
+        their_family_home: null,
       });
     }
 
@@ -453,6 +541,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
+        their_family_home: null,
       });
     }
 
@@ -467,6 +556,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: null,
+        their_family_home: null,
       });
     }
 

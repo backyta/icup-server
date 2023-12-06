@@ -95,10 +95,10 @@ export class CreateMemberDto {
   address: string;
 
   //* Relations
-  // @IsString()
-  // @IsUUID()
-  // @IsOptional()
-  // their_family_home?: string | ;
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  their_family_home?: string;
 
   @IsString()
   @IsUUID()

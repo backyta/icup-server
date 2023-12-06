@@ -36,6 +36,7 @@ export class PreacherService {
     @InjectRepository(CoPastor)
     private readonly coPastorRepository: Repository<CoPastor>,
 
+    //TODO : hacer la asignacion de preacher al buscar por ID
     // @InjectRepository(FamilyHouses)
     // private readonly familyHousesRepository: Repository<FamilyHouses>,
   ) {}
@@ -72,7 +73,7 @@ export class PreacherService {
     });
 
     if (!pastor) {
-      throw new NotFoundException(`Not faound Pastor with id ${id_member}`);
+      throw new NotFoundException(`Not faound Pastor with id ${their_pastor}`);
     }
 
     if (!pastor.is_active) {
@@ -87,7 +88,9 @@ export class PreacherService {
     });
 
     if (!copastor) {
-      throw new NotFoundException(`Not faound CoPastor with id ${id_member}`);
+      throw new NotFoundException(
+        `Not faound CoPastor with id ${their_copastor}`,
+      );
     }
 
     if (!copastor.is_active) {
@@ -136,9 +139,9 @@ export class PreacherService {
     }
   }
 
-  findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.preacherRepository.find({
+    return await this.preacherRepository.find({
       take: limit,
       skip: offset,
     });
@@ -175,7 +178,7 @@ export class PreacherService {
       // );
 
       //* Asignacion de Casa familiar al buscar por ID
-
+      //! Al buscar por id de preacher se setea el id de la casa
       // pastor.member.age = updateAge(pastor.member);
       // pastor.count_copastor = listCopastores.length;
       // pastor.copastores = newListCopastoresID;
