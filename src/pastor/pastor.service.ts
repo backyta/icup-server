@@ -113,7 +113,7 @@ export class PastorService {
       }
 
       //* Conteo y asignacion de copastores
-      const allCopastores = await this.coPastorRepository.find();
+      const allCopastores = (await this.coPastorRepository.find()) ?? [];
       const listCopastores = allCopastores.filter(
         (copastor) => copastor.their_pastor.id === term,
       );
@@ -123,7 +123,7 @@ export class PastorService {
       );
 
       //* Conteo y asignacion de preachers
-      const allPreachers = await this.preacherRepository.find();
+      const allPreachers = (await this.preacherRepository.find()) ?? [];
       const listPreachers = allPreachers.filter(
         (preacher) => preacher.their_pastor.id === term,
       );
@@ -220,8 +220,14 @@ export class PastorService {
   }
 
   //* UPDATE FOR ID
+  //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
+  //! o preacher, solo se hara la subida de nivel desde el member.
   async update(id: string, updatePastorDto: UpdatePastorDto) {
     const { roles, id_member } = updatePastorDto;
+
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
+    }
 
     const dataPastor = await this.pastorRepository.findOneBy({ id });
 
@@ -255,22 +261,20 @@ export class PastorService {
     }
 
     //* Conteo de copastores
-    const allCopastores = await this.coPastorRepository.find();
-    console.log(allCopastores);
-
+    const allCopastores = (await this.coPastorRepository.find()) ?? [];
     const listCopastores = allCopastores.filter(
-      (copastor) => copastor.their_pastor.id === dataPastor.id,
+      (copastor) => copastor.their_pastor.id === id,
     );
 
     const listCopastoresID = listCopastores.map((copastores) => copastores.id);
 
     //* Conteo y asignacion de preachers
-    const allPreachers = await this.preacherRepository.find();
+    const allPreachers = (await this.preacherRepository.find()) ?? [];
     const listPreachers = allPreachers.filter(
-      (preacher) => preacher.their_pastor.id === dataPastor.id,
+      (preacher) => preacher.their_pastor.id === id,
     );
 
-    const listPreachersID = listPreachers.map((copastores) => copastores.id);
+    const listPreachersID = listPreachers.map((preacher) => preacher.id);
 
     const dataMember = await this.memberRepository.preload({
       id: member.id,

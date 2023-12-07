@@ -34,9 +34,12 @@ export class Preacher {
   @Column('text', { nullable: true })
   updated_by: string;
 
-  //* Array id (data)
+  //* Array or single id (data)
   @Column('uuid', { array: true, nullable: true })
   members: string[];
+
+  @Column('uuid', { array: true, nullable: true })
+  family_home: string[];
 
   //* Relation columns
   @OneToOne(() => Member, { eager: true })

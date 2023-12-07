@@ -20,8 +20,8 @@ import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { updateAge, searchPerson, searchFullname } from '../common/helpers';
 import { SearchType } from '../common/enums/search-types.enum';
 import { Preacher } from 'src/preacher/entities/preacher.entity';
+import { FamilyHome } from 'src/family-home/entities/family-home.entity';
 
-//TODO : probar endpoints con preacher service
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');
@@ -39,8 +39,8 @@ export class CoPastorService {
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
 
-    // @InjectRepository(FamilyHouses)
-    // private readonly familyHousesRepository: Repository<FamilyHouses>,
+    @InjectRepository(FamilyHome)
+    private readonly familyHousesRepository: Repository<FamilyHome>,
 
     //NOTE : en un futuro se puede agregar supervisores al pastor y copastor y toda la jerarquia que tenga
   ) {}
@@ -87,6 +87,8 @@ export class CoPastorService {
       );
     }
 
+    //* Asignacion de instancia
+    //! Si viene se usa el mismo del member, si no el del DTO en ambos casos para guardar la misma ref. pastor
     if (member.their_pastor) {
       try {
         const coPastorInstance = this.coPastorRepository.create({
@@ -101,7 +103,6 @@ export class CoPastorService {
         this.handleDBExceptions(error);
       }
     } else {
-      //! Si no viene seteo lo del DTO en mi member y en mi copastor
       const dataMember = await this.memberRepository.preload({
         id: member.id,
         their_pastor: pastor,
@@ -123,7 +124,7 @@ export class CoPastorService {
     }
   }
 
-  //* FIND ALL (PAGINATED) boton flecha y auemtar el offset de 10 o 20.
+  //* FIND ALL (PAGINATED)
   findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.coPastorRepository.find({
@@ -151,29 +152,27 @@ export class CoPastorService {
         throw new BadRequestException(`CoPastor should is active`);
       }
 
-      //TODO : hacer familyHouses igual que preachers
       //* Conteo y asignacion de Casas
-      // const allFamilyHouses = await this.familyHousesRepository.find();
-      // const listCopastores = allFamilyHouses.filter(
-      //   (home) => home.their_pastor.id === term,
-      // );
+      const familyHouses = (await this.familyHousesRepository.find()) ?? [];
+      const listFamilyHouses = familyHouses.filter(
+        (home) => home.their_copastor.id === term,
+      );
 
-      // const newListCopastoresID = listCopastores.map(
-      //   (copastores) => copastores.id,
-      // );
+      const familyHousesId = listFamilyHouses.map((houses) => houses.id);
 
       //* Conteo y asignacion de Preachers
-      const allPreachers = await this.preacherRepository.find();
+      const allPreachers = (await this.preacherRepository.find()) ?? [];
       const listPreachers = allPreachers.filter(
-        (preacher) => preacher.their_pastor.id === term,
+        (preacher) => preacher.their_copastor.id === term,
       );
 
-      const newListPreachersID = listPreachers.map(
-        (copastores) => copastores.id,
-      );
+      const listPreachersID = listPreachers.map((preacher) => preacher.id);
 
-      coPastor.count_preachers = listPreachers.length;
-      coPastor.preachers = newListPreachersID;
+      coPastor.count_preachers = listPreachersID.length;
+      coPastor.preachers = listPreachersID;
+
+      coPastor.count_houses = familyHousesId.length;
+      coPastor.family_houses = familyHousesId;
 
       coPastor.member.age = updateAge(coPastor.member);
 
@@ -260,6 +259,8 @@ export class CoPastorService {
   }
 
   //* UPDATE FOR ID
+  //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
+  //! o preacher, solo se hara la subida de nivel desde el member.
   async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
     const { roles, their_pastor, id_member } = updateCoPastorDto;
 
@@ -267,15 +268,17 @@ export class CoPastorService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    if (!roles.includes('copastor')) {
-      throw new BadRequestException(`Roles should includes ['copastor']`);
-    }
-
     const dataCoPastor = await this.coPastorRepository.findOneBy({ id });
+
     if (!dataCoPastor) {
       throw new NotFoundException(`CoPastor not found with id: ${id}`);
     }
 
+    if (!roles.includes('copastor')) {
+      throw new BadRequestException(`Roles should includes ['copastor']`);
+    }
+
+    //* Asignacion y validacion de Member
     let member: Member;
     if (!id_member) {
       member = await this.memberRepository.findOneBy({
@@ -297,6 +300,7 @@ export class CoPastorService {
       );
     }
 
+    //* Asignacion y validacion de pastor
     let pastor: Pastor;
     if (!their_pastor) {
       pastor = await this.pastorRepository.findOneBy({
@@ -312,26 +316,22 @@ export class CoPastorService {
       throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
     }
 
-    // TODO
     //* Conteo y asignacion de Casas
-    // const allFamilyHouses = await this.familyHousesRepository.find();
-    // const listCopastores = allFamilyHouses.filter(
-    //   (home) => home.their_pastor.id === term,
-    // );
-
-    // const newListCopastoresID = listCopastores.map(
-    //   (copastores) => copastores.id,
-    // );
-
-    //* Conteo y asignacion de Preachers
-    const allPreachers = await this.preacherRepository.find();
-    const listPreachers = allPreachers.filter(
-      (preacher) => preacher.their_pastor.id === id,
+    const familyHouses = (await this.familyHousesRepository.find()) ?? [];
+    const listFamilyHouses = familyHouses.filter(
+      (home) => home.their_copastor.id === id,
     );
 
-    const listPreachersID = listPreachers.map((copastores) => copastores.id);
+    const familyHousesId = listFamilyHouses.map((houses) => houses.id);
 
-    //* Asignacion de pastor a member y a copastor (igual referencia, se cambia en ambas tablas)
+    //* Conteo y asignacion de Preachers
+    const allPreachers = (await this.preacherRepository.find()) ?? [];
+    const listPreachers = allPreachers.filter(
+      (preacher) => preacher.their_copastor.id === id,
+    );
+
+    const listPreachersID = listPreachers.map((preacher) => preacher.id);
+
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       ...updateCoPastorDto,
@@ -343,12 +343,12 @@ export class CoPastorService {
 
     const coPastor = await this.coPastorRepository.preload({
       id: id,
-      member: dataMember,
-      their_pastor: pastor,
-      // houses:,
-      count_houses: 16,
+      family_houses: familyHousesId,
+      count_houses: familyHouses.length,
       preachers: listPreachersID,
       count_preachers: listPreachers.length,
+      member: dataMember,
+      their_pastor: pastor,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });

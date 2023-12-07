@@ -40,6 +40,7 @@ export class FamilyHomeService {
   ) {}
 
   //* CREATE FAMILY HOME
+  // TODO : revisar y terminar CRUD
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
     const { their_preacher, their_pastor, their_copastor } =
       createFamilyHomeDto;
@@ -119,7 +120,7 @@ export class FamilyHomeService {
     //! Revisar si se cargan las relaciones o afecta, para cargarlas aqui
   }
 
-  //* Buscar por nombbre, codigo, direccion, id predicador, id cppastor
+  // TODO : agregar busqueda por is_active, y agregar a los demas que busquen active
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
@@ -129,10 +130,6 @@ export class FamilyHomeService {
 
     //* Find ID --> One
     if (isUUID(term) && type === SearchType.id) {
-      //TODO : setear la cantidad de miembros con la tabla members y mismo id
-      //! Despues de asignar una casa al miembro en la tabla miembro, aqui en buscar casa por id
-      //! actualizamos la cantidad y metemos en un array todos los que correspondan por id de casa.
-
       familyHome = await this.familyHousesRepository.findOneBy({ id: term });
 
       if (!familyHome) {
@@ -140,6 +137,19 @@ export class FamilyHomeService {
           `No se encontro FamilyHome con este UUID`,
         );
       }
+
+      //* Conteo y asignacion de cantidad de miembros(id-familyHome tabla member)
+      const allMembers = (await this.memberRepository.find()) ?? [];
+      const membersFamilyHome = allMembers.filter(
+        (members) => members.their_family_home.id === term,
+      );
+
+      const listMembersId = membersFamilyHome.map((member) => member.id);
+
+      familyHome.count_members = membersFamilyHome.length;
+      familyHome.members = listMembersId;
+
+      await this.familyHousesRepository.save(familyHome);
     }
 
     //* Find Code --> One
@@ -211,10 +221,113 @@ export class FamilyHomeService {
     return familyHome;
   }
 
-  update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
-    return `This action updates a #${id} familyHome`;
+  async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
+    const { their_copastor, their_pastor, their_preacher } =
+      updateFamilyHomeDto;
+
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
+    }
+
+    const dataFamilyHome = await this.familyHousesRepository.findOneBy({ id });
+
+    if (!dataFamilyHome) {
+      throw new NotFoundException(`Preacher not found with id: ${id}`);
+    }
+
+    //* Asignacion y validacion de Pastor
+    let pastor: Pastor;
+    if (!their_pastor) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: dataFamilyHome.their_pastor.id,
+      });
+    } else {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+    }
+
+    if (!pastor) {
+      throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
+    }
+
+    //* Asignacion y validacion de Copastor
+    let copastor: CoPastor;
+    if (!their_copastor) {
+      copastor = await this.coPastorRepository.findOneBy({
+        id: dataFamilyHome.their_copastor.id,
+      });
+    } else {
+      copastor = await this.coPastorRepository.findOneBy({
+        id: their_copastor,
+      });
+    }
+
+    if (!copastor) {
+      throw new NotFoundException(
+        `CoPastor Not found with id ${their_copastor}`,
+      );
+    }
+
+    //* Asignacion y validacion de Preacher
+    let preacher: Preacher;
+    if (!their_preacher) {
+      preacher = await this.preacherRepository.findOneBy({
+        id: dataFamilyHome.their_preacher.id,
+      });
+    } else {
+      preacher = await this.preacherRepository.findOneBy({
+        id: their_preacher,
+      });
+    }
+
+    if (!preacher) {
+      throw new NotFoundException(
+        `CoPastor Not found with id ${their_preacher}`,
+      );
+    }
+
+    //* Conteo y asignacion de cantidad de miembros(id-familyHome tabla member)
+    const allMembers = (await this.memberRepository.find()) ?? [];
+    const membersFamilyHome = allMembers.filter(
+      (members) => members.their_family_home.id === id,
+    );
+
+    const listMembersId = membersFamilyHome.map((member) => member.id);
+
+    const familyHome = await this.familyHousesRepository.preload({
+      id: id,
+      ...updateFamilyHomeDto,
+      their_pastor: pastor,
+      their_copastor: copastor,
+      their_preacher: preacher,
+      members: listMembersId,
+      count_members: listMembersId.length,
+      updated_at: new Date(),
+      updated_by: 'Kevinxd',
+    });
+
+    try {
+      await this.familyHousesRepository.save(familyHome);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+
+    return familyHome;
   }
 
+  //TODO : revisar si es necesario tener un is_actve en la casa
+
+  //! Simplemente marcar como inactivo la casa y al buscar filtrar por activo o inactivo, los inactivos
+  //! podremos entrar con su ID para actualizarlos.
+
+  //* Digamos que una casa se cierra, el usuario marca la casa como inactivo y en members se asigna
+  //* otra casa a otros miembros. (Se marca como inactivo)
+
+  //* Otro seria que la casa se cierre, el usuario la marca como inactivo, ero luego consiguen un lugar
+  //* se actualiza (actualizatr path) a activo con otra direccion u nombre, pero mismo codigo.
+
+  //* DELETE FOR ID
   remove(id: number) {
     return `This action removes a #${id} familyHome`;
   }

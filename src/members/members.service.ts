@@ -356,9 +356,15 @@ export class MembersService {
 
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto) {
-    const { roles, their_copastor, their_pastor, their_preacher } =
-      updateMemberDto;
+    const {
+      roles,
+      their_copastor,
+      their_pastor,
+      their_preacher,
+      their_family_home,
+    } = updateMemberDto;
 
+    //NOTE: no se necesitaria todas las validaciones si ponemos como obligatorio los their(Revisar)
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -421,6 +427,24 @@ export class MembersService {
       );
     }
 
+    //* Validacion Family Home
+    let familyHome: FamilyHome;
+    if (!their_family_home) {
+      familyHome = await this.familyHomeRepository.findOneBy({
+        id: dataMember.their_family_home.id,
+      });
+    } else {
+      familyHome = await this.familyHomeRepository.findOneBy({
+        id: their_family_home,
+      });
+    }
+
+    if (!familyHome) {
+      throw new NotFoundException(
+        `CoPastor Not found with id ${their_preacher}`,
+      );
+    }
+
     //* Validacion de roles
 
     if (
@@ -437,13 +461,6 @@ export class MembersService {
         `No se puede asignar un rol inferior a CoPastor`,
       );
     }
-
-    // TODO : revisar y corregir los their_family_home
-    //todo : con esto se termina el create member con todoas las demas relaciones, luego seguir terminando
-    //todo : los endpoints de familyhome, y probar.
-
-    //TODO : hacer apuntes de como funciona la cracion de todo desde miembro, pastor, copastor, etc. una vez
-    //* que se termine todos hacer esos apuntes.
 
     //! Asignacion de data si es pastor
     let member: Member;
@@ -507,7 +524,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: null,
-        their_family_home: null,
+        their_family_home: familyHome,
       });
     }
 
@@ -541,7 +558,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
-        their_family_home: null,
+        their_family_home: familyHome,
       });
     }
 
@@ -556,7 +573,7 @@ export class MembersService {
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: null,
-        their_family_home: null,
+        their_family_home: familyHome,
       });
     }
 
