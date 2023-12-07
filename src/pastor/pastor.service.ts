@@ -223,7 +223,13 @@ export class PastorService {
   //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
   //! o preacher, solo se hara la subida de nivel desde el member.
   async update(id: string, updatePastorDto: UpdatePastorDto) {
-    const { roles, id_member } = updatePastorDto;
+    const { roles, id_member, is_active } = updatePastorDto;
+
+    if (is_active === undefined) {
+      throw new BadRequestException(
+        `Debe asignar un valor booleano a is_Active`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -292,6 +298,7 @@ export class PastorService {
       count_preachers: listPreachers.length,
       preachers: listPreachersID,
       updated_at: new Date(),
+      is_active: is_active,
       //NOTE : cambiar por id de usuario
       updated_by: 'Kevinxd',
     });

@@ -36,6 +36,10 @@ export class CreateMemberDto {
   @IsOptional()
   email?: string;
 
+  @IsEmail()
+  @IsOptional()
+  is_active?: boolean;
+
   @IsIn(['male', 'female'])
   gender: string;
 

@@ -137,6 +137,7 @@ export class PreacherService {
     }
   }
 
+  //* Busca Todo (activo o inactivo)
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return await this.preacherRepository.find({
@@ -152,16 +153,12 @@ export class PreacherService {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let preacher: Preacher | Preacher[];
 
-    //* Find ID --> One
+    //* Find ID --> One (Busca por ID, activo o inactivo)
     if (isUUID(term) && type === SearchType.id) {
       preacher = await this.preacherRepository.findOneBy({ id: term });
 
       if (!preacher) {
         throw new BadRequestException(`No se encontro Preacher con este UUID`);
-      }
-
-      if (!preacher.is_active) {
-        throw new BadRequestException(`Pracher should is active`);
       }
 
       //* Conteo y asignacion de Cantidad de miembros(id-preahcer tabal member)
@@ -193,6 +190,7 @@ export class PreacherService {
       await this.preacherRepository.save(preacher);
     }
 
+    //! Aqui si busca solo por active
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
       const resultSearch = await this.searchPreacherBy(
@@ -232,6 +230,7 @@ export class PreacherService {
       return resultSearch;
     }
 
+    //! Busca por active false o true
     //* Find isActive --> Many
     if (term && type === SearchType.isActive) {
       const whereCondition = {};
@@ -254,6 +253,7 @@ export class PreacherService {
         throw new BadRequestException(`This term is not a valid boolean value`);
       }
     }
+    //TODO : ver si se hace busqueda por copastor a cargo
 
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
@@ -276,8 +276,17 @@ export class PreacherService {
   //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
   //! o preacher, solo se hara la subida de nivel desde el member.
   async update(id: string, updatePreacherDto: UpdatePreacherDto) {
-    const { roles, their_copastor, their_pastor, id_member } =
+    const { roles, their_copastor, their_pastor, id_member, is_active } =
       updatePreacherDto;
+
+    //TODO : probar todos los is_active, en todos los modulos,
+    //TODO : probar los endpoits nuevos, y hacer merge
+    //TODO : empezar con modulo de ofrendas (ofrendas y diezmos)
+    if (is_active === undefined) {
+      throw new BadRequestException(
+        `Debe asignar un valor booleano a is_Active`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -373,6 +382,7 @@ export class PreacherService {
       members: listMembersID,
       count_members: listMembersID.length,
       family_home: familyHomeId,
+      is_active: is_active,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
@@ -445,15 +455,17 @@ export class PreacherService {
       });
 
       const preacherMembers = members.filter((member) =>
-        member.roles.includes('copastor'),
+        member.roles.includes('preacher'),
       );
 
       if (preacherMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'copastor'`);
+        throw new NotFoundException(`Not found member with roles 'preachher'`);
       }
 
-      const preachers = await this.coPastorRepository.find();
+      const preachers = await this.preacherRepository.find();
 
+      //* retorna uno o mas elementos del array segun igualdad, por cada member del mapo tendremos un array
+      //* de 1 o mas elementos [[a,b], [a]] . al final los aplanamos
       const newPreacherMembers = preacherMembers.map((member) => {
         const newPreachers = preachers.filter(
           (preacher) =>

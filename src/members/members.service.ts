@@ -362,7 +362,14 @@ export class MembersService {
       their_pastor,
       their_preacher,
       their_family_home,
+      is_active,
     } = updateMemberDto;
+
+    if (is_active === undefined) {
+      throw new BadRequestException(
+        `Debe asignar un valor booleano a is_Active`,
+      );
+    }
 
     //NOTE: no se necesitaria todas las validaciones si ponemos como obligatorio los their(Revisar)
     if (!isUUID(id)) {

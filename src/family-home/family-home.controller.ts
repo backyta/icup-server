@@ -45,6 +45,6 @@ export class FamilyHomeController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.familyHomeService.remove(+id);
+    return this.familyHomeService.remove(id);
   }
 }

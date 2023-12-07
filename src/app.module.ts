@@ -21,8 +21,8 @@ import { FamilyHomeModule } from './family-home/family-home.module';
       autoLoadEntities: true, // para cargar automaticamente las entidades que definimos.
       synchronize: true, // sincronizacion automatica con DB (no production, hacer migrations)
     }),
-    MembersModule,
     CommonModule,
+    MembersModule,
     PastorModule,
     CopastorModule,
     PreacherModule,

@@ -24,6 +24,9 @@ export class FamilyHome {
   @Column('int', { default: 0 })
   count_members: number;
 
+  @Column('bool', { default: true })
+  is_active: boolean;
+
   //* Address
   @Column('text')
   district: string;
@@ -50,15 +53,15 @@ export class FamilyHome {
 
   //* Relation columns
   //! Revisar si el eager en tru no afecta.
-  @OneToOne(() => Preacher, { eager: true })
+  @OneToOne(() => Preacher)
   @JoinColumn({ name: 'their_preacher_id' })
   their_preacher: Preacher;
 
-  @ManyToOne(() => CoPastor, { eager: true })
+  @ManyToOne(() => CoPastor)
   @JoinColumn({ name: 'their_copastor_id' })
   their_copastor: CoPastor;
 
-  @OneToOne(() => Pastor, { eager: true })
+  @OneToOne(() => Pastor)
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 }

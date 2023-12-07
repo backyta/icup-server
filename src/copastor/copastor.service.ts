@@ -124,7 +124,7 @@ export class CoPastorService {
     }
   }
 
-  //* FIND ALL (PAGINATED)
+  //* FIND ALL (busca por activo o inactivo, todo)
   findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.coPastorRepository.find({
@@ -140,16 +140,12 @@ export class CoPastorService {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let coPastor: CoPastor | CoPastor[];
 
-    //* Find ID --> One
+    //* Find ID --> One (ID por activo o inactivo)
     if (isUUID(term) && type === SearchType.id) {
       coPastor = await this.coPastorRepository.findOneBy({ id: term });
 
       if (!coPastor) {
         throw new BadRequestException(`No se encontro Copastor con este UUID`);
-      }
-
-      if (!coPastor.is_active) {
-        throw new BadRequestException(`CoPastor should is active`);
       }
 
       //* Conteo y asignacion de Casas
@@ -179,6 +175,7 @@ export class CoPastorService {
       await this.coPastorRepository.save(coPastor);
     }
 
+    //! Aqui si busca solo por active
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
       const resultSearch = await this.searchCoPastorBy(
@@ -218,6 +215,7 @@ export class CoPastorService {
       return resultSearch;
     }
 
+    //! Busca por active false o true
     //* Find isActive --> Many
     if (term && type === SearchType.isActive) {
       const whereCondition = {};
@@ -262,7 +260,13 @@ export class CoPastorService {
   //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
   //! o preacher, solo se hara la subida de nivel desde el member.
   async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
-    const { roles, their_pastor, id_member } = updateCoPastorDto;
+    const { roles, their_pastor, id_member, is_active } = updateCoPastorDto;
+
+    if (is_active === undefined) {
+      throw new BadRequestException(
+        `Debe asignar un valor booleano a is_Active`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -348,6 +352,7 @@ export class CoPastorService {
       preachers: listPreachersID,
       count_preachers: listPreachers.length,
       member: dataMember,
+      is_active: is_active,
       their_pastor: pastor,
       updated_at: new Date(),
       updated_by: 'Kevinxd',

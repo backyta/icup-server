@@ -27,6 +27,10 @@ export class CreateFamilyHomeDto {
   @IsNotEmpty()
   address: string;
 
+  @IsString()
+  @IsNotEmpty()
+  is_active: boolean;
+
   //* Relations
 
   @IsString()

@@ -20,7 +20,7 @@ import { SearchType } from 'src/common/enums/search-types.enum';
 
 @Injectable()
 export class FamilyHomeService {
-  private readonly logger = new Logger('PreacherService');
+  private readonly logger = new Logger('FamilyHomeService');
 
   constructor(
     @InjectRepository(Preacher)
@@ -40,7 +40,6 @@ export class FamilyHomeService {
   ) {}
 
   //* CREATE FAMILY HOME
-  // TODO : revisar y terminar CRUD
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
     const { their_preacher, their_pastor, their_copastor } =
       createFamilyHomeDto;
@@ -111,6 +110,7 @@ export class FamilyHomeService {
     }
   }
 
+  //* Busca Todos (activo o inactive)
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return await this.familyHousesRepository.find({
@@ -120,7 +120,7 @@ export class FamilyHomeService {
     //! Revisar si se cargan las relaciones o afecta, para cargarlas aqui
   }
 
-  // TODO : agregar busqueda por is_active, y agregar a los demas que busquen active
+  //* Busca por ID (activo o inactivo)
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
@@ -152,9 +152,13 @@ export class FamilyHomeService {
       await this.familyHousesRepository.save(familyHome);
     }
 
+    //! Aqui si busca solo por active
     //* Find Code --> One
     if (term && type === SearchType.code) {
-      familyHome = await this.familyHousesRepository.findOneBy({ code: term });
+      familyHome = await this.familyHousesRepository.findOneBy({
+        code: term,
+        is_active: true,
+      });
 
       if (!familyHome) {
         throw new BadRequestException(
@@ -168,6 +172,7 @@ export class FamilyHomeService {
       familyHome = await this.familyHousesRepository
         .createQueryBuilder('fh')
         .where('fh.address LIKE :term', { term: `%${term}%` })
+        .andWhere('fh.is_active = :isActive', { isActive: true })
         .getOne();
 
       if (!familyHome) {
@@ -182,6 +187,7 @@ export class FamilyHomeService {
       familyHome = await this.familyHousesRepository
         .createQueryBuilder('fh')
         .where('fh.their_preacher = :term', { term })
+        .andWhere('fh.is_active = :isActive', { isActive: true })
         .getOne();
 
       if (!familyHome) {
@@ -196,6 +202,7 @@ export class FamilyHomeService {
       familyHome = await this.familyHousesRepository
         .createQueryBuilder('fh')
         .where('fh.their_copastor = :term', { term })
+        .andWhere('fh.is_active = :isActive', { isActive: true })
         .skip(offset)
         .limit(limit)
         .getMany();
@@ -204,6 +211,29 @@ export class FamilyHomeService {
         throw new BadRequestException(
           `No se encontro ninguna FamilyHome con este their_copastor : ${term} `,
         );
+      }
+    }
+
+    //* Find isActive --> Many
+    if (term && type === SearchType.isActive) {
+      const whereCondition = {};
+      try {
+        whereCondition[type] = term;
+
+        const familyHouses = await this.preacherRepository.find({
+          where: [whereCondition],
+          take: limit,
+          skip: offset,
+        });
+
+        if (familyHouses.length === 0) {
+          throw new NotFoundException(
+            `Not found Preachers with these names: ${term}`,
+          );
+        }
+        return familyHouses;
+      } catch (error) {
+        throw new BadRequestException(`This term is not a valid boolean value`);
       }
     }
 
@@ -222,8 +252,14 @@ export class FamilyHomeService {
   }
 
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
-    const { their_copastor, their_pastor, their_preacher } =
+    const { their_copastor, their_pastor, their_preacher, is_active } =
       updateFamilyHomeDto;
+
+    if (is_active === undefined) {
+      throw new BadRequestException(
+        `Debe asignar un valor booleano a is_Active`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -316,20 +352,28 @@ export class FamilyHomeService {
     return familyHome;
   }
 
-  //TODO : revisar si es necesario tener un is_actve en la casa
-
-  //! Simplemente marcar como inactivo la casa y al buscar filtrar por activo o inactivo, los inactivos
-  //! podremos entrar con su ID para actualizarlos.
-
-  //* Digamos que una casa se cierra, el usuario marca la casa como inactivo y en members se asigna
-  //* otra casa a otros miembros. (Se marca como inactivo)
-
-  //* Otro seria que la casa se cierre, el usuario la marca como inactivo, ero luego consiguen un lugar
-  //* se actualiza (actualizatr path) a activo con otra direccion u nombre, pero mismo codigo.
-
   //* DELETE FOR ID
-  remove(id: number) {
-    return `This action removes a #${id} familyHome`;
+  async remove(id: string) {
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
+    }
+
+    const dataFamilyHome = await this.familyHousesRepository.findOneBy({ id });
+
+    if (!dataFamilyHome) {
+      throw new NotFoundException(`Preacher with id: ${id} not exits`);
+    }
+
+    const familyHome = await this.familyHousesRepository.preload({
+      id: dataFamilyHome.id,
+      is_active: false,
+    });
+
+    try {
+      await this.familyHousesRepository.save(familyHome);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   //! PRIVATE METHODS
