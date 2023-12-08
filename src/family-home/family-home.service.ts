@@ -39,42 +39,10 @@ export class FamilyHomeService {
     private readonly familyHousesRepository: Repository<FamilyHome>,
   ) {}
 
+  //TODO : optimizar el actualizar el member al asignar una casa, ver si se puede setear directo en la creacion de la casa.
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
-    const { their_preacher, their_pastor, their_copastor } =
-      createFamilyHomeDto;
-
-    //* Validation pastor
-    const pastor = await this.pastorRepository.findOneBy({
-      id: their_pastor,
-    });
-
-    if (!pastor) {
-      throw new NotFoundException(`Not faound Pastor with id ${their_pastor}`);
-    }
-
-    if (!pastor.is_active) {
-      throw new BadRequestException(
-        `The property is_active in Pastor must be a true value"`,
-      );
-    }
-
-    //* Validation copastor
-    const copastor = await this.coPastorRepository.findOneBy({
-      id: their_copastor,
-    });
-
-    if (!copastor) {
-      throw new NotFoundException(
-        `Not faound CoPastor with id ${their_copastor}`,
-      );
-    }
-
-    if (!copastor.is_active) {
-      throw new BadRequestException(
-        `The property is_active in CoPastor must be a true value"`,
-      );
-    }
+    const { their_preacher } = createFamilyHomeDto;
 
     //* Validation Preacher
     const preacher = await this.preacherRepository.findOneBy({
@@ -90,6 +58,40 @@ export class FamilyHomeService {
     if (!preacher.is_active) {
       throw new BadRequestException(
         `The property is_active in Preacher must be a true value"`,
+      );
+    }
+
+    //* Validation pastor
+    const pastor = await this.pastorRepository.findOneBy({
+      id: preacher.their_pastor.id,
+    });
+
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${preacher.their_pastor.id}`,
+      );
+    }
+
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in Pastor must be a true value"`,
+      );
+    }
+
+    //* Validation copastor
+    const copastor = await this.coPastorRepository.findOneBy({
+      id: preacher.their_copastor.id,
+    });
+
+    if (!copastor) {
+      throw new NotFoundException(
+        `Not faound CoPastor with id ${preacher.their_copastor.id}`,
+      );
+    }
+
+    if (!copastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in CoPastor must be a true value"`,
       );
     }
 
@@ -252,8 +254,7 @@ export class FamilyHomeService {
   }
 
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
-    const { their_copastor, their_pastor, their_preacher, is_active } =
-      updateFamilyHomeDto;
+    const { their_preacher, is_active } = updateFamilyHomeDto;
 
     if (is_active === undefined) {
       throw new BadRequestException(
@@ -271,40 +272,6 @@ export class FamilyHomeService {
       throw new NotFoundException(`Preacher not found with id: ${id}`);
     }
 
-    //* Asignacion y validacion de Pastor
-    let pastor: Pastor;
-    if (!their_pastor) {
-      pastor = await this.pastorRepository.findOneBy({
-        id: dataFamilyHome.their_pastor.id,
-      });
-    } else {
-      pastor = await this.pastorRepository.findOneBy({
-        id: their_pastor,
-      });
-    }
-
-    if (!pastor) {
-      throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
-    }
-
-    //* Asignacion y validacion de Copastor
-    let copastor: CoPastor;
-    if (!their_copastor) {
-      copastor = await this.coPastorRepository.findOneBy({
-        id: dataFamilyHome.their_copastor.id,
-      });
-    } else {
-      copastor = await this.coPastorRepository.findOneBy({
-        id: their_copastor,
-      });
-    }
-
-    if (!copastor) {
-      throw new NotFoundException(
-        `CoPastor Not found with id ${their_copastor}`,
-      );
-    }
-
     //* Asignacion y validacion de Preacher
     let preacher: Preacher;
     if (!their_preacher) {
@@ -320,6 +287,46 @@ export class FamilyHomeService {
     if (!preacher) {
       throw new NotFoundException(
         `CoPastor Not found with id ${their_preacher}`,
+      );
+    }
+
+    if (!preacher.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
+      );
+    }
+
+    //* Validation pastor
+    const pastor = await this.pastorRepository.findOneBy({
+      id: preacher.their_pastor.id,
+    });
+
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${preacher.their_pastor.id}`,
+      );
+    }
+
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
+      );
+    }
+
+    //* Validation coPastor
+    const copastor = await this.coPastorRepository.findOneBy({
+      id: preacher.their_copastor.id,
+    });
+
+    if (!copastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${preacher.their_copastor.id}`,
+      );
+    }
+
+    if (!copastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
       );
     }
 

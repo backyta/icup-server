@@ -376,13 +376,32 @@ export class MembersService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataMember = await this.memberRepository.findOneBy({ id });
+    const dataMember = await this.memberRepository.findOne({
+      where: { id: id },
+      relations: [
+        'their_pastor',
+        'their_copastor',
+        'their_preacher',
+        'their_family_home',
+      ],
+    });
 
+    console.log(dataMember);
+
+    //TODO : hacer estas validaciones por roles que tenga el dataMember
+    //* Si dataMember tiene el rol de pastor, quiere decir que tiene todo los their en null.
+    //* Si tie rol de copastor quiere decir que tiene solo their_pastor
+    //* Si tiene rol de preacher tiene their_copastor y their_pastor y their_casa
+    //* Si es member o tesorero tiene todos los their
     if (!dataMember) {
       throw new NotFoundException(`Member not found with id: ${id}`);
     }
 
     //* Validacion Pastor
+    //! Esto esta bien pero cuando se actualize algo con rol pastor no tendra their_pastor.id su dataMember
+    //! Por otro lado solo actualizaria su casa a los que son preacher o members.
+
+    //? Si mi id tiene rol tal, solo hacer estos cambios, ojo tmb revisar cuando suban de nivel. (dificil)
     let pastor: Pastor;
     if (!their_pastor) {
       pastor = await this.pastorRepository.findOneBy({
@@ -416,6 +435,7 @@ export class MembersService {
       );
     }
 
+    //! Problema si es un member con preacher choca la validacion porque no tiene their_preacher.id y no reconoce .id
     //* Validacion Preacher
     let preacher: Preacher;
     if (!their_preacher) {
@@ -452,8 +472,7 @@ export class MembersService {
       );
     }
 
-    //* Validacion de roles
-
+    //* Validacion al actualizar roles(del miembro)
     if (
       (dataMember.roles.includes('pastor') && roles.includes('copastor')) ||
       (dataMember.roles.includes('pastor') && roles.includes('preacher'))

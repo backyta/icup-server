@@ -88,7 +88,7 @@ export class CoPastorService {
     }
 
     //* Asignacion de instancia
-    //! Si viene se usa el mismo del member, si no el del DTO en ambos casos para guardar la misma ref. pastor
+    //! Si viene el their_pastor se usa el mismo del member, si no el del DTO en ambos casos para guardar la misma ref. pastor
     if (member.their_pastor) {
       try {
         const coPastorInstance = this.coPastorRepository.create({
@@ -109,7 +109,7 @@ export class CoPastorService {
       });
 
       try {
-        const preacherInstance = this.preacherRepository.create({
+        const coPastorInstance = this.coPastorRepository.create({
           member: member,
           their_pastor: pastor,
           created_at: new Date(),
@@ -117,7 +117,7 @@ export class CoPastorService {
         });
 
         await this.memberRepository.save(dataMember);
-        return await this.preacherRepository.save(preacherInstance);
+        return await this.coPastorRepository.save(coPastorInstance);
       } catch (error) {
         this.handleDBExceptions(error);
       }

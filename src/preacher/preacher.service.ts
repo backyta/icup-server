@@ -42,7 +42,7 @@ export class PreacherService {
 
   //* CREATE PREACHER
   async create(createPreacherDto: CreatePreacherDto) {
-    const { id_member, their_pastor, their_copastor } = createPreacherDto;
+    const { id_member, their_copastor } = createPreacherDto;
 
     //* Validation member
     const member = await this.memberRepository.findOne({
@@ -66,21 +66,6 @@ export class PreacherService {
       );
     }
 
-    //* Validation pastor
-    const pastor = await this.pastorRepository.findOneBy({
-      id: their_pastor,
-    });
-
-    if (!pastor) {
-      throw new NotFoundException(`Not faound Pastor with id ${their_pastor}`);
-    }
-
-    if (!pastor.is_active) {
-      throw new BadRequestException(
-        `The property is_active in pastor must be a true value"`,
-      );
-    }
-
     //* Validation copastor
     const copastor = await this.coPastorRepository.findOneBy({
       id: their_copastor,
@@ -95,6 +80,23 @@ export class PreacherService {
     if (!copastor.is_active) {
       throw new BadRequestException(
         `The property is_active in CoPastor must be a true value"`,
+      );
+    }
+
+    //* Validation pastor
+    const pastor = await this.pastorRepository.findOneBy({
+      id: copastor.their_pastor.id,
+    });
+
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${copastor.their_pastor.id}`,
+      );
+    }
+
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
       );
     }
 
@@ -253,7 +255,7 @@ export class PreacherService {
         throw new BadRequestException(`This term is not a valid boolean value`);
       }
     }
-    //TODO : ver si se hace busqueda por copastor a cargo
+    //TODO : ver si se hace busqueda por copastor a cargo (filtrar por copastor)
 
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
@@ -276,8 +278,7 @@ export class PreacherService {
   //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
   //! o preacher, solo se hara la subida de nivel desde el member.
   async update(id: string, updatePreacherDto: UpdatePreacherDto) {
-    const { roles, their_copastor, their_pastor, id_member, is_active } =
-      updatePreacherDto;
+    const { roles, their_copastor, id_member, is_active } = updatePreacherDto;
 
     //TODO : probar todos los is_active, en todos los modulos,
     //TODO : probar los endpoits nuevos, y hacer merge
@@ -314,20 +315,10 @@ export class PreacherService {
       });
     }
 
-    //* Asignacion y validacion de Pastor
-    let pastor: Pastor;
-    if (!their_pastor) {
-      pastor = await this.pastorRepository.findOneBy({
-        id: dataPreacher.their_pastor.id,
-      });
-    } else {
-      pastor = await this.pastorRepository.findOneBy({
-        id: their_pastor,
-      });
-    }
-
-    if (!pastor) {
-      throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
+    if (!member.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
+      );
     }
 
     //* Asignacion y validacion de Copastor
@@ -345,6 +336,29 @@ export class PreacherService {
     if (!copastor) {
       throw new NotFoundException(
         `CoPastor Not found with id ${their_copastor}`,
+      );
+    }
+
+    if (!copastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
+      );
+    }
+
+    //* Validation pastor
+    const pastor = await this.pastorRepository.findOneBy({
+      id: copastor.their_pastor.id,
+    });
+
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${copastor.their_pastor.id}`,
+      );
+    }
+
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
       );
     }
 

@@ -1,5 +1,6 @@
 import {
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   MaxLength,
@@ -29,19 +30,20 @@ export class CreateFamilyHomeDto {
 
   @IsString()
   @IsNotEmpty()
-  is_active: boolean;
+  @IsOptional()
+  is_active?: boolean;
 
   //* Relations
 
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
-  their_pastor: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // @IsUUID()
+  // their_pastor: string;
 
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
-  their_copastor: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // @IsUUID()
+  // their_copastor: string;
 
   @IsString()
   @IsNotEmpty()

@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsIn,
@@ -36,7 +37,7 @@ export class CreateMemberDto {
   @IsOptional()
   email?: string;
 
-  @IsEmail()
+  @IsBoolean()
   @IsOptional()
   is_active?: boolean;
 
