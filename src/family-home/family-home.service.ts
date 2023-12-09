@@ -253,6 +253,9 @@ export class FamilyHomeService {
     return familyHome;
   }
 
+  //TODO : esperar hacer lo de member para moldificar aqui cuando se suba de nivel y se tenga que asignar un nuevo preacher o copastor
+  //* Si se actualize un nuevo copastor, de este se debe sacar Pastor y se setea
+  //* Si se actualiza un nuevo preacher, de este se saca el Copastor y Pastor.
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
     const { their_preacher, is_active } = updateFamilyHomeDto;
 

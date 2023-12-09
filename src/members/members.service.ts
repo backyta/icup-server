@@ -52,52 +52,46 @@ export class MembersService {
       their_family_home,
     } = createMemberDto;
 
-    //! Validacion de roles
+    //! Validacion de roles (solo 1 y miembro)
     if (
       (roles.includes('pastor') && roles.includes('copastor')) ||
-      (roles.includes('pastor') && roles.includes('preacher'))
+      (roles.includes('pastor') && roles.includes('preacher')) ||
+      (roles.includes('copastor') && roles.includes('pastor')) ||
+      (roles.includes('copastor') && roles.includes('preacher')) ||
+      (roles.includes('preacher') && roles.includes('pastor')) ||
+      (roles.includes('preacher') && roles.includes('copastor'))
     ) {
-      throw new BadRequestException(`No se puede asignar una jerarquia menor`);
-    }
-
-    if (roles.includes('copastor') && roles.includes('preacher')) {
-      throw new BadRequestException(`No se puede asignar una jerarquia menor`);
-    }
-
-    if (roles.includes('pastor') && their_pastor) {
       throw new BadRequestException(
-        `No se puede asignar un Pastor a un miembro con rol Pastor`,
+        `Solo se puede asignar un unico rol principal: ['Pastor, Copastor o Preacher']`,
       );
     }
 
-    //! Validacion de roles y theirs leaders
+    //NOTE : desde el front al marcar el rol en pastor ocualtar los otros campos y asi tmb para los demas roles
+    //! Validaciones asignacion de their leaders segun rol
     if (
+      (roles.includes('pastor') && their_pastor) ||
       (roles.includes('pastor') && their_copastor) ||
-      (roles.includes('pastor') && their_preacher)
+      (roles.includes('pastor') && their_preacher) ||
+      (roles.includes('pastor') && their_family_home)
     ) {
       throw new BadRequestException(
-        `No se puede asignar un CoPastor o Preacher a un miembro con rol Pastor`,
-      );
-    }
-
-    if (roles.includes('copastor') && their_copastor) {
-      throw new BadRequestException(
-        `No se puede asignar un coPastor a un miembro con rol coPastor`,
+        `No se puede asignar un Pastor, Copastor, Preacher o Casa Familiar a un miembro con rol Pastor`,
       );
     }
 
     if (
       (roles.includes('copastor') && their_copastor) ||
-      (roles.includes('copastor') && their_preacher)
+      (roles.includes('copastor') && their_preacher) ||
+      (roles.includes('copastor') && their_family_home)
     ) {
       throw new BadRequestException(
-        `No se puede asignar un coPastor o Preacher a un miembro con rol coPastor`,
+        `No se puede asignar un Copastor, Preacher o Casa Familiar a un miembro con rol Copastor`,
       );
     }
 
     if (roles.includes('preacher') && their_preacher) {
       throw new BadRequestException(
-        `No se puede asignar un Preacher a un miembro con rol Preacher`,
+        `No se puede asignar un preacher a un miembro con rol Preacher`,
       );
     }
 
@@ -365,6 +359,11 @@ export class MembersService {
       is_active,
     } = updateMemberDto;
 
+    //TODO : poner por defecto a member en todos los roles acompaniados.
+
+    if (!roles) {
+      throw new BadRequestException(`Asignar roles para actualizar al miembro`);
+    }
     if (is_active === undefined) {
       throw new BadRequestException(
         `Debe asignar un valor booleano a is_Active`,
@@ -386,89 +385,31 @@ export class MembersService {
       ],
     });
 
-    console.log(dataMember);
-
-    //TODO : hacer estas validaciones por roles que tenga el dataMember
-    //* Si dataMember tiene el rol de pastor, quiere decir que tiene todo los their en null.
-    //* Si tie rol de copastor quiere decir que tiene solo their_pastor
-    //* Si tiene rol de preacher tiene their_copastor y their_pastor y their_casa
-    //* Si es member o tesorero tiene todos los their
     if (!dataMember) {
       throw new NotFoundException(`Member not found with id: ${id}`);
     }
 
-    //* Validacion Pastor
+    //NOTE : ver si es factible bajar de nivel a un rol(seria ams dificil hacer esto que subirlo)
+    //TODO : hacer estas validaciones por roles que tenga el dataMember.
+    //* Si dataMember tiene el rol de pastor, quiere decir que tiene todo los their en null.
+    //* Si tie rol de copastor quiere decir que tiene solo their_pastor.
+    //* Si tiene rol de preacher tiene their_copastor y their_pastor y their_casa.
+    //* Si es member o tesorero tiene todos los their.
+
     //! Esto esta bien pero cuando se actualize algo con rol pastor no tendra their_pastor.id su dataMember
     //! Por otro lado solo actualizaria su casa a los que son preacher o members.
 
-    //? Si mi id tiene rol tal, solo hacer estos cambios, ojo tmb revisar cuando suban de nivel. (dificil)
-    let pastor: Pastor;
-    if (!their_pastor) {
-      pastor = await this.pastorRepository.findOneBy({
-        id: dataMember.their_pastor.id,
-      });
-    } else {
-      pastor = await this.pastorRepository.findOneBy({
-        id: their_pastor,
-      });
-    }
-
-    if (!pastor) {
-      throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
-    }
-
-    //* Validacion CoPastor
-    let copastor: CoPastor;
-    if (!their_copastor) {
-      copastor = await this.coPastorRepository.findOneBy({
-        id: dataMember.their_copastor.id,
-      });
-    } else {
-      copastor = await this.coPastorRepository.findOneBy({
-        id: their_copastor,
-      });
-    }
-
-    if (!copastor) {
-      throw new NotFoundException(
-        `CoPastor Not found with id ${their_copastor}`,
-      );
-    }
-
-    //! Problema si es un member con preacher choca la validacion porque no tiene their_preacher.id y no reconoce .id
-    //* Validacion Preacher
-    let preacher: Preacher;
-    if (!their_preacher) {
-      preacher = await this.preacherRepository.findOneBy({
-        id: dataMember.their_preacher.id,
-      });
-    } else {
-      preacher = await this.preacherRepository.findOneBy({
-        id: their_preacher,
-      });
-    }
-
-    if (!preacher) {
-      throw new NotFoundException(
-        `CoPastor Not found with id ${their_preacher}`,
-      );
-    }
-
-    //* Validacion Family Home
-    let familyHome: FamilyHome;
-    if (!their_family_home) {
-      familyHome = await this.familyHomeRepository.findOneBy({
-        id: dataMember.their_family_home.id,
-      });
-    } else {
-      familyHome = await this.familyHomeRepository.findOneBy({
-        id: their_family_home,
-      });
-    }
-
-    if (!familyHome) {
-      throw new NotFoundException(
-        `CoPastor Not found with id ${their_preacher}`,
+    //* Validacion de roles (solo 1 y miembro)
+    if (
+      (roles.includes('pastor') && roles.includes('copastor')) ||
+      (roles.includes('pastor') && roles.includes('preacher')) ||
+      (roles.includes('copastor') && roles.includes('pastor')) ||
+      (roles.includes('copastor') && roles.includes('preacher')) ||
+      (roles.includes('preacher') && roles.includes('pastor')) ||
+      (roles.includes('preacher') && roles.includes('copastor'))
+    ) {
+      throw new BadRequestException(
+        `Solo se puede asignar un unico rol principal: ['Pastor, Copastor o Preacher']`,
       );
     }
 
@@ -488,8 +429,214 @@ export class MembersService {
       );
     }
 
-    //! Asignacion de data si es pastor
+    if (dataMember.roles.includes('preacher') && roles.includes('pastor')) {
+      throw new BadRequestException(
+        `No se puede asignar un rol superior sin pasar por la jerarquia : [pracher, copastor, pastor]`,
+      );
+    }
+
+    //* Validaciones asignacion de their leaders segun rol
+    //NOTE : ir ocultando los their que sean necesarios y mostrar lo que si segun el rol(front)
+    if (
+      (roles.includes('pastor') && their_pastor) ||
+      (roles.includes('pastor') && their_copastor) ||
+      (roles.includes('pastor') && their_preacher) ||
+      (roles.includes('pastor') && their_family_home)
+    ) {
+      throw new BadRequestException(
+        `No se puede asignar un Pastor, Copastor, Preacher o Casa Familiar a un miembro con rol Pastor`,
+      );
+    }
+
+    if (
+      ((roles.includes('copastor') && their_copastor) ||
+        (roles.includes('copastor') && their_preacher) ||
+        (roles.includes('copastor') && their_family_home)) &&
+      !their_pastor
+    ) {
+      throw new BadRequestException(
+        `No se puede asignar un Copastor, Preacher o Casa Familiar a un miembro con rol Copastor, solo se puede asignar Pasor`,
+      );
+    }
+
+    if (
+      roles.includes('preacher') &&
+      (their_preacher || !their_copastor || !their_pastor || !their_family_home)
+    ) {
+      throw new BadRequestException(
+        `No se puede asignar un preacher a un miembro con rol Preacher, solo se puede asignar Pastor, Copastor, y Casa Familiar`,
+      );
+    }
+
+    //* Validacion Pastor
+    //! Al subir de nivel
+    //! Arreglar aqui, para validar al actualizar agarre el mismo pastor o copastor si sube de nivel.
+
+    let pastor: Pastor;
+    let copastor: CoPastor;
+    let preacher: Preacher;
+    let familyHome: FamilyHome;
     let member: Member;
+
+    //* Validacion Pastor (Si pastor se mantiene en rol pastor)
+    if (dataMember.roles.includes('pastor') && roles.includes('pastor')) {
+      pastor = null;
+      copastor = null;
+      preacher = null;
+      familyHome = null;
+
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: pastor,
+        their_copastor: copastor,
+        their_preacher: preacher,
+        their_family_home: familyHome,
+      });
+
+      try {
+        return await this.memberRepository.save(member);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //* Validacion Pastor (Si copastor sube a rol pastor)
+    if (dataMember.roles.includes('copastor') && roles.includes('pastor')) {
+      pastor = null;
+      copastor = null;
+      preacher = null;
+      familyHome = null;
+
+      //! borrar registro de copastor?, no se puede por llave con member.
+      //! Otra cosa sera que al subir de nievle se cree automaticamente el pastor.
+      //! En copastor tendria que colocar en nullsu id_member y pastor.
+      //! Colocarle null a todas las foreing keys que tenga.
+      //! Despues de quitar todas recine borrar al copastor
+      //! Despues crear al nuevo copastor o asignar uno que ya tenamos y despues proceder actualizar las demas tablas
+      //! Por cada actualizacion en tabla se tomara del preacher o copastor nuevo asignado sus their para setearlo
+      //! y que guarden relacion.
+
+      //TODO : hacer esto tomorrow 10/12 (solo cuando sube de nivel), si se mantiene el rol solo setear y donde tenga ref.
+      const dataCopastor = await this.coPastorRepository.preload({
+        id: dataMember.their_copastor.id,
+        their_pastor: pastor,
+      });
+
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: pastor,
+        their_copastor: copastor,
+        their_preacher: preacher,
+        their_family_home: familyHome,
+      });
+
+      try {
+        return await this.memberRepository.save(member);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //* Validacion CoPastor (Si copastor se mantiene en rol copastor)
+    if (dataMember.roles.includes('copastor') && roles.includes('copastor')) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+      copastor = null;
+      preacher = null;
+      familyHome = null;
+
+      const dataCopastor = await this.coPastorRepository.preload({
+        id: dataMember.their_copastor.id,
+        their_pastor: pastor,
+      });
+
+      member = await this.memberRepository.preload({
+        id: id,
+        ...updateMemberDto,
+        updated_at: new Date(),
+        // NOTE: cambiar por uuid en relacion con User
+        updated_by: 'Kevinxd',
+        their_pastor: pastor,
+        their_copastor: copastor,
+        their_preacher: preacher,
+        their_family_home: familyHome,
+      });
+
+      try {
+        await this.coPastorRepository.save(dataCopastor);
+        return await this.memberRepository.save(member);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //* Validacion CoPastor (Si copastor sube a pastor)
+    if (
+      (dataMember.roles.includes('copastor') && roles.includes('copastor')) ||
+      (dataMember.roles.includes('preacher') && roles.includes('copastor'))
+      //! Setear en copastor el nuevo id de pastor.
+      //! Borrar el preacher porque no debe existir, si sube de rango.
+    ) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+      copastor = null;
+      preacher = null;
+      familyHome = null;
+    }
+
+    //* Validacion Preacher
+    if (
+      (dataMember.roles.includes('preacher') && roles.includes('pracher')) ||
+      (dataMember.roles.includes('member') && roles.includes('preacher'))
+    ) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+      copastor = await this.coPastorRepository.findOneBy({
+        id: their_copastor,
+      });
+      preacher = null;
+      familyHome = await this.familyHomeRepository.findOneBy({
+        id: their_family_home,
+      });
+    }
+
+    //* Validacion Only Member
+    if (dataMember.roles.includes('member') && roles.includes('member')) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+      copastor = await this.coPastorRepository.findOneBy({
+        id: their_copastor,
+      });
+      preacher = await this.preacherRepository.findOneBy({
+        id: their_copastor,
+      });
+      familyHome = await this.familyHomeRepository.findOneBy({
+        id: their_family_home,
+      });
+    }
+
+    //* Validacion Family Home
+    if (!their_family_home) {
+      familyHome = null;
+    } else {
+      familyHome = await this.familyHomeRepository.findOneBy({
+        id: their_family_home,
+      });
+    }
+
+    //! Asignacion de data si es pastor
 
     if (dataMember.roles.includes('pastor') && roles.includes('pastor')) {
       member = await this.memberRepository.preload({
