@@ -477,7 +477,6 @@ export class MembersService {
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
-        // NOTE: cambiar por uuid en relacion con User
         updated_by: 'Kevinxd',
         their_pastor: pastor,
         their_copastor: copastor,
@@ -501,34 +500,21 @@ export class MembersService {
       preacher = null;
       familyHome = null;
 
-      //* Encuentra varios - Error aqui el copastor no tiene their_copastor, hacer find y buscar por pastor
-      //! El problema es que si se cambian los pastores en su tabla copastor de todos, pero en miembro solo se cambia
-      //! el pastor al que se eligio por ID, y esto haria una mala referencia.
-      //! Por ejemplo si a luz le cambiuo de pastor, se debe ver reflejado en member, copastor, preacher y casa
-      //? Si en member cambio el pastor de luz, en casa familiar tmb se debe reflejar el cambio de pastor segun su copastor.
-
+      //* Busca en tabla Copastor y actualiza el nuevo pastor.
       const allCopastores = await this.coPastorRepository.find();
-
-      const arrayCopastores = allCopastores.filter(
-        (copastor) => copastor.their_pastor.id === dataMember.their_pastor.id,
+      const dataCopastor = allCopastores.find(
+        (copastor) => copastor.member.id === dataMember.id,
       );
 
-      const promisesCoPastores = arrayCopastores.map(async (copastor) => {
-        await this.coPastorRepository.update(copastor.id, {
-          their_pastor: pastor,
-        });
+      const updateCopastor = await this.coPastorRepository.preload({
+        id: dataCopastor.id,
+        their_pastor: pastor,
       });
 
-      // const dataCopastor = await this.coPastorRepository.preload({
-      //   id: dataMember.their_copastor.id,
-      //   their_pastor: pastor,
-      // });
-
-      //* Buscar en preacher todos los preacher que tengan relacion con el copastor y a todos se les cambia el pastor.
+      //* Busca en tabla preacher por copastor y setea el nuevo pastor.
       const allPreachers = await this.preacherRepository.find();
       const arrayPreachersByCopastor = allPreachers.filter(
-        (preacher) =>
-          preacher.their_copastor.id === dataMember.their_copastor.id,
+        (preacher) => preacher.their_copastor.id === dataCopastor.id,
       );
 
       const promisesPreachers = arrayPreachersByCopastor.map(
@@ -539,10 +525,11 @@ export class MembersService {
         },
       );
 
-      //* Filtra todos los registro de casas que coincidan con id_copastor, porque muchas casas pueden tener un Copastor
+      //* Busca en la tabla family home segun copastor y setea el nuevo pastor.
       const allFamilyHouses = await this.familyHomeRepository.find();
+
       const arrayHousesByCopastor = allFamilyHouses.filter(
-        (data) => data.their_copastor.id === dataMember.their_copastor.id,
+        (home) => home.their_copastor.id === dataCopastor.id,
       );
 
       const promisesFamilyHouses = arrayHousesByCopastor.map(async (home) => {
@@ -555,7 +542,6 @@ export class MembersService {
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
-        // NOTE: cambiar por uuid en relacion con User
         updated_by: 'Kevinxd',
         their_pastor: pastor,
         their_copastor: copastor,
@@ -565,7 +551,7 @@ export class MembersService {
 
       try {
         const result = await this.memberRepository.save(member);
-        await this.coPastorRepository.save(dataCopastor);
+        await this.coPastorRepository.save(updateCopastor);
         await Promise.all(promisesPreachers);
         await Promise.all(promisesFamilyHouses);
         return result;
@@ -587,22 +573,37 @@ export class MembersService {
         id: their_family_home,
       });
 
-      //* Solo es 1
-      const dataPreacher = await this.preacherRepository.preload({
-        id: dataMember.their_preacher.id,
+      //* Busca en tabla Copastor y actualiza el nuevo pastor.
+      const allCopastores = await this.coPastorRepository.find();
+      const dataCopastor = allCopastores.find(
+        (copastor) => copastor.member.id === dataMember.id,
+      );
+
+      const updateCopastor = await this.coPastorRepository.preload({
+        id: dataCopastor.id,
         their_pastor: pastor,
-        their_copastor: copastor,
       });
 
-      const dataCopastor = await this.coPastorRepository.preload({
-        id: dataMember.their_copastor.id,
-        their_pastor: pastor,
-      });
+      //* Busca en tabla preacher por copastor y setea el nuevo pastor, copastor.
+      const allPreachers = await this.preacherRepository.find();
+      const arrayPreachersByCopastor = allPreachers.filter(
+        (preacher) => preacher.their_copastor.id === dataCopastor.id,
+      );
 
-      //* Filtra todos los registro de casas que coincidan con id_preacher (solo 1)
+      const promisesPreachers = arrayPreachersByCopastor.map(
+        async (preacher) => {
+          await this.preacherRepository.update(preacher.id, {
+            their_pastor: pastor,
+            their_copastor: copastor,
+          });
+        },
+      );
+
+      //* Busca en la tabla family home segun copastor y setea el nuevo pastor, copastor.
       const allFamilyHouses = await this.familyHomeRepository.find();
+
       const arrayHousesByCopastor = allFamilyHouses.filter(
-        (data) => data.their_preacher.id === dataMember.their_preacher.id,
+        (home) => home.their_copastor.id === dataCopastor.id,
       );
 
       const promisesFamilyHouses = arrayHousesByCopastor.map(async (home) => {
@@ -611,6 +612,16 @@ export class MembersService {
           their_copastor: copastor,
         });
       });
+
+      //TODO : actualizar casa_familiar con nuevo id de preacher (CORREGIR Y TERMINAR)
+      const xvalue = await this.familyHomeRepository.preload({
+        id: dataMember.their_family_home.id,
+        their_preacher: preacher,
+      });
+
+      //! Se debe cambiar, si el mimebro preacher cambia de casa, en la tabla casa se debe asignar.
+      //! Si cambio un predicador en la tabla miembro a la casa 2, entonces en la tabla casa familiar se debe actualizar
+      //! buscando el id del miembro y su id de casa y seteando ese miembro(preacher) en their_preacher
 
       member = await this.memberRepository.preload({
         id: id,
@@ -626,8 +637,8 @@ export class MembersService {
 
       try {
         const result = await this.memberRepository.save(member);
-        await this.coPastorRepository.save(dataCopastor);
-        await this.preacherRepository.save(dataPreacher);
+        await this.coPastorRepository.save(updateCopastor);
+        await Promise.all(promisesPreachers);
         await Promise.all(promisesFamilyHouses);
         return result;
       } catch (error) {
