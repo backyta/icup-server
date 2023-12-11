@@ -179,6 +179,8 @@ export class PreacherService {
         (home) => home.their_preacher.id === term,
       );
 
+      //! Borrar
+      preacher.family_home = null;
       const familyHomeId = familyHome.map((home) => home.id);
 
       //* Asignacion de Casa familiar al buscar por ID

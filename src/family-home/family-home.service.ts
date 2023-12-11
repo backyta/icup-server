@@ -39,7 +39,6 @@ export class FamilyHomeService {
     private readonly familyHousesRepository: Repository<FamilyHome>,
   ) {}
 
-  //TODO : optimizar el actualizar el member al asignar una casa, ver si se puede setear directo en la creacion de la casa.
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
     const { their_preacher } = createFamilyHomeDto;
