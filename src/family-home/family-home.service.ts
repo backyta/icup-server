@@ -39,6 +39,9 @@ export class FamilyHomeService {
     private readonly familyHousesRepository: Repository<FamilyHome>,
   ) {}
 
+  //NOTE: en member debo actiualizar y setear a cada miembro su casa, despues de crear estas casas.
+  //NOTE : cuando se cree una casa y se asigne un preacher, se busca en tabla member el pracher.member.id que sea igual
+  //NOTE : para que setee en la tabla miembro su casa asignada.
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
     const { their_preacher } = createFamilyHomeDto;
@@ -255,6 +258,11 @@ export class FamilyHomeService {
   //TODO : esperar hacer lo de member para moldificar aqui cuando se suba de nivel y se tenga que asignar un nuevo preacher o copastor
   //* Si se actualize un nuevo copastor, de este se debe sacar Pastor y se setea
   //* Si se actualiza un nuevo preacher, de este se saca el Copastor y Pastor.
+  //TODO : cuando se suba denivel un preacher a copastor, en casa familiar se eliminara el preacher, aqui se deve
+  //* actualizar un nuevo preacher para esa casa o setear directo desde el member con rol preacher
+  //! Al actualizar se setea el preacher aca y en tabla member su casa referenciado a este.\
+  //! Y en member tmb cuando se asgina una nueva casa y es preacher en tabla casa-familiar tmb se setea el nuevo prewacher
+  //! para guardar referencia
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
     const { their_preacher, is_active } = updateFamilyHomeDto;
 
