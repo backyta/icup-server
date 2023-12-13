@@ -53,7 +53,10 @@ export class MembersService {
     private readonly preacherService: PreacherService,
   ) {}
 
-  // TODO : avanzar los demas modules y luego probar con este.
+  //TODO : Avanzar los demas modules y luego probar con este.
+  //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
+  //! Hacer lo de arriba cuando tengamos todo listo y probar todo junto
+  //TODO : tarea para maniana 13/13 seguir con module Pastor y hacer documentacion de Pastor.
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
     const {
@@ -84,8 +87,6 @@ export class MembersService {
         `Only one main role can be assigned: ['Pastor, Copastor or Preacher'], only the Preacher role can play the Treasurer role.`,
       );
     }
-
-    //NOTE : desde el front al marcar el rol en pastor ocultar los otros campos y asi tmb para los demas roles
 
     //! Validations assignment of their leaders according to role
     if (
@@ -280,7 +281,6 @@ export class MembersService {
     //* Find roles --> Many
     if (term && type === SearchType.roles) {
       const rolesArray = term.split('-');
-      console.log(rolesArray);
 
       member = await this.memberRepository
         .createQueryBuilder('member')
@@ -363,8 +363,6 @@ export class MembersService {
     return member;
   }
 
-  //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
-
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto): Promise<Member> {
     const {
@@ -443,7 +441,6 @@ export class MembersService {
       );
     }
 
-    //NOTE : ir ocultando los their que sean necesarios y mostrar lo que si segun el rol(front)
     //* Validations assignment of their leaders according to role
     if (
       (roles.includes('pastor') && their_pastor) ||
@@ -651,8 +648,6 @@ export class MembersService {
         id: familyHome.id,
         their_preacher: dataMember,
       });
-
-      //NOTE: No se necesita setear en preacher la nueva casa, porque lo busca atumaticamente cuando se consulta el preacher.
 
       member = await this.memberRepository.preload({
         id: id,
@@ -938,8 +933,6 @@ export class MembersService {
         id: their_family_home,
       });
 
-      //TODO : probar si los preolad en member necesitan ser primero seteado a null porque creo que directamente se actualizan.
-
       //* Search the member table and eliminate the relationship (pastor, co-pastor, and preacher)
       const updateMember = await this.memberRepository.preload({
         id: dataMember.id,
@@ -1008,7 +1001,6 @@ export class MembersService {
     }
   }
 
-  //NOTE: ver desde el front al momento de usar delete, si se neceita regresar algo(normalmente en delete no)
   //* DELETE FOR ID
   async remove(id: string): Promise<void> {
     if (!isUUID(id)) {
@@ -1020,31 +1012,99 @@ export class MembersService {
       throw new BadRequestException(`Member with id ${id} not exist`);
     }
 
+    //! Delete all member realities.
     const member = await this.memberRepository.preload({
-      id: id,
+      id: dataMember.id,
+      their_copastor: null,
+      their_pastor: null,
+      their_family_home: null,
       is_active: false,
     });
 
-    if (dataMember.roles.includes('pastor')) {
+    //! Unsubscribe all places that are related to this pastor, and make it inactive in Pastor and Member
+    if (
+      dataMember.roles.includes('pastor') &&
+      dataMember.roles.includes('member')
+    ) {
       const pastores = await this.pastorRepository.find();
       const pastorMember = pastores.find((pastor) => pastor.member.id === id);
       if (!pastorMember) {
         throw new NotFoundException(`Not found pastor`);
       }
+
+      //? Update and set null in Pastor
       const pastor = await this.pastorRepository.preload({
         id: pastorMember.id,
         is_active: false,
       });
 
+      //? Update and set to null in Copastor
+      const allCopastores = await this.coPastorRepository.find();
+      const copastoresByPastor = allCopastores.filter(
+        (copastor) => copastor.their_pastor.id === pastor.id,
+      );
+
+      const promisesCopastor = copastoresByPastor.map(async (copastor) => {
+        await this.coPastorRepository.update(copastor.id, {
+          their_pastor: null,
+        });
+      });
+
+      //? Update and set to null in Preacher
+      const allPreachers = await this.preacherRepository.find();
+      const preachersByPastor = allPreachers.filter(
+        (preacher) => preacher.their_pastor.id === pastor.id,
+      );
+
+      const promisesPreacher = preachersByPastor.map(async (preacher) => {
+        await this.preacherRepository.update(preacher.id, {
+          their_pastor: null,
+        });
+      });
+
+      //? Update and set to null in Family Home
+      const allFamilyHouses = await this.familyHomeRepository.find();
+      const familyHousesByPastor = allFamilyHouses.filter(
+        (familyHome) => familyHome.their_pastor.id === pastor.id,
+      );
+
+      const promisesFamilyHouses = familyHousesByPastor.map(
+        async (familyHome) => {
+          await this.familyHomeRepository.update(familyHome.id, {
+            their_pastor: null,
+          });
+        },
+      );
+
+      //? Update and set to null in Member, all those who have the same Pastor
+      const allMembers = await this.memberRepository.find();
+      const membersByPastor = allMembers.filter(
+        (member) => member.their_pastor.id === pastor.id,
+      );
+
+      const promisesMembers = membersByPastor.map(async (member) => {
+        await this.memberRepository.update(member.id, {
+          their_pastor: null,
+        });
+      });
+
       try {
         await this.memberRepository.save(member);
         await this.pastorRepository.save(pastor);
+        await Promise.all(promisesMembers);
+        await Promise.all(promisesCopastor);
+        await Promise.all(promisesPreacher);
+        await Promise.all(promisesFamilyHouses);
       } catch (error) {
         this.handleDBExceptions(error);
       }
     }
 
-    if (member.roles.includes('copastor')) {
+    //! Unsubscribe all places that are related to this CoPastor, and make it inactive in CoPastor and Member
+    if (
+      member.roles.includes('copastor') &&
+      dataMember.roles.includes('member')
+    ) {
       const coPastores = await this.coPastorRepository.find();
       const coPastorMember = coPastores.find(
         (coPastor) => coPastor.member.id === id,
@@ -1054,20 +1114,67 @@ export class MembersService {
         throw new NotFoundException(`Not found copastor`);
       }
 
-      const coPastor = await this.coPastorRepository.preload({
+      //? Update and set null in CoPastor
+      const copastor = await this.coPastorRepository.preload({
         id: coPastorMember.id,
+        their_pastor: null,
         is_active: false,
+      });
+
+      //? Update and set to null in Preacher
+      const allPreachers = await this.preacherRepository.find();
+      const preachersByPastor = allPreachers.filter(
+        (preacher) => preacher.their_copastor.id === copastor.id,
+      );
+
+      const promisesPreacher = preachersByPastor.map(async (preacher) => {
+        await this.preacherRepository.update(preacher.id, {
+          their_pastor: null,
+        });
+      });
+
+      //? Update and set to null in Family Home
+      const allFamilyHouses = await this.familyHomeRepository.find();
+      const familyHousesByPastor = allFamilyHouses.filter(
+        (familyHome) => familyHome.their_copastor.id === copastor.id,
+      );
+
+      const promisesFamilyHouses = familyHousesByPastor.map(
+        async (familyHome) => {
+          await this.familyHomeRepository.update(familyHome.id, {
+            their_copastor: null,
+          });
+        },
+      );
+
+      //? Update and set to null in Member, all those who have the same Pastor
+      const allMembers = await this.memberRepository.find();
+      const membersByPastor = allMembers.filter(
+        (member) => member.their_copastor.id === copastor.id,
+      );
+
+      const promisesMembers = membersByPastor.map(async (member) => {
+        await this.memberRepository.update(member.id, {
+          their_copastor: null,
+        });
       });
 
       try {
         await this.memberRepository.save(member);
-        await this.pastorRepository.save(coPastor);
+        await this.coPastorRepository.save(copastor);
+        await Promise.all(promisesMembers);
+        await Promise.all(promisesPreacher);
+        await Promise.all(promisesFamilyHouses);
       } catch (error) {
         this.handleDBExceptions(error);
       }
     }
 
-    if (member.roles.includes('preacher')) {
+    //! Unsubscribe all places that are related to this Preacher, and make it inactive in Preacher and Member
+    if (
+      member.roles.includes('preacher') &&
+      dataMember.roles.includes('member')
+    ) {
       const preachers = await this.preacherRepository.find();
       const preacherMember = preachers.find(
         (preacher) => preacher.member.id === id,
@@ -1079,12 +1186,56 @@ export class MembersService {
 
       const preacher = await this.preacherRepository.preload({
         id: preacherMember.id,
+        their_copastor: null,
+        their_pastor: null,
         is_active: false,
+      });
+
+      //? Update and set to null in Family Home
+      const allFamilyHouses = await this.familyHomeRepository.find();
+      const familyHousesByPastor = allFamilyHouses.filter(
+        (familyHome) => familyHome.their_preacher.id === preacher.id,
+      );
+
+      const promisesFamilyHouses = familyHousesByPastor.map(
+        async (familyHome) => {
+          await this.familyHomeRepository.update(familyHome.id, {
+            their_preacher: null,
+          });
+        },
+      );
+
+      //? Update and set to null in Member, all those who have the same Pastor
+      const allMembers = await this.memberRepository.find();
+      const membersByPastor = allMembers.filter(
+        (member) => member.their_preacher.id === preacher.id,
+      );
+
+      const promisesMembers = membersByPastor.map(async (member) => {
+        await this.memberRepository.update(member.id, {
+          their_preacher: null,
+        });
       });
 
       try {
         await this.memberRepository.save(member);
-        await this.pastorRepository.save(preacher);
+        await this.preacherRepository.save(preacher);
+        await Promise.all(promisesMembers);
+        await Promise.all(promisesFamilyHouses);
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //! Unsubscribe all places that are related to this Member, and make it inactive in Preacher and Member
+    if (
+      member.roles.includes('member') &&
+      (!member.roles.includes('pastor') ||
+        !member.roles.includes('copastor') ||
+        !member.roles.includes('preacher'))
+    ) {
+      try {
+        await this.memberRepository.save(member);
       } catch (error) {
         this.handleDBExceptions(error);
       }
