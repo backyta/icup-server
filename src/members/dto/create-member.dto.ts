@@ -70,19 +70,16 @@ export class CreateMemberDto {
 
   //* Info adress
   @IsString()
-  @IsOptional()
   @MinLength(1)
   @MaxLength(10)
   residence_country?: string;
 
   @IsString()
-  @IsOptional()
   @MinLength(1)
   @MaxLength(15)
   departament?: string;
 
   @IsString()
-  @IsOptional()
   @MinLength(1)
   @MaxLength(15)
   province: string;

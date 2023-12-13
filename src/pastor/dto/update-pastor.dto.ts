@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreatePastorDto } from './create-pastor.dto';
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsIn,
@@ -9,13 +10,15 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { MaritalStatus } from 'src/members/enums/marital-status.enum';
-import { ValidRoles } from 'src/members/enums/valid-roles.enum';
+import { MaritalStatus } from '../../members/enums/marital-status.enum';
+import { ValidRoles } from '../../members/enums/valid-roles.enum';
 
 export class UpdatePastorDto extends PartialType(CreatePastorDto) {
+  //* Info member
   @IsString()
   @IsOptional()
   @IsNotEmpty()
@@ -39,7 +42,7 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsOptional()
   email?: string;
 
-  @IsEmail()
+  @IsBoolean()
   @IsOptional()
   is_active?: boolean;
 
@@ -56,6 +59,7 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsOptional()
   marital_status?: string;
 
+  //NOTE: Transformar desde el front a string y enviarlo con - y +51 (solo peru)
   @IsString()
   @IsOptional()
   phone?: string;
@@ -67,11 +71,49 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  nationality?: string;
+  origin_country: string;
 
   @IsEnum(ValidRoles, { each: true })
   @IsArray()
   @IsNotEmpty()
   @IsOptional()
   roles?: string[];
+
+  //* Info adress
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(10)
+  residence_country?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  departament?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  province: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(20)
+  district: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(50)
+  address: string;
+
+  //* Relations
+  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
+  @IsOptional()
+  id_member: string;
 }

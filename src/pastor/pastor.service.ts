@@ -18,8 +18,9 @@ import { Member } from '../members/entities/member.entity';
 import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { searchPerson, updateAge, searchFullname } from '../common/helpers';
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
+
+import { CoPastor } from '../copastor/entities/copastor.entity';
+import { Preacher } from '../preacher/entities/preacher.entity';
 
 @Injectable()
 export class PastorService {
@@ -38,7 +39,7 @@ export class PastorService {
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
 
-    //NOTE : conteo y asignacion de casas en un futuro cuando haiga mas pastores.
+    //NOTE : conteo y asignacion de casas en un futuro cuando haiga mas pastores, colocar casas a pastores, tomar de casas el pastor y crear array de casas en pastores.
   ) {}
 
   //* CREATE PASTOR

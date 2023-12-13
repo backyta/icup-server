@@ -32,7 +32,8 @@ export const searchPerson = async ({
   const member = await queryBuilder
     .leftJoinAndSelect('member.their_pastor_id', 'rel1')
     .leftJoinAndSelect('member.their_copastor_id', 'rel2')
-    // .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+    .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+    .leftJoinAndSelect('member.their_family_home', 'rel4')
     .where(`member.${searchType} ILIKE :searchTerm`, {
       searchTerm: `%${dataPerson}%`,
     })

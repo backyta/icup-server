@@ -11,7 +11,7 @@ export const searchFullname = async ({
 }: SearchFullnameOptions<Member>): Promise<Member[]> => {
   if (!term.includes('-')) {
     throw new BadRequestException(
-      `Term not valid, use allow '-' for concatc firstname and lastname`,
+      `Term not valid, use allow '-' for concat firstname and lastname`,
     );
   }
 
@@ -23,6 +23,8 @@ export const searchFullname = async ({
   const member = await queryBuilder
     .leftJoinAndSelect('member.their_pastor_id', 'rel1')
     .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+    .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+    .leftJoinAndSelect('member.their_family_home', 'rel4')
     .where(`member.first_name ILIKE :searchTerm1`, {
       searchTerm1: `%${firstName}%`,
     })
