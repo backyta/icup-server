@@ -45,11 +45,4 @@ export class Pastor {
   @OneToOne(() => Member, { eager: true })
   @JoinColumn({ name: 'member_id' })
   member: Member;
-
-  //NOTE : Al actualizar si el id del pastor le asigno otro copastores, gracias a esta relacion, se actualiza el id del pastor en la tabla copastor.
-  // @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { nullable: true })
-  // copastores: CoPastor[]; // esto no se mostrara en la tabla, pero la cargamos aparte.
 }
-
-//! Se agregaria el id del usuario en creacion y actualizacion (relacion) CRATED by
-//* Esta propiedad tmb seria una relacion con @OneToOne, igual que abajo para tomar la info del usuario que creo, y devuelvo olo la que necesito en este caso el ID

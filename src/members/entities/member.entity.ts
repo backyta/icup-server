@@ -78,7 +78,6 @@ export class Member {
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
-  //Seria con id de usuario
   @Column('text', { nullable: true })
   created_by: string;
 
@@ -89,8 +88,7 @@ export class Member {
   updated_by: string;
 
   //* Relations
-  //! Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor
-  //! de manera recursiva, y al no encontrar da error, igual con el copastor.
+  //NOTE: Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor de manera recursiva, y al no encontrar da error, igual con el copastor.
 
   @ManyToOne(() => FamilyHome, { nullable: true })
   @JoinColumn({ name: 'their_family_home_id' })

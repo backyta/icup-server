@@ -57,6 +57,7 @@ export class MembersService {
   //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
   //! Hacer lo de arriba cuando tengamos todo listo y probar todo junto
   //TODO : tarea para maniana 13/13 seguir con module Pastor y hacer documentacion de Pastor.
+
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
     const {
@@ -374,7 +375,7 @@ export class MembersService {
       is_active,
     } = updateMemberDto;
 
-    //! Validaciones generales
+    //! General Validations
     if (!roles) {
       throw new BadRequestException(
         `Required assign roles to update the member`,
@@ -1012,7 +1013,7 @@ export class MembersService {
       throw new BadRequestException(`Member with id ${id} not exist`);
     }
 
-    //! Delete all member realities.
+    //! Delete all member relations.
     const member = await this.memberRepository.preload({
       id: dataMember.id,
       their_copastor: null,
@@ -1242,7 +1243,8 @@ export class MembersService {
     }
   }
 
-  //! PRIVATE METHODS
+  //! PRIVATE METHODS\
+  //* For future index errors or constrains with code.
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
