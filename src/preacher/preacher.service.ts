@@ -18,7 +18,10 @@ import { isUUID } from 'class-validator';
 import { SearchType } from 'src/common/enums/search-types.enum';
 import { searchFullname, searchPerson, updateAge } from 'src/common/helpers';
 import { FamilyHome } from 'src/family-home/entities/family-home.entity';
-
+//TODO : si un preacher se actualiza y cambia su copastor, automaticamente debe buscar su pastor relacionado a ese copastor
+//! y cambiarlo, osea is eligo otro copastor busco a su pastor relacionado y lo seteo, asi mantengo la relacion.
+//! Asi mismo si cambia su copastor, se debe actualizar en Member al registro del preacher su copastor y pastor relacionado.
+//Note: desde el frotn bloquear elegir a un pastor, pero mostrar cuando cambio de copastor el nuevo pastor que se setea.
 @Injectable()
 export class PreacherService {
   private readonly logger = new Logger('PreacherService');

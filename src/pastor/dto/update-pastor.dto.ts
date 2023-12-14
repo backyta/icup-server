@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreatePastorDto } from './create-pastor.dto';
 import {
-  IsArray,
   IsBoolean,
   IsEmail,
   IsEnum,
@@ -10,12 +9,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import { MaritalStatus } from '../../members/enums/marital-status.enum';
-import { ValidRoles } from '../../members/enums/valid-roles.enum';
 
 export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   //* Info member
@@ -73,12 +70,6 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsOptional()
   origin_country: string;
 
-  @IsEnum(ValidRoles, { each: true })
-  @IsArray()
-  @IsNotEmpty()
-  @IsOptional()
-  roles?: string[];
-
   //* Info adress
   @IsString()
   @IsOptional()
@@ -111,9 +102,10 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   address: string;
 
   //* Relations
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
-  @IsOptional()
-  id_member: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // @IsUUID()
+  // @IsOptional()
+  // id_member: string;
+  //! No se necesita, porque se saca el member del idPastor
 }

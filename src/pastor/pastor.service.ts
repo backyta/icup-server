@@ -21,7 +21,6 @@ import { UpdatePastorDto } from './dto/update-pastor.dto';
 import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { searchPerson, updateAge, searchFullname } from '../common/helpers';
-//TODO : solucionar problema de familyHome agregar a Module para que lo lea.(dependencia ciclica)
 @Injectable()
 export class PastorService {
   private readonly logger = new Logger('PastorService');
@@ -218,7 +217,7 @@ export class PastorService {
 
   //* UPDATE FOR ID
   async update(id: string, updatePastorDto: UpdatePastorDto) {
-    const { roles, id_member, is_active } = updatePastorDto;
+    const { is_active } = updatePastorDto;
 
     if (is_active === undefined) {
       throw new BadRequestException(
@@ -236,33 +235,15 @@ export class PastorService {
       throw new NotFoundException(`Pastor not found with id: ${id}`);
     }
 
-    if (!roles.includes('pastor')) {
-      throw new BadRequestException(`Roles should includes ['pastor']`);
-    }
-
-    if (
-      roles.includes('copastor') ||
-      roles.includes('preacher') ||
-      roles.includes('treasurer')
-    ) {
-      throw new BadRequestException(
-        `You cannot add roles lower than a Pastor role or roles that are for some levels such as treasurer`,
-      );
-    }
-
-    let member: Member;
-    if (!id_member) {
-      member = await this.memberRepository.findOneBy({
-        id: dataPastor.member.id,
-      });
-    } else {
-      member = await this.memberRepository.findOneBy({
-        id: id_member,
-      });
-    }
+    //? Find Member for update (With this you do not need to go through DTO, a member_id is taken directly from dataPastor)
+    const member = await this.memberRepository.findOneBy({
+      id: dataPastor.member.id,
+    });
 
     if (!member) {
-      throw new NotFoundException(`Member Not found with id ${id_member}`);
+      throw new NotFoundException(
+        `Member not found with id ${dataPastor.member.id}`,
+      );
     }
 
     if (!member.roles.includes('pastor')) {
@@ -272,7 +253,7 @@ export class PastorService {
     }
 
     //* Count of co-pastors
-    const allCopastores = (await this.coPastorRepository.find()) ?? [];
+    const allCopastores = await this.coPastorRepository.find();
     const listCopastores = allCopastores.filter(
       (copastor) => copastor.their_pastor.id === dataPastor.id,
     );
@@ -280,7 +261,7 @@ export class PastorService {
     const listCopastoresID = listCopastores.map((copastores) => copastores.id);
 
     //* Count and assignment of preachers
-    const allPreachers = (await this.preacherRepository.find()) ?? [];
+    const allPreachers = await this.preacherRepository.find();
     const listPreachers = allPreachers.filter(
       (preacher) => preacher.their_pastor.id === dataPastor.id,
     );

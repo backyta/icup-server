@@ -56,7 +56,7 @@ export class FamilyHomeService {
         `Not faound CoPastor with id ${their_preacher}`,
       );
     }
-
+    //! revisar si se puede sacar del preacher su copastor y del coapstor us pastor? ver otras tablas.
     if (!preacher.is_active) {
       throw new BadRequestException(
         `The property is_active in Preacher must be a true value"`,
