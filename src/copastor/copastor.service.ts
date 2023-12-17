@@ -21,7 +21,6 @@ import { updateAge, searchPerson, searchFullname } from '../common/helpers';
 import { SearchType } from '../common/enums/search-types.enum';
 import { Preacher } from 'src/preacher/entities/preacher.entity';
 import { FamilyHome } from 'src/family-home/entities/family-home.entity';
-//TODO : Hacer documentacion y conversion al ingles, apuntar coasas importantes para otros modululos()
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');
@@ -41,8 +40,6 @@ export class CoPastorService {
 
     @InjectRepository(FamilyHome)
     private readonly familyHomeRepository: Repository<FamilyHome>,
-
-    //NOTE : en un futuro se puede agregar supervisores al pastor y copastor y toda la jerarquia que tenga
   ) {}
 
   //* CREATE COPASTOR
@@ -59,7 +56,7 @@ export class CoPastorService {
 
     if (!member.roles.includes('copastor')) {
       throw new BadRequestException(
-        `El id_member debe tener el rol de "Pastor"`,
+        `The id_member must have the role of "CoPastor"`,
       );
     }
 
@@ -83,7 +80,7 @@ export class CoPastorService {
       );
     }
 
-    //* Asignacion de instancia
+    //* Instance assignment
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       their_pastor: pastor,
@@ -108,6 +105,7 @@ export class CoPastorService {
   findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return this.coPastorRepository.find({
+      where: { is_active: true },
       take: limit,
       skip: offset,
     });
@@ -126,10 +124,10 @@ export class CoPastorService {
       coPastor = await this.coPastorRepository.findOneBy({ id: term });
 
       if (!coPastor) {
-        throw new BadRequestException(`No se encontro Copastor con este UUID`);
+        throw new BadRequestException(`Copastor was not found with this UUID`);
       }
 
-      //* Conteo y asignacion de Casas
+      //* Count and assignment of Houses
       const familyHouses = await this.familyHomeRepository.find();
       const listFamilyHouses = familyHouses.filter(
         (home) => home.their_copastor.id === term,
@@ -137,7 +135,7 @@ export class CoPastorService {
 
       const familyHousesId = listFamilyHouses.map((houses) => houses.id);
 
-      //* Conteo y asignacion de Preachers
+      //* Counting and assigning Preachers
       const allPreachers = await this.preacherRepository.find();
       const listPreachers = allPreachers.filter(
         (preacher) => preacher.their_copastor.id === term,
@@ -236,21 +234,13 @@ export class CoPastorService {
     return coPastor;
   }
 
-  //! En el front cuando se actualize colocar desactivado el rol, y que se mantenga en pastor, copastor,
-  //! o preacher, solo se hara la subida de nivel desde el member. (ESTO SI),
-  //! solo subir de nivel desde el member.
-  //! Agregar un apartado que diga promover al mimbro de copastor a Pastor, con una alerta que diga que talos
-  //! cosas sucederan si se promueve.
-  //TODO : Si un copastor actualiza y cambia de pastor, esto deberia verse afectado donde todos tengan a este copastor.
-  //TODO : aqui tmb no se podra cambiar el id_member, sacarlo del mismo Copastor, modificar DTO de actualizar.
-
   //* UPDATE FOR ID
   async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
     const { their_pastor, is_active } = updateCoPastorDto;
 
     if (is_active === undefined) {
       throw new BadRequestException(
-        `Debe asignar un valor booleano a is_Active`,
+        `You must assign a boolean value to is_Active`,
       );
     }
 
@@ -264,7 +254,7 @@ export class CoPastorService {
       throw new NotFoundException(`CoPastor not found with id: ${id}`);
     }
 
-    //* Asignacion y validacion de Member
+    //* Member assignment and validation
     const member = await this.memberRepository.findOneBy({
       id: dataCoPastor.member.id,
     });
@@ -277,17 +267,23 @@ export class CoPastorService {
 
     if (!member.roles.includes('copastor')) {
       throw new BadRequestException(
-        `No se puede asignar este miembro como Copastor, falta rol: ['copastor']`,
+        `Cannot assign this member as Copastor, missing role: ['copastor']`,
       );
     }
 
-    //* Asignacion y validacion de pastor
+    //* Shepherd assignment and validation
     const pastor = await this.pastorRepository.findOneBy({
       id: their_pastor,
     });
 
     if (!pastor) {
       throw new NotFoundException(`Pastor Not found with id ${their_pastor}`);
+    }
+
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in pastor must be a true value"`,
+      );
     }
 
     //? Actualizar en todos los miembros el nuevo pastor del copastor que se actualiza.
@@ -302,7 +298,7 @@ export class CoPastorService {
       });
     });
 
-    //? Actualizar en todos los preachers el nuevo pastor del copastor que se actualiza.
+    //? Update in all preachers the new pastor of the copastor that is updated.
     const allPreachers = await this.preacherRepository.find();
     const preachersByCoPastor = allPreachers.filter(
       (preacher) => preacher.their_copastor.id === dataCoPastor.id,
@@ -314,7 +310,7 @@ export class CoPastorService {
       });
     });
 
-    //? Actualizar en todos los family Home el nuevo pastor del copastor que se actualiza.
+    //? Update in all family homes the new co-pastor pastor that is updated.
     const allFamilyHouses = await this.familyHomeRepository.find();
     const familyHousesByPastor = allFamilyHouses.filter(
       (familyHome) => familyHome.their_copastor.id === dataCoPastor.id,
@@ -328,7 +324,8 @@ export class CoPastorService {
       },
     );
 
-    //* Conteo y asignacion de Casas
+    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
+    //* Count and assignment of Houses
     const familyHouses = await this.familyHomeRepository.find();
     const listFamilyHouses = familyHouses.filter(
       (home) => home.their_copastor.id === id,
@@ -336,7 +333,7 @@ export class CoPastorService {
 
     const familyHousesId = listFamilyHouses.map((houses) => houses.id);
 
-    //* Conteo y asignacion de Preachers
+    //* Counting and assigning Preachers
     const listPreachers = allPreachers.filter(
       (preacher) => preacher.their_copastor.id === id,
     );
@@ -408,16 +405,6 @@ export class CoPastorService {
     const preachersByPastor = allPreachers.filter(
       (preacher) => preacher.their_copastor.id === dataCoPastor.id,
     );
-    // TODO : recordar en pracher al actualizar, y cuando se coloca el nuevo id_copastor, de ahi sacar el pastor y setearlo.
-    //! Primero se debe actualizar el preacher, y luego la casa familiar del copastor que se elimino, ya que en actualizar
-    //! la casa se asigna un nuevo preacher y este jala al preacher y su copastor y pastgor relacionado.
-    //? Pero si no hay uin copastor en el preacher al actualizar la casa seguira estandi vacion el copastor.
-    //! Otro seria que al actualizar el preacher su nuevo copastor, se asigne el pastor y copastor y en la tabla
-    //! casa familiar, se setee el nuevo copastor para ese preacherID que se esta actualizando.
-    //? Recordar que al actualizar un preacher con un nuevo copastor aparte de setear en casa familiar, se debe
-    //? setear en todos los demas lugares, en la tabla miembro solo el registro del preacherID y en la misma
-    //? tabla preacher solo ese registro
-    //* Osea se eliminan todos los copastores, pero al agregar uno nuevo se hace solo de manera independiente (Revisar en preacher)
 
     const promisesPreacher = preachersByPastor.map(async (preacher) => {
       await this.preacherRepository.update(preacher.id, {
@@ -463,7 +450,7 @@ export class CoPastorService {
   }
 
   //! PRIVATE METHODS
-  //* Para futuros errores de indices o constrains con code.
+  //* For future index errors or constrains with code.
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);

@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreatePreacherDto } from './create-preacher.dto';
 import {
-  IsArray,
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsIn,
@@ -13,9 +13,9 @@ import {
   MinLength,
 } from 'class-validator';
 import { MaritalStatus } from 'src/members/enums/marital-status.enum';
-import { ValidRoles } from 'src/members/enums/valid-roles.enum';
 
 export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
+  //* Info member
   @IsString()
   @IsOptional()
   @IsNotEmpty()
@@ -39,7 +39,7 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsOptional()
   email?: string;
 
-  @IsEmail()
+  @IsBoolean()
   @IsOptional()
   is_active?: boolean;
 
@@ -56,6 +56,7 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsOptional()
   marital_status?: string;
 
+  //NOTE: Transformar desde el front a string y enviarlo con - y +51 (solo peru)
   @IsString()
   @IsOptional()
   phone?: string;
@@ -67,11 +68,36 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  nationality?: string;
+  origin_country: string;
 
-  @IsEnum(ValidRoles, { each: true })
-  @IsArray()
-  @IsNotEmpty()
+  //* Info adress
+  @IsString()
   @IsOptional()
-  roles?: string[];
+  @MinLength(1)
+  @MaxLength(10)
+  residence_country?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  departament?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  province: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(20)
+  district: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(50)
+  address: string;
 }

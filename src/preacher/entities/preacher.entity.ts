@@ -53,6 +53,4 @@ export class Preacher {
   @ManyToOne(() => Pastor, { eager: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
-
-  //* Su casa asignada , sacar de la tabla casa el id que le corresponda y colocarlo en array para mostrear.
 }

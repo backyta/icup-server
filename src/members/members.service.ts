@@ -591,6 +591,7 @@ export class MembersService {
     }
 
     //! Preacher Validation (If preacher remains in preacher role)
+    //NOTE : asi como el member filtrar(notion), y solo afectar en member y en preacher los cambios.
     if (dataMember.roles.includes('preacher') && roles.includes('pracher')) {
       preacher = null;
       pastor = await this.pastorRepository.findOneBy({
@@ -599,6 +600,7 @@ export class MembersService {
       copastor = await this.coPastorRepository.findOneBy({
         id: their_copastor,
       });
+      //TODO : revisar esto despues de hacer casa familiar.
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
@@ -682,12 +684,14 @@ export class MembersService {
         id: their_copastor,
       });
       preacher = await this.preacherRepository.findOneBy({
-        id: their_copastor,
+        id: their_preacher,
       });
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
 
+      // NOTE : si se hace con filtros desde el front (ver notion) no se necesita esta validacion.
+      // NOTE : ya que estaria relacionados y no se necesitaria cambio, porque serian los mismo. (Revisar desde front)
       //* Search Copastor table and update the new pastor.
       const allCopastores = await this.coPastorRepository.find();
       const dataCopastor = allCopastores.find(
@@ -711,6 +715,8 @@ export class MembersService {
         their_pastor: pastor,
       });
 
+      //NOTE : ni siquiera se necesitaria esto, porque se selecciona al preacher y este filtra su casa.
+      //NOTE : pero revisar en subida de nievel de member y preacher los demas, creo que si es necesario, aun asi con el filtro.
       //* Filter all house records that match id_preacher (only 1)
       const allFamilyHouses = await this.familyHomeRepository.find();
       const dataFamilyHome = allFamilyHouses.find(

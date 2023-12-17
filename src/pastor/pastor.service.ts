@@ -125,6 +125,7 @@ export class PastorService {
 
       const listPreachersID = listPreachers.map((copastores) => copastores.id);
 
+      //NOTE : se deberia contar casas tmb?, aunque se podria agregar cuando se tengan mas Pastores(revisar desde el front para agregar.)
       pastor.count_copastores = listCopastores.length;
       pastor.copastores = listCopastoresID;
 
@@ -252,6 +253,7 @@ export class PastorService {
       );
     }
 
+    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
     //* Count of co-pastors
     const allCopastores = await this.coPastorRepository.find();
     const listCopastores = allCopastores.filter(
