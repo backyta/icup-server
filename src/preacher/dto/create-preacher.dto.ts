@@ -6,11 +6,6 @@ export class CreatePreacherDto {
   @IsUUID()
   id_member: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // @IsUUID()
-  // their_pastor: string;
-
   @IsString()
   @IsNotEmpty()
   @IsUUID()

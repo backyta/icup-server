@@ -426,7 +426,7 @@ export class CoPastorService {
       },
     );
 
-    //? Update and set to null in Member, all those who have the same Pastor
+    //? Update and set to null in Member, all those who have the same coPastor
     const allMembers = await this.memberRepository.find();
     const membersByPastor = allMembers.filter(
       (member) => member.their_copastor.id === dataCoPastor.id,

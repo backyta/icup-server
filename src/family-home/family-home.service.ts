@@ -39,9 +39,6 @@ export class FamilyHomeService {
     private readonly familyHousesRepository: Repository<FamilyHome>,
   ) {}
 
-  //NOTE: en member debo actiualizar y setear a cada miembro su casa, despues de crear estas casas.
-  //NOTE : cuando se cree una casa y se asigne un preacher, se busca en tabla member el pracher.member.id que sea igual
-  //NOTE : para que setee en la tabla miembro su casa asignada.
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
     const { their_preacher } = createFamilyHomeDto;
@@ -56,27 +53,10 @@ export class FamilyHomeService {
         `Not faound CoPastor with id ${their_preacher}`,
       );
     }
-    //! revisar si se puede sacar del preacher su copastor y del coapstor us pastor? ver otras tablas.
+
     if (!preacher.is_active) {
       throw new BadRequestException(
         `The property is_active in Preacher must be a true value"`,
-      );
-    }
-
-    //* Validation pastor
-    const pastor = await this.pastorRepository.findOneBy({
-      id: preacher.their_pastor.id,
-    });
-
-    if (!pastor) {
-      throw new NotFoundException(
-        `Not faound Pastor with id ${preacher.their_pastor.id}`,
-      );
-    }
-
-    if (!pastor.is_active) {
-      throw new BadRequestException(
-        `The property is_active in Pastor must be a true value"`,
       );
     }
 
@@ -97,34 +77,59 @@ export class FamilyHomeService {
       );
     }
 
+    //* Validation pastor
+    const pastor = await this.pastorRepository.findOneBy({
+      id: preacher.their_pastor.id,
+    });
+
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${preacher.their_pastor.id}`,
+      );
+    }
+
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in Pastor must be a true value"`,
+      );
+    }
+
     //* Create instance
     try {
       const preacherInstance = this.familyHousesRepository.create({
         ...createFamilyHomeDto,
-        their_pastor: pastor,
-        their_copastor: copastor,
         their_preacher: preacher,
+        their_copastor: copastor,
+        their_pastor: pastor,
         created_at: new Date(),
         created_by: 'Kevin',
       });
 
+      //NOTE : ver si funciona esto... o si no hacerlo manual, en cada miembro preacher agregarle su Residencia, auqnue deberia funcionar aqui opara que sea directo el seteo.
+      const updateMemberTheirFamilyHome = await this.memberRepository.preload({
+        id: preacher.member.id,
+        their_family_home: preacherInstance,
+      });
+
+      await this.memberRepository.save(updateMemberTheirFamilyHome);
       return await this.familyHousesRepository.save(preacherInstance);
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
-  //* Busca Todos (activo o inactive)
+  //* FIND ALL (PAGINATED)
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
     return await this.familyHousesRepository.find({
       take: limit,
       skip: offset,
     });
-    //! Revisar si se cargan las relaciones o afecta, para cargarlas aqui
+    //TODO : Revisar si se cargan las relaciones o afecta, para cargarlas aqui (falta el eager o si no cargarlas aqui.)
   }
 
-  //* Busca por ID (activo o inactivo)
+  //* FIND BY TERM AND SEARCH TYPE (FILTER)
+  // TODO : pending this part, complet tomorrow 18/12, revision and documentation in Notion.
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,

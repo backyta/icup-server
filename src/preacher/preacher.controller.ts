@@ -11,7 +11,8 @@ import {
 import { PreacherService } from './preacher.service';
 import { CreatePreacherDto } from './dto/create-preacher.dto';
 import { UpdatePreacherDto } from './dto/update-preacher.dto';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
+
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Controller('preacher')
 export class PreacherController {

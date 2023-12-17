@@ -1,6 +1,6 @@
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { Member } from 'src/members/entities/member.entity';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
+import { CoPastor } from '../../copastor/entities/copastor.entity';
+import { Member } from '../../members/entities/member.entity';
+import { Pastor } from '../../pastor/entities/pastor.entity';
 import {
   Column,
   Entity,

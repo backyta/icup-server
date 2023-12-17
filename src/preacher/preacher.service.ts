@@ -37,7 +37,7 @@ export class PreacherService {
     private readonly coPastorRepository: Repository<CoPastor>,
 
     @InjectRepository(FamilyHome)
-    private readonly familyHousesRepository: Repository<FamilyHome>,
+    private readonly familyHomeRepository: Repository<FamilyHome>,
   ) {}
 
   //* CREATE PREACHER
@@ -45,10 +45,7 @@ export class PreacherService {
     const { id_member, their_copastor } = createPreacherDto;
 
     //* Validation member
-    const member = await this.memberRepository.findOne({
-      where: { id: id_member },
-      relations: ['their_copastor', 'their_pastor'],
-    });
+    const member = await this.memberRepository.findOneBy({ id: id_member });
 
     if (!member) {
       throw new NotFoundException(`Not faound Member with id ${id_member}`);
@@ -56,7 +53,7 @@ export class PreacherService {
 
     if (!member.roles.includes('preacher')) {
       throw new BadRequestException(
-        `El id_member debe tener el rol de "Preacher"`,
+        `The id_member must have the role of "Preacher"`,
       );
     }
 
@@ -83,7 +80,7 @@ export class PreacherService {
       );
     }
 
-    //* Validation pastor (usamos el pastor relacionado al copastor)
+    //* Validation pastor (we use the shepherd related to the copastor)
     const pastor = await this.pastorRepository.findOneBy({
       id: copastor.their_pastor.id,
     });
@@ -100,7 +97,7 @@ export class PreacherService {
       );
     }
 
-    //* Creacion de la instancia
+    //* Creation of the instance
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       their_pastor: pastor,
@@ -145,10 +142,10 @@ export class PreacherService {
       preacher = await this.preacherRepository.findOneBy({ id: term });
 
       if (!preacher) {
-        throw new BadRequestException(`No se encontro Preacher con este UUID`);
+        throw new BadRequestException(`Preacher was not found with this UUID`);
       }
 
-      //* Conteo y asignacion de Cantidad de miembros(id-preahcer tabla member)
+      //* Counting and assigning the number of members (id-preahcer member table)
       const allMembers = await this.memberRepository.find();
       const membersOfPreacher = allMembers.filter(
         (members) => members.their_preacher.id === term,
@@ -158,15 +155,14 @@ export class PreacherService {
         (copastores) => copastores.id,
       );
 
-      //* Asignacion de ID Casa cuando se busca por Preacher
-      const familyHouses = await this.familyHousesRepository.find();
+      //* House ID assignment according to Preacher ID
+      const familyHouses = await this.familyHomeRepository.find();
       const familyHome = familyHouses.filter(
         (home) => home.their_preacher.id === term,
       );
 
       const familyHomeId = familyHome.map((home) => home.id);
 
-      //* Asignacion de Casa familiar al buscar por ID
       preacher.count_members = listMembersID.length;
       preacher.members = listMembersID;
 
@@ -274,18 +270,13 @@ export class PreacherService {
     return preacher;
   }
 
-  //! si un preacher se actualiza y cambia su copastor, automaticamente debe buscar su pastor relacionado a ese copastor
-  //! y cambiarlo, osea is eligo otro copastor busco a su pastor relacionado y lo seteo, asi mantengo la relacion.
-  //! Asi mismo si cambia su copastor, se debe actualizar en Member al registro del preacher su copastor y pastor relacionado.
-  //Note: desde el frotn bloquear elegir a un pastor, pero mostrar cuando cambio de copastor el nuevo pastor que se setea.
-
   //* UPDATE PREACHER
   async update(id: string, updatePreacherDto: UpdatePreacherDto) {
     const { their_copastor, is_active } = updatePreacherDto;
 
     if (is_active === undefined) {
       throw new BadRequestException(
-        `Debe asignar un valor booleano a is_Active`,
+        `You must assign a boolean value to is_Active`,
       );
     }
 
@@ -299,7 +290,7 @@ export class PreacherService {
       throw new NotFoundException(`Preacher not found with id: ${id}`);
     }
 
-    //* Asignacion y validacion de Member
+    //* Member assignment and validation
     const member = await this.memberRepository.findOneBy({
       id: dataPreacher.member.id,
     });
@@ -316,7 +307,7 @@ export class PreacherService {
       );
     }
 
-    //* Asignacion y validacion de Copastor
+    //* Copastor assignment and validation
     const copastor = await this.coPastorRepository.findOneBy({
       id: their_copastor,
     });
@@ -331,7 +322,7 @@ export class PreacherService {
       );
     }
 
-    //* Asignacion y Validation de Pastor, segun el coPastor.
+    //* Pastor Assignment and Validation, according to the co-Pastor.
     const pastor = await this.coPastorRepository.findOneBy({
       id: copastor.their_pastor.id,
     });
@@ -349,7 +340,7 @@ export class PreacherService {
     }
 
     //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
-    //* Conteo y asignacion de Cantidad de miembros(id-preacher tabla member)
+    //* Counting and assigning the number of members (id-preacher member table)
     const allMembers = await this.memberRepository.find();
     const membersPreacher = allMembers.filter(
       (members) => members.their_preacher.id === id,
@@ -357,8 +348,8 @@ export class PreacherService {
 
     const listMembersID = membersPreacher.map((preacher) => preacher.id);
 
-    //* Asignacion de ID Casa cuando se busca por Preacher
-    const familyHouses = await this.familyHousesRepository.find();
+    //* House ID assignment when searching for Preacher
+    const familyHouses = await this.familyHomeRepository.find();
     const familyHome = familyHouses.filter(
       (home) => home.their_preacher.id === id,
     );
@@ -398,7 +389,6 @@ export class PreacherService {
   }
 
   //* DELETE FOR ID
-  //todo : trabajar aqui falta....
   async remove(id: string) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -407,29 +397,60 @@ export class PreacherService {
     const dataPreacher = await this.preacherRepository.findOneBy({ id });
 
     if (!dataPreacher) {
-      throw new NotFoundException(`Preacher with id: ${id} not exits`);
+      throw new NotFoundException(`CoPastor with id: ${id} not exits`);
     }
 
+    //? Update and set in false is_active on Member
     const member = await this.memberRepository.preload({
       id: dataPreacher.member.id,
       is_active: false,
     });
 
+    //? Update and set in false is_active on coPastor
     const preacher = await this.preacherRepository.preload({
-      id: id,
+      id: dataPreacher.id,
+      their_pastor: null,
+      their_copastor: null,
       is_active: false,
+    });
+
+    //? Update and set to null in Family Home
+    const allFamilyHouses = await this.familyHomeRepository.find();
+    const familyHousesByPastor = allFamilyHouses.filter(
+      (familyHome) => familyHome.their_preacher.id === preacher.id,
+    );
+
+    const promisesFamilyHouses = familyHousesByPastor.map(
+      async (familyHome) => {
+        await this.familyHomeRepository.update(familyHome.id, {
+          their_preacher: null,
+        });
+      },
+    );
+
+    //? Update and set to null in Member, all those who have the same Preacher
+    const allMembers = await this.memberRepository.find();
+    const membersByPastor = allMembers.filter(
+      (member) => member.their_preacher.id === dataPreacher.id,
+    );
+
+    const promisesMembers = membersByPastor.map(async (member) => {
+      await this.memberRepository.update(member.id, {
+        their_preacher: null,
+      });
     });
 
     try {
       await this.memberRepository.save(member);
-      await this.preacherRepository.save(preacher);
+      await Promise.all(promisesMembers);
+      await Promise.all(promisesFamilyHouses);
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
   //! PRIVATE METHODS
-  //* Para futuros errores de indices o constrains con code.
+  //* For future index errors or constrains with code.
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
@@ -445,7 +466,7 @@ export class PreacherService {
     offset: number,
     repository: Repository<Member>,
   ) => {
-    //* Para find by first or last name
+    //* For find by first or last name
     if (searchType === 'first_name' || searchType === 'last_name') {
       const members = await searchPerson({
         term,
@@ -465,8 +486,6 @@ export class PreacherService {
 
       const preachers = await this.preacherRepository.find();
 
-      //* retorna uno o mas elementos del array segun igualdad, por cada member del mapo tendremos un array
-      //* de 1 o mas elementos [[a,b], [a]] . al final los aplanamos
       const newPreacherMembers = preacherMembers.map((member) => {
         const newPreachers = preachers.filter(
           (preacher) =>

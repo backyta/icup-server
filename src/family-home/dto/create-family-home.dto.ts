@@ -16,7 +16,8 @@ export class CreateFamilyHomeDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(20)
-  name_home: string;
+  @IsOptional()
+  name_home?: string;
 
   //* Address
 
@@ -34,16 +35,6 @@ export class CreateFamilyHomeDto {
   is_active?: boolean;
 
   //* Relations
-
-  // @IsString()
-  // @IsNotEmpty()
-  // @IsUUID()
-  // their_pastor: string;
-
-  // @IsString()
-  // @IsNotEmpty()
-  // @IsUUID()
-  // their_copastor: string;
 
   @IsString()
   @IsNotEmpty()

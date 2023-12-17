@@ -1,6 +1,6 @@
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
+import { CoPastor } from '../../copastor/entities/copastor.entity';
+import { Pastor } from '../../pastor/entities/pastor.entity';
+import { Preacher } from '../../preacher/entities/preacher.entity';
 import {
   Column,
   Entity,
@@ -21,9 +21,6 @@ export class FamilyHome {
   @Column('text', { unique: true })
   name_home: string;
 
-  @Column('int', { default: 0 })
-  count_members: number;
-
   @Column('bool', { default: true })
   is_active: boolean;
 
@@ -33,6 +30,9 @@ export class FamilyHome {
 
   @Column('text')
   address: string;
+
+  @Column('int', { default: 0 })
+  count_members: number;
 
   //* User create and update
   @Column('timestamp', { nullable: true })
