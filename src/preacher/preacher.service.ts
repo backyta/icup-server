@@ -5,19 +5,22 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { isUUID } from 'class-validator';
+
 import { CreatePreacherDto } from './dto/create-preacher.dto';
 import { UpdatePreacherDto } from './dto/update-preacher.dto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Preacher } from './entities/preacher.entity';
+
 import { Member } from '../members/entities/member.entity';
 import { Pastor } from '../pastor/entities/pastor.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
-import { Repository } from 'typeorm';
-import { Preacher } from './entities/preacher.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
-import { isUUID } from 'class-validator';
-import { SearchType } from 'src/common/enums/search-types.enum';
-import { searchFullname, searchPerson, updateAge } from 'src/common/helpers';
-import { FamilyHome } from 'src/family-home/entities/family-home.entity';
+import { FamilyHome } from '../family-home/entities/family-home.entity';
+
+import { SearchType } from '../common/enums/search-types.enum';
+import { searchFullname, searchPerson, updateAge } from '../common/helpers';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Injectable()
 export class PreacherService {

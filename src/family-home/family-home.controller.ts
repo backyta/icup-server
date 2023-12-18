@@ -11,7 +11,7 @@ import {
 import { FamilyHomeService } from './family-home.service';
 import { CreateFamilyHomeDto } from './dto/create-family-home.dto';
 import { UpdateFamilyHomeDto } from './dto/update-family-home.dto';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Controller('family-home')
 export class FamilyHomeController {

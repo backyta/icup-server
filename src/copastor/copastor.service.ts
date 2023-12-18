@@ -11,16 +11,16 @@ import { isUUID } from 'class-validator';
 
 import { CreateCoPastorDto } from './dto/create-copastor.dto';
 import { UpdateCoPastorDto } from './dto/update-copastor.dto';
+import { CoPastor } from './entities/copastor.entity';
+
 import { Pastor } from '../pastor/entities/pastor.entity';
 import { Member } from '../members/entities/member.entity';
-
-import { CoPastor } from './entities/copastor.entity';
+import { Preacher } from '../preacher/entities/preacher.entity';
+import { FamilyHome } from '../family-home/entities/family-home.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { updateAge, searchPerson, searchFullname } from '../common/helpers';
 import { SearchType } from '../common/enums/search-types.enum';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
-import { FamilyHome } from 'src/family-home/entities/family-home.entity';
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');

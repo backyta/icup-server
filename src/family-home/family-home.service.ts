@@ -5,18 +5,21 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateFamilyHomeDto } from './dto/create-family-home.dto';
-import { UpdateFamilyHomeDto } from './dto/update-family-home.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
-import { Member } from 'src/members/entities/member.entity';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { FamilyHome } from './entities/family-home.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
 import { isUUID } from 'class-validator';
-import { SearchType } from 'src/common/enums/search-types.enum';
+
+import { CreateFamilyHomeDto } from './dto/create-family-home.dto';
+import { UpdateFamilyHomeDto } from './dto/update-family-home.dto';
+import { FamilyHome } from './entities/family-home.entity';
+
+import { Preacher } from '../preacher/entities/preacher.entity';
+import { Member } from '../members/entities/member.entity';
+import { Pastor } from '../pastor/entities/pastor.entity';
+import { CoPastor } from '../copastor/entities/copastor.entity';
+
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { SearchType } from '../common/enums/search-types.enum';
 
 @Injectable()
 export class FamilyHomeService {
@@ -36,7 +39,7 @@ export class FamilyHomeService {
     private readonly coPastorRepository: Repository<CoPastor>,
 
     @InjectRepository(FamilyHome)
-    private readonly familyHousesRepository: Repository<FamilyHome>,
+    private readonly familyHomeRepository: Repository<FamilyHome>,
   ) {}
 
   //* CREATE FAMILY HOME
@@ -96,7 +99,7 @@ export class FamilyHomeService {
 
     //* Create instance
     try {
-      const preacherInstance = this.familyHousesRepository.create({
+      const preacherInstance = this.familyHomeRepository.create({
         ...createFamilyHomeDto,
         their_preacher: preacher,
         their_copastor: copastor,
@@ -112,7 +115,7 @@ export class FamilyHomeService {
       });
 
       await this.memberRepository.save(updateMemberTheirFamilyHome);
-      return await this.familyHousesRepository.save(preacherInstance);
+      return await this.familyHomeRepository.save(preacherInstance);
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -121,15 +124,15 @@ export class FamilyHomeService {
   //* FIND ALL (PAGINATED)
   async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return await this.familyHousesRepository.find({
+    return await this.familyHomeRepository.find({
       take: limit,
       skip: offset,
+      relations: ['their_preacher', 'their_copastor', 'their_pastor'],
     });
-    //TODO : Revisar si se cargan las relaciones o afecta, para cargarlas aqui (falta el eager o si no cargarlas aqui.)
+    //NOTE : Revisar si se cargan las relaciones o afecta, para cargarlas aqui (falta el eager o si no cargarlas aqui.)
   }
 
   //* FIND BY TERM AND SEARCH TYPE (FILTER)
-  // TODO : pending this part, complet tomorrow 18/12, revision and documentation in Notion.
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
@@ -139,7 +142,7 @@ export class FamilyHomeService {
 
     //* Find ID --> One
     if (isUUID(term) && type === SearchType.id) {
-      familyHome = await this.familyHousesRepository.findOneBy({ id: term });
+      familyHome = await this.familyHomeRepository.findOneBy({ id: term });
 
       if (!familyHome) {
         throw new BadRequestException(
@@ -147,8 +150,8 @@ export class FamilyHomeService {
         );
       }
 
-      //* Conteo y asignacion de cantidad de miembros(id-familyHome tabla member)
-      const allMembers = (await this.memberRepository.find()) ?? [];
+      //* Counting and assigning the number of members (id-familyHome member table)
+      const allMembers = await this.memberRepository.find();
       const membersFamilyHome = allMembers.filter(
         (members) => members.their_family_home.id === term,
       );
@@ -158,13 +161,12 @@ export class FamilyHomeService {
       familyHome.count_members = membersFamilyHome.length;
       familyHome.members = listMembersId;
 
-      await this.familyHousesRepository.save(familyHome);
+      await this.familyHomeRepository.save(familyHome);
     }
 
-    //! Aqui si busca solo por active
     //* Find Code --> One
     if (term && type === SearchType.code) {
-      familyHome = await this.familyHousesRepository.findOneBy({
+      familyHome = await this.familyHomeRepository.findOneBy({
         code: term,
         is_active: true,
       });
@@ -178,7 +180,7 @@ export class FamilyHomeService {
 
     //* Find Address --> One
     if (term && type === SearchType.address) {
-      familyHome = await this.familyHousesRepository
+      familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
         .where('fh.address LIKE :term', { term: `%${term}%` })
         .andWhere('fh.is_active = :isActive', { isActive: true })
@@ -193,7 +195,7 @@ export class FamilyHomeService {
 
     //* Find Preacher --> One
     if (isUUID(term) && type === SearchType.their_preacher) {
-      familyHome = await this.familyHousesRepository
+      familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
         .where('fh.their_preacher = :term', { term })
         .andWhere('fh.is_active = :isActive', { isActive: true })
@@ -208,7 +210,7 @@ export class FamilyHomeService {
 
     //* Find CoPastor --> Many
     if (isUUID(term) && type === SearchType.their_copastor) {
-      familyHome = await this.familyHousesRepository
+      familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
         .where('fh.their_copastor = :term', { term })
         .andWhere('fh.is_active = :isActive', { isActive: true })
@@ -260,20 +262,13 @@ export class FamilyHomeService {
     return familyHome;
   }
 
-  //TODO : esperar hacer lo de member para moldificar aqui cuando se suba de nivel y se tenga que asignar un nuevo preacher o copastor
-  //* Si se actualize un nuevo copastor, de este se debe sacar Pastor y se setea
-  //* Si se actualiza un nuevo preacher, de este se saca el Copastor y Pastor.
-  //TODO : cuando se suba denivel un preacher a copastor, en casa familiar se eliminara el preacher, aqui se deve
-  //* actualizar un nuevo preacher para esa casa o setear directo desde el member con rol preacher
-  //! Al actualizar se setea el preacher aca y en tabla member su casa referenciado a este.\
-  //! Y en member tmb cuando se asgina una nueva casa y es preacher en tabla casa-familiar tmb se setea el nuevo prewacher
-  //! para guardar referencia
+  //* UPDATE FAMILY HOME ID
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
     const { their_preacher, is_active } = updateFamilyHomeDto;
 
     if (is_active === undefined) {
       throw new BadRequestException(
-        `Debe asignar un valor booleano a is_Active`,
+        `You must assign a boolean value to is_Active`,
       );
     }
 
@@ -281,33 +276,43 @@ export class FamilyHomeService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataFamilyHome = await this.familyHousesRepository.findOneBy({ id });
+    const dataFamilyHome = await this.familyHomeRepository.findOneBy({ id });
 
     if (!dataFamilyHome) {
-      throw new NotFoundException(`Preacher not found with id: ${id}`);
+      throw new NotFoundException(`Family Home not found with id: ${id}`);
     }
 
-    //* Asignacion y validacion de Preacher
-    let preacher: Preacher;
-    if (!their_preacher) {
-      preacher = await this.preacherRepository.findOneBy({
-        id: dataFamilyHome.their_preacher.id,
-      });
-    } else {
-      preacher = await this.preacherRepository.findOneBy({
-        id: their_preacher,
-      });
-    }
+    //* Preacher assignment and validation
+    const preacher = await this.preacherRepository.findOneBy({
+      id: their_preacher,
+    });
 
     if (!preacher) {
       throw new NotFoundException(
-        `CoPastor Not found with id ${their_preacher}`,
+        `Preacher Not found with id ${their_preacher}`,
       );
     }
 
     if (!preacher.is_active) {
       throw new BadRequestException(
         `The property is_active in pastor must be a true value"`,
+      );
+    }
+
+    //* Validation copastor
+    const copastor = await this.coPastorRepository.findOneBy({
+      id: preacher.their_copastor.id,
+    });
+
+    if (!copastor) {
+      throw new NotFoundException(
+        `Not faound CoPastor with id ${preacher.their_copastor.id}`,
+      );
+    }
+
+    if (!copastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in CoPastor must be a true value"`,
       );
     }
 
@@ -324,36 +329,20 @@ export class FamilyHomeService {
 
     if (!pastor.is_active) {
       throw new BadRequestException(
-        `The property is_active in pastor must be a true value"`,
+        `The property is_active in Pastor must be a true value"`,
       );
     }
 
-    //* Validation coPastor
-    const copastor = await this.coPastorRepository.findOneBy({
-      id: preacher.their_copastor.id,
-    });
-
-    if (!copastor) {
-      throw new NotFoundException(
-        `Not faound Pastor with id ${preacher.their_copastor.id}`,
-      );
-    }
-
-    if (!copastor.is_active) {
-      throw new BadRequestException(
-        `The property is_active in pastor must be a true value"`,
-      );
-    }
-
-    //* Conteo y asignacion de cantidad de miembros(id-familyHome tabla member)
-    const allMembers = (await this.memberRepository.find()) ?? [];
+    //NOTE : no seria necesario revisar porque, ya se hace en el buscar por ID
+    //* Counting and assigning the number of members (id-familyHome member table)
+    const allMembers = await this.memberRepository.find();
     const membersFamilyHome = allMembers.filter(
       (members) => members.their_family_home.id === id,
     );
 
     const listMembersId = membersFamilyHome.map((member) => member.id);
 
-    const familyHome = await this.familyHousesRepository.preload({
+    const familyHome = await this.familyHomeRepository.preload({
       id: id,
       ...updateFamilyHomeDto,
       their_pastor: pastor,
@@ -365,8 +354,14 @@ export class FamilyHomeService {
       updated_by: 'Kevinxd',
     });
 
+    const updateMemberPreacher = await this.memberRepository.preload({
+      id: preacher.member.id,
+      their_family_home: familyHome,
+    });
+
     try {
-      await this.familyHousesRepository.save(familyHome);
+      await this.familyHomeRepository.save(familyHome);
+      await this.memberRepository.save(updateMemberPreacher);
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -380,26 +375,42 @@ export class FamilyHomeService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataFamilyHome = await this.familyHousesRepository.findOneBy({ id });
+    const dataFamilyHome = await this.familyHomeRepository.findOneBy({ id });
 
     if (!dataFamilyHome) {
-      throw new NotFoundException(`Preacher with id: ${id} not exits`);
+      throw new NotFoundException(`Family Home with id: ${id} not exits`);
     }
 
-    const familyHome = await this.familyHousesRepository.preload({
+    const familyHome = await this.familyHomeRepository.preload({
       id: dataFamilyHome.id,
+      their_copastor: null,
+      their_pastor: null,
+      their_preacher: null,
       is_active: false,
     });
 
+    //? Update and set to null in Member, all those who have the same Family Home
+    const allMembers = await this.memberRepository.find();
+    const membersByFamilyHome = allMembers.filter(
+      (member) => member.their_family_home.id === familyHome.id,
+    );
+
+    const promisesMembers = membersByFamilyHome.map(async (member) => {
+      await this.memberRepository.update(member.id, {
+        their_family_home: null,
+      });
+    });
+
     try {
-      await this.familyHousesRepository.save(familyHome);
+      await this.familyHomeRepository.save(familyHome);
+      await Promise.all(promisesMembers);
     } catch (error) {
       this.handleDBExceptions(error);
     }
   }
 
   //! PRIVATE METHODS
-  //* Para futuros errores de indices o constrains con code.
+  //* For future index errors or constrains with code.
   private handleDBExceptions(error: any) {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);

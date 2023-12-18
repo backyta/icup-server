@@ -10,13 +10,13 @@ import { Repository } from 'typeorm';
 import { isUUID } from 'class-validator';
 
 import { Pastor } from './entities/pastor.entity';
+import { CreatePastorDto } from './dto/create-pastor.dto';
+import { UpdatePastorDto } from './dto/update-pastor.dto';
+
 import { Member } from '../members/entities/member.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
 import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
-
-import { CreatePastorDto } from './dto/create-pastor.dto';
-import { UpdatePastorDto } from './dto/update-pastor.dto';
 
 import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';

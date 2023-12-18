@@ -13,18 +13,18 @@ import { Member } from './entities/member.entity';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 
-import { SearchType } from '../common/enums/search-types.enum';
-import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { searchPerson, searchFullname, updateAge } from '../common/helpers';
-
 import { Pastor } from '../pastor/entities/pastor.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
 import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
 
 import { PastorService } from '../pastor/pastor.service';
-import { CoPastorService } from 'src/copastor/copastor.service';
-import { PreacherService } from 'src/preacher/preacher.service';
+import { CoPastorService } from '../copastor/copastor.service';
+import { PreacherService } from '../preacher/preacher.service';
+
+import { SearchType } from '../common/enums/search-types.enum';
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { searchPerson, searchFullname, updateAge } from '../common/helpers';
 
 @Injectable()
 export class MembersService {
@@ -53,10 +53,10 @@ export class MembersService {
     private readonly preacherService: PreacherService,
   ) {}
 
-  //TODO : Avanzar los demas modules y luego probar con este.
   //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
   //! Hacer lo de arriba cuando tengamos todo listo y probar todo junto
-  //TODO : tarea para maniana 13/13 seguir con module Pastor y hacer documentacion de Pastor.
+
+  // TODO : terminar aqui y revisar con los demas (endpoints) y despues pasar a ofrendas y diezmos
 
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
@@ -410,8 +410,10 @@ export class MembersService {
     if (
       (roles.includes('pastor') && roles.includes('copastor')) ||
       (roles.includes('pastor') && roles.includes('preacher')) ||
+      (roles.includes('pastor') && roles.includes('treasurer')) ||
       (roles.includes('copastor') && roles.includes('pastor')) ||
       (roles.includes('copastor') && roles.includes('preacher')) ||
+      (roles.includes('copastor') && roles.includes('treasurer')) ||
       (roles.includes('preacher') && roles.includes('pastor')) ||
       (roles.includes('preacher') && roles.includes('copastor'))
     ) {
@@ -423,14 +425,18 @@ export class MembersService {
     //* Validation when updating roles (of the member), they cannot be lower
     if (
       (dataMember.roles.includes('pastor') && roles.includes('copastor')) ||
-      (dataMember.roles.includes('pastor') && roles.includes('preacher'))
+      (dataMember.roles.includes('pastor') && roles.includes('preacher')) ||
+      (dataMember.roles.includes('pastor') && roles.includes('treasurer'))
     ) {
       throw new BadRequestException(
         `You cannot assign a role lower than Pastor`,
       );
     }
 
-    if (dataMember.roles.includes('copastor') && roles.includes('preacher')) {
+    if (
+      (dataMember.roles.includes('copastor') && roles.includes('preacher')) ||
+      (dataMember.roles.includes('copastor') && roles.includes('treasurer'))
+    ) {
       throw new BadRequestException(
         `Cannot be assigned a role lower than CoPastor`,
       );
@@ -461,7 +467,7 @@ export class MembersService {
       !their_pastor
     ) {
       throw new BadRequestException(
-        `A Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, only a Pasor can be assigned`,
+        `A Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, only a Pastor can be assigned`,
       );
     }
 
@@ -480,6 +486,8 @@ export class MembersService {
     let familyHome: FamilyHome;
     let member: Member;
 
+    //TODO : revisar el actualizar los miembros, actualizar otra casa.
+    //TODO : revisar el actualizar miembros con rol Preacher, actualizar su casa, de manera momentanea y cuando se cree una nueva casa, setear en family home y en member their_familyhome
     //! Pastor Validation (If pastor remains in pastor role)
     if (dataMember.roles.includes('pastor') && roles.includes('pastor')) {
       pastor = null;
@@ -498,13 +506,25 @@ export class MembersService {
         their_family_home: familyHome,
       });
 
+      const allPastores = await this.pastorRepository.find();
+      const dataPastor = allPastores.find(
+        (pastor) => pastor.member.id === member.id,
+      );
+
+      const updatePastor = await this.pastorRepository.preload({
+        id: dataPastor.id,
+        member: member,
+      });
+
       try {
+        await this.pastorRepository.save(updatePastor);
         return await this.memberRepository.save(member);
       } catch (error) {
         this.handleDBExceptions(error);
       }
     }
 
+    //TODO : continuar aqui .....
     //! CoPastor Validation (If copastor remains in copastor role)
     if (dataMember.roles.includes('copastor') && roles.includes('copastor')) {
       pastor = await this.pastorRepository.findOneBy({
@@ -592,7 +612,7 @@ export class MembersService {
 
     //! Preacher Validation (If preacher remains in preacher role)
     //NOTE : asi como el member filtrar(notion), y solo afectar en member y en preacher los cambios.
-    if (dataMember.roles.includes('preacher') && roles.includes('pracher')) {
+    if (dataMember.roles.includes('preacher') && roles.includes('preacher')) {
       preacher = null;
       pastor = await this.pastorRepository.findOneBy({
         id: their_pastor,
@@ -600,7 +620,8 @@ export class MembersService {
       copastor = await this.coPastorRepository.findOneBy({
         id: their_copastor,
       });
-      //TODO : revisar esto despues de hacer casa familiar.
+      //* Aqui se agrega casa al preacher si se elimino su casa ala que estaba relacionada, por tanto aqui se asigna una casa
+      //* donde pueda congregar por el momento hasta que se le asigne una casa a este predicador, en crear o actualizar
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
@@ -689,7 +710,7 @@ export class MembersService {
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
-
+      // TODO : revisar bien el member antes de pasar a ofrendaz y diezmos, y porbar cada endpoint
       // NOTE : si se hace con filtros desde el front (ver notion) no se necesita esta validacion.
       // NOTE : ya que estaria relacionados y no se necesitaria cambio, porque serian los mismo. (Revisar desde front)
       //* Search Copastor table and update the new pastor.
