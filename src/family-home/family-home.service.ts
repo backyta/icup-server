@@ -44,7 +44,7 @@ export class FamilyHomeService {
   //TODO : HACER logica para asignar el codigo de casa, y si se elimina la casa eliminar el codigo
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
-    const { their_preacher, code } = createFamilyHomeDto;
+    const { their_preacher } = createFamilyHomeDto;
 
     //* Validation Preacher
     const preacher = await this.preacherRepository.findOneBy({
@@ -80,14 +80,87 @@ export class FamilyHomeService {
       );
     }
 
-    const stringName = copastor.member.first_name;
-    const firstLetter = stringName.slice(0, 1).toUpperCase();
-    console.log(firstLetter);
+    //? Asignacion de Zonas por Copastor, codigo y numero de casa.
+    const allCopastores = await this.coPastorRepository.find();
 
-    //! Ver la colocacionde manera manual cuando se elimina la casa y se quiere asignar ese numero por ejemplo M-2, directamente.
-    //! el code debe ir siempre con el predicador.
-    //! Preguntar a Papa.
-    //! Ver si se puede hacer LC-1
+    const CopastorZoneA = allCopastores.find((copastor) =>
+      copastor.member.first_name.includes('Luz'),
+    );
+    const CopastorZoneB = allCopastores.find((copastor) =>
+      copastor.member.first_name.includes('Mercedes'),
+    );
+    const CopastorZoneC = allCopastores.find((copastor) =>
+      copastor.member.first_name.includes('Rosario'),
+    );
+
+    let zone: string;
+    if (copastor.id === CopastorZoneA.id) {
+      zone = 'A';
+    }
+
+    if (copastor.id === CopastorZoneB.id) {
+      zone = 'B';
+    }
+
+    if (copastor.id === CopastorZoneC.id) {
+      zone = 'C';
+    }
+
+    const allHouses = await this.familyHomeRepository.find();
+    const allHousesZoneA = allHouses.filter((home) => home.zone === 'A');
+    const allHousesZoneB = allHouses.filter((home) => home.zone === 'B');
+    const allHousesZoneC = allHouses.filter((home) => home.zone === 'C');
+
+    let numberHome: number;
+    let codeHome: string;
+
+    if (zone === 'A' && allHousesZoneA.length === 0) {
+      numberHome = 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'A' && allHousesZoneA.length !== 0) {
+      numberHome = allHousesZoneA.length + 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'B' && allHousesZoneB.length === 0) {
+      numberHome = 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'B' && allHousesZoneB.length !== 0) {
+      numberHome = allHousesZoneB.length + 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'C' && allHousesZoneC.length === 0) {
+      numberHome = 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'C' && allHousesZoneC.length !== 0) {
+      numberHome = allHousesZoneC.length + 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    //TODO : revisar y seguir en esto tomorrow 19/12 (Revisar wasap)
+    //TODO : hay un problema y es que estoy referenciando al copastor a una zona y no deberia ser asi porque las
+    //TODO : zonas pueden cambiar de copastor. (Corregir y revisar, y aplicar lo de abajo)
+    //! Se puede colocar inactivo la casa, pero luego se puede activar con nueva direccion, manteniendo el mismo codigo y nombre
+    //! Se puede actualizar directamente si se consigue una casa inmediata, la direccion, y el code y name se mantiene.
+    //! Nunca se quitaria el codigo si no que se coloca solo inactivo
+    //? Atencion
+    //! Al actualizar se coloca el preacher y este debe jalar a su copastor y pastor.
+    //! Se debe asignar un predicador dentro de la zona del copastor (A, B o C)
+    //! Mostrar los predicadores disponbles a cambiar segun el copastor relacionado.
+
+    //! Si se desea cambiar otro predicador de otra zona, este predicador primero debe ser actualizado su copastor.
+    //! Por ejemplo el predicador Brian de la zona Mercedes, se actualiza a Luz y recien aparece para asignarse a una casa de la zona de Luz (A)
+
+    //* Poner aleta de que no se podra cambiar a un pracher a la casa familiar si es que no esta dentro de la zona de Copastor,
+    //* antes debera cambiar su copastor
+    //? Filtrar al querer actualizar el preacher de la casa, solo los que esten segun esa zona.
 
     //* Validation pastor
     const pastor = await this.pastorRepository.findOneBy({
@@ -108,11 +181,14 @@ export class FamilyHomeService {
 
     //* Create instance
     try {
-      const preacherInstance = this.familyHomeRepository.create({
+      const familyHomeInstance = this.familyHomeRepository.create({
         ...createFamilyHomeDto,
+        number_home: numberHome.toString(),
+        zone: zone,
+        code: codeHome,
         their_preacher: preacher,
-        their_copastor: copastor,
         their_pastor: pastor,
+        their_copastor: copastor,
         created_at: new Date(),
         created_by: 'Kevin',
       });
@@ -120,11 +196,11 @@ export class FamilyHomeService {
       //NOTE : ver si funciona esto... o si no hacerlo manual, en cada miembro preacher agregarle su Residencia, auqnue deberia funcionar aqui opara que sea directo el seteo.
       const updateMemberTheirFamilyHome = await this.memberRepository.preload({
         id: preacher.member.id,
-        their_family_home: preacherInstance,
+        their_family_home: familyHomeInstance,
       });
 
-      // await this.memberRepository.save(updateMemberTheirFamilyHome);
-      // return await this.familyHomeRepository.save(preacherInstance);
+      await this.memberRepository.save(updateMemberTheirFamilyHome);
+      return await this.familyHomeRepository.save(familyHomeInstance);
     } catch (error) {
       this.handleDBExceptions(error);
     }

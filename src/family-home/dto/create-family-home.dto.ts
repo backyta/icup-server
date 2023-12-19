@@ -8,14 +8,24 @@ import {
 } from 'class-validator';
 
 export class CreateFamilyHomeDto {
-  @IsString()
-  @IsNotEmpty()
-  code: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // zone: string;
+
+  // @IsString()
+  // @IsOptional()
+  // @IsNotEmpty()
+  // number_home?: string;
+
+  // @IsString()
+  // @IsOptional()
+  // @IsNotEmpty()
+  // code?: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  @MaxLength(20)
+  @MaxLength(30)
   @IsOptional()
   name_home?: string;
 

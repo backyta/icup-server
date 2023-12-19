@@ -15,6 +15,12 @@ export class FamilyHome {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column('text')
+  zone: string;
+
+  @Column('text')
+  number_home: string;
+
   @Column('text', { unique: true })
   code: string;
 
@@ -61,7 +67,7 @@ export class FamilyHome {
   @JoinColumn({ name: 'their_copastor_id' })
   their_copastor: CoPastor;
 
-  @OneToOne(() => Pastor)
+  @ManyToOne(() => Pastor)
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 }
