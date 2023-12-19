@@ -41,10 +41,10 @@ export class FamilyHomeService {
     @InjectRepository(FamilyHome)
     private readonly familyHomeRepository: Repository<FamilyHome>,
   ) {}
-
+  //TODO : HACER logica para asignar el codigo de casa, y si se elimina la casa eliminar el codigo
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
-    const { their_preacher } = createFamilyHomeDto;
+    const { their_preacher, code } = createFamilyHomeDto;
 
     //* Validation Preacher
     const preacher = await this.preacherRepository.findOneBy({
@@ -80,6 +80,15 @@ export class FamilyHomeService {
       );
     }
 
+    const stringName = copastor.member.first_name;
+    const firstLetter = stringName.slice(0, 1).toUpperCase();
+    console.log(firstLetter);
+
+    //! Ver la colocacionde manera manual cuando se elimina la casa y se quiere asignar ese numero por ejemplo M-2, directamente.
+    //! el code debe ir siempre con el predicador.
+    //! Preguntar a Papa.
+    //! Ver si se puede hacer LC-1
+
     //* Validation pastor
     const pastor = await this.pastorRepository.findOneBy({
       id: preacher.their_pastor.id,
@@ -114,8 +123,8 @@ export class FamilyHomeService {
         their_family_home: preacherInstance,
       });
 
-      await this.memberRepository.save(updateMemberTheirFamilyHome);
-      return await this.familyHomeRepository.save(preacherInstance);
+      // await this.memberRepository.save(updateMemberTheirFamilyHome);
+      // return await this.familyHomeRepository.save(preacherInstance);
     } catch (error) {
       this.handleDBExceptions(error);
     }
