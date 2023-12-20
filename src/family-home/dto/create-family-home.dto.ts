@@ -8,9 +8,9 @@ import {
 } from 'class-validator';
 
 export class CreateFamilyHomeDto {
-  // @IsString()
-  // @IsNotEmpty()
-  // zone: string;
+  @IsString()
+  @IsNotEmpty()
+  zone: string;
 
   // @IsString()
   // @IsOptional()

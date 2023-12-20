@@ -59,15 +59,15 @@ export class FamilyHome {
 
   //* Relation columns
   //! Revisar si el eager en tru no afecta.
-  @OneToOne(() => Preacher)
+  @OneToOne(() => Preacher, { eager: true })
   @JoinColumn({ name: 'their_preacher_id' })
   their_preacher: Preacher;
 
-  @ManyToOne(() => CoPastor)
+  @ManyToOne(() => CoPastor, { eager: true })
   @JoinColumn({ name: 'their_copastor_id' })
   their_copastor: CoPastor;
 
-  @ManyToOne(() => Pastor)
+  @ManyToOne(() => Pastor, { eager: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 }

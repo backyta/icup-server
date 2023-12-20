@@ -16,4 +16,5 @@ export enum SearchType {
   their_preacher = 'their_preacher',
   their_family_home = 'their_family_home',
   address = 'address',
+  zone = 'zone',
 }

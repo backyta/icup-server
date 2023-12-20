@@ -41,10 +41,10 @@ export class FamilyHomeService {
     @InjectRepository(FamilyHome)
     private readonly familyHomeRepository: Repository<FamilyHome>,
   ) {}
-  //TODO : HACER logica para asignar el codigo de casa, y si se elimina la casa eliminar el codigo
+
   //* CREATE FAMILY HOME
   async create(createFamilyHomeDto: CreateFamilyHomeDto) {
-    const { their_preacher } = createFamilyHomeDto;
+    const { their_preacher, zone } = createFamilyHomeDto;
 
     //* Validation Preacher
     const preacher = await this.preacherRepository.findOneBy({
@@ -80,32 +80,24 @@ export class FamilyHomeService {
       );
     }
 
-    //? Asignacion de Zonas por Copastor, codigo y numero de casa.
-    const allCopastores = await this.coPastorRepository.find();
+    //* Validation pastor
+    const pastor = await this.pastorRepository.findOneBy({
+      id: preacher.their_pastor.id,
+    });
 
-    const CopastorZoneA = allCopastores.find((copastor) =>
-      copastor.member.first_name.includes('Luz'),
-    );
-    const CopastorZoneB = allCopastores.find((copastor) =>
-      copastor.member.first_name.includes('Mercedes'),
-    );
-    const CopastorZoneC = allCopastores.find((copastor) =>
-      copastor.member.first_name.includes('Rosario'),
-    );
-
-    let zone: string;
-    if (copastor.id === CopastorZoneA.id) {
-      zone = 'A';
+    if (!pastor) {
+      throw new NotFoundException(
+        `Not faound Pastor with id ${preacher.their_pastor.id}`,
+      );
     }
 
-    if (copastor.id === CopastorZoneB.id) {
-      zone = 'B';
+    if (!pastor.is_active) {
+      throw new BadRequestException(
+        `The property is_active in Pastor must be a true value"`,
+      );
     }
 
-    if (copastor.id === CopastorZoneC.id) {
-      zone = 'C';
-    }
-
+    //? Validacion de asignacion de zona por copastor y preacher
     const allHouses = await this.familyHomeRepository.find();
     const allHousesZoneA = allHouses.filter((home) => home.zone === 'A');
     const allHousesZoneB = allHouses.filter((home) => home.zone === 'B');
@@ -144,39 +136,47 @@ export class FamilyHomeService {
       codeHome = `${zone}-${numberHome}`;
     }
 
-    //TODO : revisar y seguir en esto tomorrow 19/12 (Revisar wasap)
-    //TODO : hay un problema y es que estoy referenciando al copastor a una zona y no deberia ser asi porque las
-    //TODO : zonas pueden cambiar de copastor. (Corregir y revisar, y aplicar lo de abajo)
-    //! Se puede colocar inactivo la casa, pero luego se puede activar con nueva direccion, manteniendo el mismo codigo y nombre
-    //! Se puede actualizar directamente si se consigue una casa inmediata, la direccion, y el code y name se mantiene.
-    //! Nunca se quitaria el codigo si no que se coloca solo inactivo
-    //? Atencion
-    //! Al actualizar se coloca el preacher y este debe jalar a su copastor y pastor.
-    //! Se debe asignar un predicador dentro de la zona del copastor (A, B o C)
-    //! Mostrar los predicadores disponbles a cambiar segun el copastor relacionado.
-
-    //! Si se desea cambiar otro predicador de otra zona, este predicador primero debe ser actualizado su copastor.
-    //! Por ejemplo el predicador Brian de la zona Mercedes, se actualiza a Luz y recien aparece para asignarse a una casa de la zona de Luz (A)
-
-    //* Poner aleta de que no se podra cambiar a un pracher a la casa familiar si es que no esta dentro de la zona de Copastor,
-    //* antes debera cambiar su copastor
-    //? Filtrar al querer actualizar el preacher de la casa, solo los que esten segun esa zona.
-
-    //* Validation pastor
-    const pastor = await this.pastorRepository.findOneBy({
-      id: preacher.their_pastor.id,
+    const dataFamilyHomeZoneA = await this.familyHomeRepository.findOneBy({
+      zone: 'A',
+    });
+    const dataFamilyHomeZoneB = await this.familyHomeRepository.findOneBy({
+      zone: 'B',
+    });
+    const dataFamilyHomeZoneC = await this.familyHomeRepository.findOneBy({
+      zone: 'C',
     });
 
-    if (!pastor) {
-      throw new NotFoundException(
-        `Not faound Pastor with id ${preacher.their_pastor.id}`,
-      );
+    //! La zona A no puede tener el mismo copastor que la zona B
+    if (dataFamilyHomeZoneA !== null) {
+      if (
+        zone === 'A' &&
+        dataFamilyHomeZoneA.their_copastor.id !== copastor.id
+      ) {
+        throw new BadRequestException(
+          `No se puede asignar un preacher con un copastor diferente al ya registrado para esta zona: ${dataFamilyHomeZoneA.their_copastor.member.first_name} ${dataFamilyHomeZoneA.their_copastor.member.last_name}`,
+        );
+      }
     }
 
-    if (!pastor.is_active) {
-      throw new BadRequestException(
-        `The property is_active in Pastor must be a true value"`,
-      );
+    if (dataFamilyHomeZoneB !== null) {
+      if (
+        zone === 'B' &&
+        dataFamilyHomeZoneB.their_copastor.id !== copastor.id
+      ) {
+        throw new BadRequestException(
+          `No se puede asignar un preacher con un copastor diferente al ya registrado para esta zona: ${dataFamilyHomeZoneB.their_copastor.member.first_name} ${dataFamilyHomeZoneB.their_copastor.member.last_name}`,
+        );
+      }
+    }
+    if (dataFamilyHomeZoneC !== null) {
+      if (
+        zone === 'C' &&
+        dataFamilyHomeZoneC.their_copastor.id !== copastor.id
+      ) {
+        throw new BadRequestException(
+          `No se puede asignar un preacher con un copastor diferente al ya registrado para esta zona: ${dataFamilyHomeZoneC.their_copastor.member.first_name} ${dataFamilyHomeZoneC.their_copastor.member.last_name}`,
+        );
+      }
     }
 
     //* Create instance
@@ -193,14 +193,15 @@ export class FamilyHomeService {
         created_by: 'Kevin',
       });
 
-      //NOTE : ver si funciona esto... o si no hacerlo manual, en cada miembro preacher agregarle su Residencia, auqnue deberia funcionar aqui opara que sea directo el seteo.
+      const result = await this.familyHomeRepository.save(familyHomeInstance);
+
       const updateMemberTheirFamilyHome = await this.memberRepository.preload({
         id: preacher.member.id,
         their_family_home: familyHomeInstance,
       });
 
       await this.memberRepository.save(updateMemberTheirFamilyHome);
-      return await this.familyHomeRepository.save(familyHomeInstance);
+      return result;
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -212,9 +213,7 @@ export class FamilyHomeService {
     return await this.familyHomeRepository.find({
       take: limit,
       skip: offset,
-      relations: ['their_preacher', 'their_copastor', 'their_pastor'],
     });
-    //NOTE : Revisar si se cargan las relaciones o afecta, para cargarlas aqui (falta el eager o si no cargarlas aqui.)
   }
 
   //* FIND BY TERM AND SEARCH TYPE (FILTER)
@@ -230,9 +229,7 @@ export class FamilyHomeService {
       familyHome = await this.familyHomeRepository.findOneBy({ id: term });
 
       if (!familyHome) {
-        throw new BadRequestException(
-          `No se encontro FamilyHome con este UUID`,
-        );
+        throw new BadRequestException(`FamilyHome was not found with this UUI`);
       }
 
       //* Counting and assigning the number of members (id-familyHome member table)
@@ -258,22 +255,41 @@ export class FamilyHomeService {
 
       if (!familyHome) {
         throw new BadRequestException(
-          `No se encontro FamilyHome con este code ${term}`,
+          `FamilyHome was not found with this code ${term}`,
         );
       }
     }
 
-    //* Find Address --> One
+    //* Find Zone --> Many
+    if (term && type === SearchType.zone) {
+      familyHome = await this.familyHomeRepository
+        .createQueryBuilder('fh')
+        .where('fh.zone LIKE :term', { term: `%${term}%` })
+        .andWhere('fh.is_active = :isActive', { isActive: true })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (familyHome.length === 0) {
+        throw new BadRequestException(
+          `No FamilyHome was found with this address: ${term}`,
+        );
+      }
+    }
+
+    //* Find Address --> Many
     if (term && type === SearchType.address) {
       familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
         .where('fh.address LIKE :term', { term: `%${term}%` })
         .andWhere('fh.is_active = :isActive', { isActive: true })
-        .getOne();
+        .skip(offset)
+        .limit(limit)
+        .getMany();
 
-      if (!familyHome) {
+      if (familyHome.length === 0) {
         throw new BadRequestException(
-          `No se encontro una FamilyHome con este address : ${term} `,
+          `No FamilyHome was found with this address: ${term}`,
         );
       }
     }
@@ -288,7 +304,7 @@ export class FamilyHomeService {
 
       if (!familyHome) {
         throw new BadRequestException(
-          `No se encontro una FamilyHome con este their_preacher : ${term} `,
+          `No FamilyHome was found with this their_preacher : ${term}`,
         );
       }
     }
@@ -305,7 +321,7 @@ export class FamilyHomeService {
 
       if (familyHome.length === 0) {
         throw new BadRequestException(
-          `No se encontro ninguna FamilyHome con este their_copastor : ${term} `,
+          `No FamilyHome was found with this their_copastor: ${term}`,
         );
       }
     }
@@ -347,9 +363,54 @@ export class FamilyHomeService {
     return familyHome;
   }
 
+  //* Crear por orden las casas o por antiguedad para que tengan un correlativo.
+
+  //* Si en un futuro la zona A y B se juntan se toma la zona B y se empieza a actualizar a zona A
+  //* Y deberia hacer la misma validaciond e registros y asignar el proximo correlativo.
+
+  //! Hacer misma validacion, pero como el copastor estara en null, del predicador, lanzar advertencia que primero se debe
+  //! asignar un copastor al predicador, y despues hacer la seleccion si es Zona B pasar sa casa con nuevo correlativo
+
+  //! Si elimino la al copastor y dejo huerfanos las casas, pero creo otro copastor, con un pastor relacionado, y el preacger
+  //! actualizo a mis preacher huerfanos con ese nuevo copastor, al actualiza en casa familiar ....
+  //TODO : seguir esta descripcion
+
+  //NOTE : desde el front colocar select con Zona A B C
+
+  //TODO : hay un problema y es que estoy referenciando al copastor a una zona y no deberia ser asi porque las
+  //TODO : zonas pueden cambiar de copastor. (Corregir y revisar, y aplicar lo de abajo), se tendria que digitar manual?
+
+  //! Se puede colocar inactivo la casa, pero luego se puede activar con nueva direccion, manteniendo el mismo codigo y nombre
+  //! Se puede actualizar directamente si se consigue una casa inmediata, la direccion, y el code y name se mantiene.
+  //! Nunca se quitaria el codigo si no que se coloca solo inactivo, solo se quita las relaciones.
+  //! Los miembros que quedan sueltos junto con supredicador pueden congregar o ser actualizados y seteados en otra casa.
+  //? Atencion
+  //! Al actualizar se coloca el preacher y este debe jalar a su copastor y pastor.
+  //! Se debe asignar un predicador dentro de la zona del copastor (A, B o C)
+  //! Mostrar los predicadores disponbles a cambiar segun el copastor relacionado.
+
+  //! Si se desea cambiar otro predicador de otra zona, este predicador primero debe ser actualizado su copastor.
+  //! Por ejemplo el predicador Brian de la zona Mercedes, se actualiza a Luz y recien aparece para asignarse a una casa de la zona de Luz (A)
+  //NOTE: Hacer condicion si el copastor esta en null no se puede actualizar PRIMERO SE DEBE ACTUALIZAR EN PREACHER
+
+  //* Poner aleta de que no se podra cambiar a un pracher a la casa familiar si es que no esta dentro de la zona de Copastor,
+  //* antes debera cambiar su copastor
+  //? Filtrar al querer actualizar el preacher de la casa, solo los que esten segun esa zona.
+
+  //! Hay 2 casos, primero si se cambia de preacher, este debe ser dentro de la zona del copastor, filtrar los que tienen
+  //! mismo copastor(FRONT), y tirar error si manda un preacher con otro copastor.
+  //NOTE: se toma del id copastor y en preacher se filtra por todos los que tienen este copastor, y ahi seria la misma Zona
+
+  //! Segundo si se ha eliminado el copastor, y esta en null en todos lados, tirar error si se quiere actualizar un pracher
+  //! con null en copastor, decir que primero se atualize el preacher su copastor.
+
+  //! Tercero tener la misma validacion que crear para que si es zona A y su copastor es diferente, lanzar error.
+  //! Si cambio todos los preacher a zona B, entonces podre actualizar o apareceran desde el front los preacher de zona B
+  //NOTE : desde el front hacer una consulta por zona y de este resultado buscar por copastor sus preacger, osea si coloca zona A, aparecen todos los preacher referidos a esete copastor. y puedo seleccionar
+
   //* UPDATE FAMILY HOME ID
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
-    const { their_preacher, is_active } = updateFamilyHomeDto;
+    const { their_preacher, is_active, zone } = updateFamilyHomeDto;
 
     if (is_active === undefined) {
       throw new BadRequestException(
@@ -391,7 +452,7 @@ export class FamilyHomeService {
 
     if (!copastor) {
       throw new NotFoundException(
-        `Not faound CoPastor with id ${preacher.their_copastor.id}`,
+        `Not found CoPastor with id ${preacher.their_copastor.id}, possible null value`,
       );
     }
 
@@ -408,7 +469,7 @@ export class FamilyHomeService {
 
     if (!pastor) {
       throw new NotFoundException(
-        `Not faound Pastor with id ${preacher.their_pastor.id}`,
+        `Not faound Pastor with id ${preacher.their_pastor.id}, possible null value`,
       );
     }
 
@@ -416,6 +477,55 @@ export class FamilyHomeService {
       throw new BadRequestException(
         `The property is_active in Pastor must be a true value"`,
       );
+    }
+
+    //? Validacion de asignacion de zona por copastor y preacher
+    const allHouses = await this.familyHomeRepository.find();
+    const allHousesZoneA = allHouses.filter((home) => home.zone === 'A');
+    const allHousesZoneB = allHouses.filter((home) => home.zone === 'B');
+    const allHousesZoneC = allHouses.filter((home) => home.zone === 'C');
+
+    let numberHome: number;
+    let codeHome: string;
+
+    if (zone === 'A') {
+      numberHome = allHousesZoneA.length + 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'B') {
+      numberHome = allHousesZoneB.length + 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    if (zone === 'C') {
+      numberHome = allHousesZoneC.length + 1;
+      codeHome = `${zone}-${numberHome}`;
+    }
+
+    //NOTE: el predicador primero tendria que pasar a estar bajo cargo del copastor de la zona para poder asignarlo.
+    //NOTE : filtrar cada preacher por zona y copastor a mostrar para setear en actualizar.
+
+    //! Si se borrar todos los copastores o pastores, tmb afecta a las casa, entonces aqui chocaria porque seria null,
+    //! pero antes chocaria con el buscar copastor por preacher
+
+    //TODO : problema si es null depues de borrar al actualizar choca aqui
+    if (
+      dataFamilyHome.their_copastor === null ||
+      dataFamilyHome.their_pastor === null
+    ) {
+      //TODO : trabajar
+    }
+
+    if (
+      dataFamilyHome.their_copastor !== null ||
+      dataFamilyHome.their_pastor !== null
+    ) {
+      if (dataFamilyHome.their_copastor.id !== copastor.id) {
+        throw new BadRequestException(
+          `No se puede asignar un preacher con un copastor diferente al ya registrado para esta zona: Zona-${dataFamilyHome.zone}, ${dataFamilyHome.their_copastor.member.first_name} ${dataFamilyHome.their_copastor.member.last_name}, primero se debe cambiar copastor en la entidad Preacher`,
+        );
+      }
     }
 
     //NOTE : no seria necesario revisar porque, ya se hace en el buscar por ID
@@ -433,6 +543,7 @@ export class FamilyHomeService {
       their_pastor: pastor,
       their_copastor: copastor,
       their_preacher: preacher,
+      code: codeHome,
       members: listMembersId,
       count_members: listMembersId.length,
       updated_at: new Date(),
