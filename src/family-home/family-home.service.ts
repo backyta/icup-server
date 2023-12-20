@@ -99,42 +99,55 @@ export class FamilyHomeService {
 
     //? Validacion de asignacion de zona por copastor y preacher
     const allHouses = await this.familyHomeRepository.find();
-    const allHousesZoneA = allHouses.filter((home) => home.zone === 'A');
-    const allHousesZoneB = allHouses.filter((home) => home.zone === 'B');
-    const allHousesZoneC = allHouses.filter((home) => home.zone === 'C');
+    const allHousesByZone = allHouses.filter((home) => home.zone === zone);
+    // const allHousesZoneA = allHouses.filter((home) => home.zone === 'A');
+    // const allHousesZoneB = allHouses.filter((home) => home.zone === 'B');
+    // const allHousesZoneC = allHouses.filter((home) => home.zone === 'C');
 
     let numberHome: number;
     let codeHome: string;
 
-    if (zone === 'A' && allHousesZoneA.length === 0) {
+    if (allHousesByZone.length === 0) {
       numberHome = 1;
       codeHome = `${zone}-${numberHome}`;
     }
 
-    if (zone === 'A' && allHousesZoneA.length !== 0) {
-      numberHome = allHousesZoneA.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
-
-    if (zone === 'B' && allHousesZoneB.length === 0) {
+    if (allHousesByZone.length !== 0) {
       numberHome = 1;
       codeHome = `${zone}-${numberHome}`;
     }
 
-    if (zone === 'B' && allHousesZoneB.length !== 0) {
-      numberHome = allHousesZoneB.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
+    //?
 
-    if (zone === 'C' && allHousesZoneC.length === 0) {
-      numberHome = 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
+    // if (zone === 'A' && allHousesZoneA.length === 0) {
+    //   numberHome = 1;
+    //   codeHome = `${zone}-${numberHome}`;
+    // }
 
-    if (zone === 'C' && allHousesZoneC.length !== 0) {
-      numberHome = allHousesZoneC.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
+    // if (zone === 'A' && allHousesZoneA.length !== 0) {
+    //   numberHome = allHousesZoneA.length + 1;
+    //   codeHome = `${zone}-${numberHome}`;
+    // }
+
+    // if (zone === 'B' && allHousesZoneB.length === 0) {
+    //   numberHome = 1;
+    //   codeHome = `${zone}-${numberHome}`;
+    // }
+
+    // if (zone === 'B' && allHousesZoneB.length !== 0) {
+    //   numberHome = allHousesZoneB.length + 1;
+    //   codeHome = `${zone}-${numberHome}`;
+    // }
+
+    // if (zone === 'C' && allHousesZoneC.length === 0) {
+    //   numberHome = 1;
+    //   codeHome = `${zone}-${numberHome}`;
+    // }
+
+    // if (zone === 'C' && allHousesZoneC.length !== 0) {
+    //   numberHome = allHousesZoneC.length + 1;
+    //   codeHome = `${zone}-${numberHome}`;
+    // }
 
     const dataFamilyHomeZoneA = await this.familyHomeRepository.findOneBy({
       zone: 'A',
@@ -146,6 +159,9 @@ export class FamilyHomeService {
       zone: 'C',
     });
 
+    //TODO l terminar esto towmorrow, no es necesario poner en duro la A B C
+    //* Hacer uan sola consulta y luego dentro del iff colocar o comparar con zona A Bo C o hacer barrido
+    //! Y finalmente porbar esto y el actualizar y documentar
     //! La zona A no puede tener el mismo copastor que la zona B
     if (dataFamilyHomeZoneA !== null) {
       if (
@@ -363,6 +379,7 @@ export class FamilyHomeService {
     return familyHome;
   }
 
+  //TODO : hacer documentacion tomorrow(20/12)
   //* Crear por orden las casas o por antiguedad para que tengan un correlativo.
 
   //* Si en un futuro la zona A y B se juntan se toma la zona B y se empieza a actualizar a zona A
@@ -479,52 +496,51 @@ export class FamilyHomeService {
       );
     }
 
-    //? Validacion de asignacion de zona por copastor y preacher
-    const allHouses = await this.familyHomeRepository.find();
-    const allHousesZoneA = allHouses.filter((home) => home.zone === 'A');
-    const allHousesZoneB = allHouses.filter((home) => home.zone === 'B');
-    const allHousesZoneC = allHouses.filter((home) => home.zone === 'C');
-
-    let numberHome: number;
-    let codeHome: string;
-
-    if (zone === 'A') {
-      numberHome = allHousesZoneA.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
-
-    if (zone === 'B') {
-      numberHome = allHousesZoneB.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
-
-    if (zone === 'C') {
-      numberHome = allHousesZoneC.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
-
-    //NOTE: el predicador primero tendria que pasar a estar bajo cargo del copastor de la zona para poder asignarlo.
-    //NOTE : filtrar cada preacher por zona y copastor a mostrar para setear en actualizar.
-
-    //! Si se borrar todos los copastores o pastores, tmb afecta a las casa, entonces aqui chocaria porque seria null,
-    //! pero antes chocaria con el buscar copastor por preacher
-
-    //TODO : problema si es null depues de borrar al actualizar choca aqui
+    //NOTE: recordar que siempre antes se debe actualizar en las relaciones anteriores en este caso Preacher su pastor y copastor.
+    //* Cuando se quiera cambiar a otro preacher que no esta en la zona del Copastor (validacion)
     if (
-      dataFamilyHome.their_copastor === null ||
-      dataFamilyHome.their_pastor === null
-    ) {
-      //TODO : trabajar
-    }
-
-    if (
-      dataFamilyHome.their_copastor !== null ||
+      dataFamilyHome.their_copastor !== null &&
       dataFamilyHome.their_pastor !== null
     ) {
       if (dataFamilyHome.their_copastor.id !== copastor.id) {
         throw new BadRequestException(
           `No se puede asignar un preacher con un copastor diferente al ya registrado para esta zona: Zona-${dataFamilyHome.zone}, ${dataFamilyHome.their_copastor.member.first_name} ${dataFamilyHome.their_copastor.member.last_name}, primero se debe cambiar copastor en la entidad Preacher`,
         );
+      }
+    }
+
+    //* Si una Casa o varias pasan a otra zona con otro Preacher y Copastor relacionado a este.
+    //* O si se actualiza a otra zona nueva, se crea desde un comienzo los codes para las coasa.
+    let numberHome: number;
+    let codeHome: string;
+
+    if (
+      (dataFamilyHome.their_copastor === null ||
+        dataFamilyHome.their_pastor === null) &&
+      dataFamilyHome.zone !== zone
+    ) {
+      const allHouses = await this.familyHomeRepository.find();
+      const familyHomeByCopastor = allHouses.find(
+        (home) => home.their_copastor.id === copastor.id,
+      );
+
+      //! Hacer validacion por undfined, debemos crear con nuevo zone y code.
+      if (familyHomeByCopastor === undefined) {
+        numberHome = 1;
+        codeHome = `${zone}-${numberHome}`;
+      }
+
+      if (familyHomeByCopastor.zone !== zone) {
+        throw new BadRequestException(
+          `No se puede asignar una zone ${zone} a una zone ${dataFamilyHome.zone}`,
+        );
+      }
+
+      const allHousesByZone = allHouses.filter((home) => home.zone === zone);
+
+      if (zone === familyHomeByCopastor.zone) {
+        numberHome = allHousesByZone.length + 1;
+        codeHome = `${zone}-${numberHome}`;
       }
     }
 
@@ -550,14 +566,22 @@ export class FamilyHomeService {
       updated_by: 'Kevinxd',
     });
 
-    const updateMemberPreacher = await this.memberRepository.preload({
+    //! Eliminar el their_home al preacher anterior y setearlo al nuevo.
+    const deleteMemberPreacherFamilyHome = await this.memberRepository.preload({
+      id: dataFamilyHome.their_preacher.member.id,
+      their_family_home: null,
+    });
+
+    const updateMemberPreacherFamilyHome = await this.memberRepository.preload({
       id: preacher.member.id,
       their_family_home: familyHome,
     });
 
     try {
+      //NOTE : revisar esto si se setea tmb en member
       await this.familyHomeRepository.save(familyHome);
-      await this.memberRepository.save(updateMemberPreacher);
+      await this.memberRepository.save(deleteMemberPreacherFamilyHome);
+      await this.memberRepository.save(updateMemberPreacherFamilyHome);
     } catch (error) {
       this.handleDBExceptions(error);
     }
