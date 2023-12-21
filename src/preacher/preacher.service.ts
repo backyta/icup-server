@@ -342,6 +342,22 @@ export class PreacherService {
       );
     }
 
+    //! Si los copastores son diferentes se elimina su relaciones del Preacher en Casa Familiar
+    const allFamilyHouses = await this.familyHomeRepository.find();
+    const dataFamilyHomeByPreacher = allFamilyHouses.find(
+      (home) => home.their_preacher.id === preacher.id,
+    );
+
+    let updateFamilyHome: FamilyHome;
+    if (dataFamilyHomeByPreacher.their_copastor.id !== copastor.id) {
+      updateFamilyHome = await this.familyHomeRepository.preload({
+        id: dataFamilyHomeByPreacher.id,
+        their_preacher: null,
+        their_copastor: null,
+        their_pastor: null,
+      });
+    }
+
     //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
     //* Counting and assigning the number of members (id-preacher member table)
     const allMembers = await this.memberRepository.find();
@@ -384,6 +400,7 @@ export class PreacherService {
     try {
       await this.memberRepository.save(member);
       await this.preacherRepository.save(preacher);
+      await this.familyHomeRepository.save(updateFamilyHome);
     } catch (error) {
       this.handleDBExceptions(error);
     }
