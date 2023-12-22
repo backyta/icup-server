@@ -517,10 +517,8 @@ export class FamilyHomeService {
         their_pastor: null,
       });
     }
-    //! Esto si se borrar el preacher o esta en null las relaciones
-    //* no encuentra a pamela porque se borro su their preacher en famuly home, busca a marleny y la encuentra
-    //* le borra sus relaciones para colocarle las nuevas, la family que era de pamela, su mismo copastor y pastor.
-    //? Set the new preacher to the family home to update, in module Member
+
+    //? Set the new preacher to the family home to update, in module Member (If it is null or the relationships were deleted)
     const updateMemberFamilyHome = await this.memberRepository.preload({
       id: preacher.member.id,
       their_family_home: familyHome,
@@ -536,17 +534,26 @@ export class FamilyHomeService {
         !member.roles.includes('preacher'),
     );
 
-    //TODO : veriificar y terminar y revisar todos los endpoints en la tarde. mejorar el Create Member
-    //? Faltaria borrar todos los relaciones y luego setear las nuevas?
+    //? Set new relationships (preacher, pastor, co-pastor) to each member of the updated Family House.
+    const promisesMemberHomeDelete = arrayfamilyHomePreacher.map(
+      async (home) => {
+        await this.memberRepository.update(home.id, {
+          their_preacher: null,
+          their_copastor: null,
+          their_pastor: null,
+        });
+      },
+    );
 
-    //* Se buscan todos lops miembros con la misma casa, y se setea el nuevo preacher y sus pastor y copastor.
-    const promisesMemberHome = arrayfamilyHomePreacher.map(async (home) => {
-      await this.memberRepository.update(home.id, {
-        their_preacher: preacher,
-        their_copastor: copastor,
-        their_pastor: pastor,
-      });
-    });
+    const promisesMemberHomeUpdate = arrayfamilyHomePreacher.map(
+      async (home) => {
+        await this.memberRepository.update(home.id, {
+          their_preacher: preacher,
+          their_copastor: copastor,
+          their_pastor: pastor,
+        });
+      },
+    );
 
     try {
       //NOTE : revisar esto si se setea tmb en member
@@ -556,7 +563,8 @@ export class FamilyHomeService {
       await this.memberRepository.save(updateOldFamilyHome);
       await this.memberRepository.save(updateNewFamilyHome);
       await this.memberRepository.save(updateMemberFamilyHome);
-      await Promise.all(promisesMemberHome);
+      await Promise.all(promisesMemberHomeDelete);
+      await Promise.all(promisesMemberHomeUpdate);
     } catch (error) {
       this.handleDBExceptions(error);
     }

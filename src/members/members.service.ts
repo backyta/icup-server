@@ -56,10 +56,10 @@ export class MembersService {
   //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
   //! Hacer lo de arriba cuando tengamos todo listo y probar todo junto
 
+  //TODO : revisar los rel 1, rel 2 y las cargas de las relaciones en los filters y en el module common
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
     const {
-      //! Aqui solo deberia pedirse el theri_family_home
       roles,
       their_pastor,
       their_copastor,
@@ -119,50 +119,87 @@ export class MembersService {
       (roles.includes('copastor') && their_family_home)
     ) {
       throw new BadRequestException(
-        `A Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role`,
+        `A Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, assign only pastor`,
       );
     }
 
-    if (roles.includes('preacher') && their_preacher) {
+    if (
+      (roles.includes('preacher') && their_preacher) ||
+      (roles.includes('preacher') && their_pastor) ||
+      (roles.includes('preacher') && their_family_home)
+    ) {
       throw new BadRequestException(
-        `Cannot assign a preacher to a member with Preacher role`,
+        `Cannot assign a preacher, pastor or family home to a member with Preacher role, assign only copastor`,
+      );
+    }
+
+    if (
+      roles.includes('member') &&
+      !roles.includes('preacher') &&
+      !roles.includes('copastor') &&
+      !roles.includes('pastor') &&
+      (their_pastor || their_copastor || their_preacher)
+    ) {
+      throw new BadRequestException(
+        `A pastor, co-pastor or preacher cannot be assigned to a member with the role only of Member, assign only family_home`,
       );
     }
 
     //* Validations Pastor, Copastor, Preacher, Casa
     let pastor: Pastor;
-    if (!their_pastor) {
-      pastor = null;
-    } else {
+    let copastor: CoPastor;
+    let preacher: Preacher;
+    let familyHome: FamilyHome;
+
+    //? If their_pastor exists it is because it is a Copastor
+    if (their_pastor) {
       pastor = await this.pastorRepository.findOneBy({
         id: their_pastor,
       });
+      copastor = null;
+      preacher = null;
+      familyHome = null;
     }
 
-    let copastor: CoPastor;
-    if (!their_copastor) {
-      copastor = null;
-    } else {
+    //? If their_copastor exists it is because he is a Preacher
+    if (their_copastor) {
       copastor = await this.coPastorRepository.findOneBy({
         id: their_copastor,
       });
+      pastor = await this.pastorRepository.findOneBy({
+        id: copastor.their_pastor.id,
+      });
+      preacher = null;
+      familyHome = null;
     }
 
-    let preacher: Preacher;
-    if (!their_preacher) {
-      preacher = null;
-    } else {
+    //? If their_preacher exists it is because it is a Family House
+    if (their_preacher) {
       preacher = await this.preacherRepository.findOneBy({
         id: their_preacher,
       });
+      copastor = await this.coPastorRepository.findOneBy({
+        id: preacher.their_copastor.id,
+      });
+      pastor = await this.pastorRepository.findOneBy({
+        id: preacher.their_pastor.id,
+      });
+      familyHome = null;
     }
 
-    let familyHome: FamilyHome;
-    if (!their_family_home) {
-      familyHome = null;
-    } else {
+    //? If their_family_home exists, it is a Member
+    if (their_preacher) {
       familyHome = await this.familyHomeRepository.findOneBy({
-        id: their_family_home,
+        id: their_preacher,
+      });
+      preacher = await this.preacherRepository.findOneBy({
+        id: familyHome.their_preacher.id,
+      });
+      copastor = await this.coPastorRepository.findOneBy({
+        id: familyHome.their_copastor.id,
+      });
+      pastor = await this.pastorRepository.findOneBy({
+        id: familyHome.their_pastor.id,
       });
     }
 
@@ -298,11 +335,15 @@ export class MembersService {
 
       member = await this.memberRepository
         .createQueryBuilder('member')
+        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
+        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
         .where('member.roles @> ARRAY[:...roles]::text[]', {
           roles: rolesArray,
         })
-        .skip(offset)
         .andWhere(`member.is_active =:isActive`, { isActive: true })
+        .skip(offset)
         .limit(limit)
         .getMany();
 
@@ -317,6 +358,10 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.their_copastor) {
       member = await this.memberRepository
         .createQueryBuilder('member')
+        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
+        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
         .where('member.their_preacher = :term', { term })
         .skip(offset)
         .limit(limit)
@@ -333,6 +378,10 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.their_preacher) {
       member = await this.memberRepository
         .createQueryBuilder('member')
+        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
+        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
         .where('member.their_copastor = :term', { term })
         .skip(offset)
         .limit(limit)
@@ -349,6 +398,10 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.their_family_home) {
       member = await this.memberRepository
         .createQueryBuilder('member')
+        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
+        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
         .where('member.their_family_home = :term', { term })
         .skip(offset)
         .limit(limit)
@@ -431,11 +484,11 @@ export class MembersService {
       (roles.includes('preacher') && roles.includes('copastor'))
     ) {
       throw new BadRequestException(
-        `Solo se puede asignar un unico rol principal: ['Pastor, Copastor o Preacher']`,
+        `Only one main role can be assigned: ['Pastor, Copastor or Preacher'], only the Preacher role can play the Treasurer role.`,
       );
     }
 
-    //* Validation when updating roles (of the member), they cannot be lower
+    //! Validation when updating roles (of the member), they cannot be lower
     if (
       (dataMember.roles.includes('pastor') && roles.includes('copastor')) ||
       (dataMember.roles.includes('pastor') && roles.includes('preacher')) ||
@@ -463,10 +516,8 @@ export class MembersService {
 
     //* Validations assignment of their leaders according to role
     if (
-      (roles.includes('pastor') && their_pastor) ||
-      (roles.includes('pastor') && their_copastor) ||
-      (roles.includes('pastor') && their_preacher) ||
-      (roles.includes('pastor') && their_family_home)
+      roles.includes('pastor') &&
+      (their_pastor || their_copastor || their_preacher || their_family_home)
     ) {
       throw new BadRequestException(
         `You cannot assign a their_pastor, their_coPastor, their_preacher, or their_family_home to a member with the Pastor role`,
@@ -474,22 +525,21 @@ export class MembersService {
     }
 
     if (
-      ((roles.includes('copastor') && their_copastor) ||
-        (roles.includes('copastor') && their_preacher) ||
-        (roles.includes('copastor') && their_family_home)) &&
-      !their_pastor
+      roles.includes('copastor') &&
+      (their_copastor || their_preacher || their_family_home)
     ) {
       throw new BadRequestException(
         `A member with the coPastor role cannot be assigned a their_coPastor, their_preacher, or their_family_home, only their_pastor`,
       );
     }
 
+    //! El uso del family home aqui es para colocar por el momento un predicador en una casa si no tiene una asignada. (revisar)
     if (
       roles.includes('preacher') &&
-      (their_preacher || !their_copastor || their_pastor || !their_family_home)
+      (their_preacher || their_pastor || !their_copastor || !their_family_home)
     ) {
       throw new BadRequestException(
-        `You cannot assign a their_preacher or their_pastor a member with the Preacher role, only their_copastor (the rest will be taken from their_copastor).`,
+        `You cannot assign a their_preacher or their_pastor a member with the Preacher role, only their_copastor.`,
       );
     }
 
@@ -498,10 +548,10 @@ export class MembersService {
       !roles.includes('pastor') &&
       !roles.includes('copastor') &&
       !roles.includes('preacher') &&
-      (their_preacher || !their_copastor || their_pastor || !their_family_home)
+      (their_preacher || their_pastor || their_copastor || !their_family_home)
     ) {
       throw new BadRequestException(
-        `You cannot assign their_preacher or their_pastor or their_copastor a member with the Member role, only their_family_home (the rest will be taken from their_family_home).`,
+        `You cannot assign their_preacher or their_pastor or their_copastor a member with the Member role, only their_family_home`,
       );
     }
 
@@ -645,6 +695,7 @@ export class MembersService {
       pastor = await this.pastorRepository.findOneBy({
         id: copastor.their_pastor.id,
       });
+      //? Para colocar una casa momentanea al preacher que se quedo sin casa relacionada (casa inactiva)
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
@@ -652,7 +703,7 @@ export class MembersService {
       //* Search the preacher table and set the new co-pastor(pastor related to him).
       const allPreachers = await this.preacherRepository.find();
       const dataPreacher = allPreachers.find(
-        (preacher) => preacher.id === dataMember.id,
+        (preacher) => preacher.member.id === dataMember.id,
       );
 
       const updatePreacher = await this.preacherRepository.preload({
@@ -661,6 +712,19 @@ export class MembersService {
         their_pastor: pastor,
       });
 
+      //TODO : aqui falta cambiar o setear el nuevo pastor y copastor en la tabla de family y members (revisar)
+      //! Buscar en miembros por preacher igual y setear el nuevo pastor y copastor.
+      //! Buscar en family por preacher y cambiarle su pastor y copastor.
+      //TODO : HACER esto tomorrow
+
+      //* Hacer condicion si en Member el preacher no tiene familyHome, entonces setear una por momento
+      //! Problema con asignar family home teniendo otro copastor o mpastor diferente al de la zona
+      //! Pero se podria manejar ya que es momentaneo.
+      //! Al colocar por momento esta debera estar dentro de la zona misma del copastor, validar contra copastor actual, y el que se va setaar
+      //* Si tiene una asignada entonces no hacer nada
+
+      //* Revisar despues cuando se actualize en family home , este preacher con otra casa deberia cambiarse. y este momentaneo desapareceria (revisar)
+      //? En member seteamos el nuevo pastor y copastor, y la casa familiar momentanea.
       member = await this.memberRepository.preload({
         id: dataMember.id,
         ...updateMemberDto,
@@ -712,6 +776,12 @@ export class MembersService {
         id: familyHome.their_pastor.id,
       });
 
+      //TODO : Fataria borrar la data antreior para setear la nueva
+      //! Al ser miembro no afecta a inguna tabla
+      //! EL miembro si se puede mover a cualquier zona o en este caso cualquier casa.
+      //! Todo sale de la casa famimiliar.
+      // TODO : hasta aqui corregir y luego seguir con las subidas de nivel
+      // TODO : una vez terminado todo aqui, revisar cada endpoint y luego pasar a module de ofrendas.
       if (!preacher) {
         throw new NotFoundException(
           `No se encontro Preacher, verifique que en Family Home tenga preacher asignado`,
@@ -1231,7 +1301,12 @@ export class MembersService {
           where: [whereCondition],
           take: limit,
           skip: offset,
-          relations: ['their_pastor_id', 'their_copastor_id'],
+          relations: [
+            'their_pastor_id',
+            'their_copastor_id',
+            'their_preacher',
+            'their_family_home',
+          ],
         });
 
         if (members.length === 0) {
