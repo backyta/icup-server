@@ -286,7 +286,7 @@ export class CoPastorService {
       );
     }
 
-    //? Actualizar en todos los miembros el nuevo pastor del copastor que se actualiza.
+    //? Update on all members the new pastor of the co-pastor that is updated.
     const allMembers = await this.memberRepository.find();
     const membersByCoPastor = allMembers.filter(
       (member) => member.their_copastor.id === dataCoPastor.id,
@@ -324,7 +324,7 @@ export class CoPastorService {
       },
     );
 
-    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
+    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar)
     //* Count and assignment of Houses
     const familyHouses = await this.familyHomeRepository.find();
     const listFamilyHouses = familyHouses.filter(
@@ -340,6 +340,7 @@ export class CoPastorService {
 
     const listPreachersId = listPreachers.map((preacher) => preacher.id);
 
+    //! Co-pastor their_pastor updated in Member-Module
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       ...updateCoPastorDto,

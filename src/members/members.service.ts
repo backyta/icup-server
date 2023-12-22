@@ -56,14 +56,10 @@ export class MembersService {
   //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
   //! Hacer lo de arriba cuando tengamos todo listo y probar todo junto
 
-  // TODO : terminar aqui y revisar con los demas (endpoints) y despues pasar a ofrendas y diezmos
-
-  // TODO : revisar bien el member antes de pasar a ofrendaz y diezmos, y porbar cada endpoint
-  //TODO : para el final hacer que solo un preacher o lider sea treasurer, solo este rol.
-
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
     const {
+      //! Aqui solo deberia pedirse el theri_family_home
       roles,
       their_pastor,
       their_copastor,
@@ -170,6 +166,7 @@ export class MembersService {
       });
     }
 
+    //* Create instance
     try {
       const member = this.memberRepository.create({
         ...createMemberDto,
@@ -701,6 +698,7 @@ export class MembersService {
       !roles.includes('copastor') &&
       !roles.includes('preacher')
     ) {
+      //? Revisar y modificar aqui si es necesario
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
@@ -708,11 +706,29 @@ export class MembersService {
         id: familyHome.their_preacher.id,
       });
       copastor = await this.coPastorRepository.findOneBy({
-        id: preacher.their_copastor.id,
+        id: familyHome.their_copastor.id,
       });
       pastor = await this.pastorRepository.findOneBy({
-        id: preacher.their_pastor.id,
+        id: familyHome.their_pastor.id,
       });
+
+      if (!preacher) {
+        throw new NotFoundException(
+          `No se encontro Preacher, verifique que en Family Home tenga preacher asignado`,
+        );
+      }
+
+      if (!copastor) {
+        throw new NotFoundException(
+          `No se encontro Copastor, verifique que en Family Home tenga copastor asignado`,
+        );
+      }
+
+      if (!preacher) {
+        throw new NotFoundException(
+          `No se encontro Pastor, verifique que en Family Home tenga pastor asignado`,
+        );
+      }
 
       member = await this.memberRepository.preload({
         id: dataMember.id,

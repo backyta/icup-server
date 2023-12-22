@@ -56,7 +56,7 @@ export class PastorService {
 
     if (!member.roles.includes('pastor')) {
       throw new BadRequestException(
-        `El id_member debe tener el rol de "Pastor"`,
+        `The id_member must have the role of "Shepherd"`,
       );
     }
 
@@ -253,7 +253,7 @@ export class PastorService {
       );
     }
 
-    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
+    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar)
     //* Count of co-pastors
     const allCopastores = await this.coPastorRepository.find();
     const listCopastores = allCopastores.filter(
@@ -270,6 +270,7 @@ export class PastorService {
 
     const listPreachersID = listPreachers.map((preacher) => preacher.id);
 
+    //! Pastor data updated in Member-Module
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       ...updatePastorDto,

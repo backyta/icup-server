@@ -126,6 +126,7 @@ export class FamilyHomeService {
       }
     }
 
+    //* Creation of the instance
     try {
       const familyHomeInstance = this.familyHomeRepository.create({
         ...createFamilyHomeDto,
@@ -354,7 +355,7 @@ export class FamilyHomeService {
 
     if (!copastor) {
       throw new NotFoundException(
-        `Not found CoPastor with id ${preacher.their_copastor.id}, falta their_copastor en Preacher`,
+        `Not found CoPastor with id ${preacher.their_copastor.id}, his_copastor is missing in Preacher`,
       );
     }
 
@@ -371,7 +372,7 @@ export class FamilyHomeService {
 
     if (!pastor) {
       throw new NotFoundException(
-        `Not faound Pastor with id ${preacher.their_pastor.id}, falta their_pastor en Preacher`,
+        `Not found Pastor with id ${preacher.their_pastor.id}, his_pastor is missing in Preacher`,
       );
     }
 
@@ -381,7 +382,7 @@ export class FamilyHomeService {
       );
     }
 
-    //! Preacher update (same area)
+    //! If there is data in their_copastor and their_pastor
     let updateFamilyHome: FamilyHome;
     let updateFamilyHomePreacher: FamilyHome;
     if (
@@ -398,7 +399,7 @@ export class FamilyHomeService {
         );
       }
 
-      //? If a preacher is updated with a copastor equal to that of the zone
+      //? If a preacher is updated with a copastor equal to that of the zone, your relationships are deleted and new ones are established
       if (
         dataFamilyHome.their_copastor.id === copastor.id &&
         dataFamilyHome.zone === zone
@@ -429,6 +430,7 @@ export class FamilyHomeService {
       }
     }
 
+    //! If there is missing data in their_copastor and their_pastor
     let numberHome: number;
     let codeHome: string;
 
@@ -437,37 +439,32 @@ export class FamilyHomeService {
       dataFamilyHome.their_pastor === null
     ) {
       const allHouses = await this.familyHomeRepository.find();
+
       const familyHomeByCopastor = allHouses.find(
         (home) => home.their_copastor.id === copastor.id,
       );
 
-      //TODO : terminar esto maniana y ver (PRIMERO ESTO Y LUEGO LO DE ABAJO)
-      //? Si es un nuevo copastor que no tiene coincidencia con ninguna zona, se mantiene su code.
-      //! Esto solo funcionaria la primera vez
-      //! Las casas no deberian moverse de la zona
-      //! las casas de la zona no se pueden mover ni transferir a otras
-      //! solo un copastor puede tener una zona
-      //! se puede eliminar un copastor y este nuevo copastor se hace cargo de la zona
-      if (familyHomeByCopastor === undefined) {
-        numberHome = +dataFamilyHome.number_home;
-        codeHome = `${zone}-${numberHome}`;
+      const allHousesByZone = allHouses.filter((home) => home.zone === zone);
+
+      //? The preacher is set up with his co-pastor (new) to replace an entire area, the same code and correlative are maintained.
+      if (familyHomeByCopastor.zone !== zone) {
+        throw new BadRequestException(
+          `You cannot assign a zone ${zone} to a zone ${familyHomeByCopastor.zone}, the same zone must be maintained`,
+        );
       }
 
-      //? Aqui se quiere pasar las casas a otra zona, siguiendo el correlativo de esa zona
+      //? Here we want to move the houses to another area, following the correlation of that area, and its same co-pastor
       if (familyHomeByCopastor !== undefined) {
         if (familyHomeByCopastor.zone !== zone) {
           throw new BadRequestException(
-            `No se puede asignar una zone ${zone} a una zone ${familyHomeByCopastor.zone}`,
+            `Cannot assign a zone ${zone} to a zone ${familyHomeByCopastor.zone}`,
           );
         }
-      }
 
-      //? Solo se puede asignar un nuevo copastor a la zona y se mantienen su correlativos
-      //! Esto no iria, no se pueden transferir
-      if (zone === familyHomeByCopastor.zone) {
-        const allHousesByZone = allHouses.filter((home) => home.zone === zone);
-        numberHome = allHousesByZone.length + 1;
-        codeHome = `${zone}-${numberHome}`;
+        if (familyHomeByCopastor.zone === zone) {
+          numberHome = allHousesByZone.length + 1;
+          codeHome = `${zone}-${numberHome}`;
+        }
       }
     }
 
@@ -496,27 +493,59 @@ export class FamilyHomeService {
       updated_by: 'Kevinxd',
     });
 
-    //TODO : hacer esto tomorrow
-    //? Si es de su mismo copastor y zona, normal se hace el cambio en member, se elimina la casa anterior
-    //? y se busca si tiene una el nuevo preacher y se borra y ahi se setea en el nuevo.
-
-    //? En casa familiar se elimina todo las ralaciones y se setea el nuevo preacher con sus nuevas relaciones
-    //? En member solo se elimina la casa familair del preacher antiguo.
-    //? Y en el nuevo se elimina su casa tmb.
-    //? Y a este nuevo se le setea la nueva relacion con la casa.
-    //! No se preocupe porque cuando se setea un nuevo copastor al preacher este se actualiza tmb en Member
-    //! Por eso guardan su misma relacion solo basta  con eleiminar la casa
-
     //! Delete their_home from the previous preacher and set it to the new one.
-    const deleteMemberPreacherFamilyHome = await this.memberRepository.preload({
+    const updateOldFamilyHome = await this.memberRepository.preload({
       id: dataFamilyHome.their_preacher.member.id,
       their_family_home: null,
+      their_preacher: null,
+      their_copastor: null,
+      their_pastor: null,
     });
 
-    //TODO : aqui faltaria borrar los datos del nuevo, osea su casa que tiene, ya que todos son de la misma zona y copastor
-    const updateMemberPreacherFamilyHome = await this.memberRepository.preload({
+    //! Search if the new preacher to be set has a related family home and delete relationships.
+    const familyHomeMember = allMembers.find(
+      (member) => member.their_preacher.id === preacher.id,
+    );
+
+    let updateNewFamilyHome: Member;
+    if (familyHomeMember) {
+      updateNewFamilyHome = await this.memberRepository.preload({
+        id: familyHomeMember.id,
+        their_family_home: null,
+        their_preacher: null,
+        their_copastor: null,
+        their_pastor: null,
+      });
+    }
+    //! Esto si se borrar el preacher o esta en null las relaciones
+    //* no encuentra a pamela porque se borro su their preacher en famuly home, busca a marleny y la encuentra
+    //* le borra sus relaciones para colocarle las nuevas, la family que era de pamela, su mismo copastor y pastor.
+    //? Set the new preacher to the family home to update, in module Member
+    const updateMemberFamilyHome = await this.memberRepository.preload({
       id: preacher.member.id,
       their_family_home: familyHome,
+      their_preacher: null,
+      their_copastor: copastor,
+      their_pastor: pastor,
+    });
+
+    //! Search all members with the same house and set the new preacher
+    const arrayfamilyHomePreacher = allMembers.filter(
+      (member) =>
+        member.their_family_home.id === dataFamilyHome.id &&
+        !member.roles.includes('preacher'),
+    );
+
+    //TODO : veriificar y terminar y revisar todos los endpoints en la tarde. mejorar el Create Member
+    //? Faltaria borrar todos los relaciones y luego setear las nuevas?
+
+    //* Se buscan todos lops miembros con la misma casa, y se setea el nuevo preacher y sus pastor y copastor.
+    const promisesMemberHome = arrayfamilyHomePreacher.map(async (home) => {
+      await this.memberRepository.update(home.id, {
+        their_preacher: preacher,
+        their_copastor: copastor,
+        their_pastor: pastor,
+      });
     });
 
     try {
@@ -524,8 +553,10 @@ export class FamilyHomeService {
       await this.familyHomeRepository.save(updateFamilyHome);
       await this.familyHomeRepository.save(updateFamilyHomePreacher);
       await this.familyHomeRepository.save(familyHome);
-      await this.memberRepository.save(deleteMemberPreacherFamilyHome);
-      await this.memberRepository.save(updateMemberPreacherFamilyHome);
+      await this.memberRepository.save(updateOldFamilyHome);
+      await this.memberRepository.save(updateNewFamilyHome);
+      await this.memberRepository.save(updateMemberFamilyHome);
+      await Promise.all(promisesMemberHome);
     } catch (error) {
       this.handleDBExceptions(error);
     }

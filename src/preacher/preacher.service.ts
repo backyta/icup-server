@@ -228,7 +228,7 @@ export class PreacherService {
 
       if (preacher.length === 0) {
         throw new BadRequestException(
-          `No se encontro ninguna Preacher con este their_copastor : ${term} `,
+          `No Preacher was found with this their_copastor: ${term}`,
         );
       }
     }
@@ -342,7 +342,8 @@ export class PreacherService {
       );
     }
 
-    //! Si los copastores son diferentes se elimina su relaciones del Preacher en Casa Familiar
+    //! If the co-pastors are different, their relationships in Casa Familiar are eliminated.
+    //! Because it will pull new data when the preacher in Casa Familiar is updated
     const allFamilyHouses = await this.familyHomeRepository.find();
     const dataFamilyHomeByPreacher = allFamilyHouses.find(
       (home) => home.their_preacher.id === preacher.id,
@@ -375,6 +376,7 @@ export class PreacherService {
 
     const familyHomeId = familyHome.map((home) => home.id);
 
+    //! Preacher their_co-pastor and their_pastor updated in Member-Module
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       ...updatePreacherDto,
@@ -423,6 +425,9 @@ export class PreacherService {
     //? Update and set in false is_active on Member
     const member = await this.memberRepository.preload({
       id: dataPreacher.member.id,
+      their_copastor: null,
+      their_pastor: null,
+      their_family_home: null,
       is_active: false,
     });
 
@@ -444,19 +449,23 @@ export class PreacherService {
       async (familyHome) => {
         await this.familyHomeRepository.update(familyHome.id, {
           their_preacher: null,
+          their_pastor: null,
+          their_copastor: null,
         });
       },
     );
 
     //? Update and set to null in Member, all those who have the same Preacher
     const allMembers = await this.memberRepository.find();
-    const membersByPastor = allMembers.filter(
+    const membersByPreacher = allMembers.filter(
       (member) => member.their_preacher.id === dataPreacher.id,
     );
 
-    const promisesMembers = membersByPastor.map(async (member) => {
+    const promisesMembers = membersByPreacher.map(async (member) => {
       await this.memberRepository.update(member.id, {
         their_preacher: null,
+        their_pastor: null,
+        their_copastor: null,
       });
     });
 
