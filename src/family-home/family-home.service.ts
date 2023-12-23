@@ -595,7 +595,9 @@ export class FamilyHomeService {
     //? Update and set to null in Member, all those who have the same Family Home
     const allMembers = await this.memberRepository.find();
     const membersByFamilyHome = allMembers.filter(
-      (member) => member.their_family_home.id === dataFamilyHome.id,
+      (member) =>
+        member.their_family_home.id === dataFamilyHome.id &&
+        !member.roles.includes('preacher'),
     );
 
     //! Revisar, si despues puedo setear desde preacher nuevo copastor y en casa jalar ese preacher con nueva data y ponerlo en Member.

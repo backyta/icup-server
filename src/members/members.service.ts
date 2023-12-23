@@ -430,7 +430,6 @@ export class MembersService {
     return member;
   }
 
-  //TODO : hacer documentacion de update and deleted (actualizar documentacion)
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto): Promise<Member> {
     const {
@@ -597,7 +596,6 @@ export class MembersService {
       }
     }
 
-    //! Revisar bien
     //! CoPastor Validation (If copastor remains in copastor role)
     if (dataMember.roles.includes('copastor') && roles.includes('copastor')) {
       pastor = await this.pastorRepository.findOneBy({
@@ -606,6 +604,12 @@ export class MembersService {
       copastor = null;
       preacher = null;
       familyHome = null;
+
+      if (!pastor) {
+        throw new NotFoundException(
+          `Pastor was not found with the ID ${their_pastor}`,
+        );
+      }
 
       //* Search Copastor table and update the new pastor
       const allCopastores = await this.coPastorRepository.find();
@@ -683,7 +687,7 @@ export class MembersService {
     }
 
     //* Tecnicamente aqui solo se podra cambiar la data del member, todo lo demas desde el module Preacher
-    //? Para colocar una casa momentanea al preacher que se quedo sin casa relacionada (casa inactiva o preacher cambiado de zona, copastor)
+    //? Y para colocar una casa temporal al preacher que se quedo sin casa relacionada (casa inactiva o preacher cambiado de zona, copastor)
 
     //! Preacher Validation (If preacher remains in preacher role)
     if (dataMember.roles.includes('preacher') && roles.includes('preacher')) {
@@ -698,21 +702,41 @@ export class MembersService {
         id: their_family_home,
       });
 
+      if (!copastor) {
+        throw new NotFoundException(
+          `Pastor was not found with the ID ${their_copastor}`,
+        );
+      }
+
+      if (!pastor) {
+        throw new NotFoundException(
+          `Pastor was not found with the ID ${copastor.their_pastor.id}`,
+        );
+      }
+
+      if (!familyHome) {
+        throw new NotFoundException(
+          `Pastor was not found with the ID ${their_family_home}`,
+        );
+      }
+
       //? Validation same copastor
       const allMembers = await this.memberRepository.find();
       const dataMemberPreacher = allMembers.find(
         (member) => member.their_preacher.id === dataMember.their_preacher.id,
       );
 
+      //? It is not allowed to change the co-pastor directly here, because he has a house assigned to a zone (co-pastor).
       if (
         dataMemberPreacher.their_family_home &&
         dataMemberPreacher.their_copastor.id !== copastor.id
       ) {
         throw new BadRequestException(
-          `You cannot switch from Their_copastor to a Preacher assigned to a zoned Family House, first update the Their_copastor in Preacher Module`,
+          `You cannot switch from their_copastor to a Preacher assigned to a zoned Family House, first update the Their_copastor in Preacher Module`,
         );
       }
 
+      //! It is to only temporarily assign a house to the preacher, everything is updated from preacher.
       if (
         dataMemberPreacher.their_family_home === null &&
         dataMemberPreacher.their_copastor.id !== copastor.id
@@ -722,17 +746,39 @@ export class MembersService {
         );
       }
 
-      member = await this.memberRepository.preload({
-        id: dataMember.id,
-        ...updateMemberDto,
-        updated_at: new Date(),
-        updated_by: 'Kevinxd',
-        their_pastor: pastor,
-        their_copastor: copastor,
-        their_preacher: preacher,
-        their_family_home: familyHome,
-      });
+      //* If it exists and the co-pastor is the same, the same data is set (only modify the rest)
+      if (
+        dataMemberPreacher.their_family_home &&
+        dataMemberPreacher.their_copastor.id === copastor.id
+      ) {
+        member = await this.memberRepository.preload({
+          id: dataMember.id,
+          ...updateMemberDto,
+          updated_at: new Date(),
+          updated_by: 'Kevinxd',
+          their_pastor: pastor,
+          their_copastor: copastor,
+          their_preacher: preacher,
+          their_family_home: dataMember.their_family_home,
+        });
+      }
 
+      //* If it does not exist, it exists and the co-pastor is the same, the temporary house is set (the rest is also modified)
+      if (
+        dataMemberPreacher.their_family_home === null &&
+        dataMemberPreacher.their_copastor.id === copastor.id
+      ) {
+        member = await this.memberRepository.preload({
+          id: dataMember.id,
+          ...updateMemberDto,
+          updated_at: new Date(),
+          updated_by: 'Kevinxd',
+          their_pastor: pastor,
+          their_copastor: copastor,
+          their_preacher: preacher,
+          their_family_home: familyHome,
+        });
+      }
       const allPreachers = await this.preacherRepository.find();
       const dataPreacher = allPreachers.find(
         (preacher) => preacher.member.id === dataMember.id,
@@ -765,7 +811,6 @@ export class MembersService {
       !roles.includes('copastor') &&
       !roles.includes('preacher')
     ) {
-      //? Revisar y modificar aqui si es necesario
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
@@ -781,25 +826,25 @@ export class MembersService {
 
       if (!familyHome) {
         throw new NotFoundException(
-          `No se encontro Family Home, con el id ${their_family_home}`,
+          `Family Home was not found, with the id ${their_family_home}`,
         );
       }
 
       if (!preacher) {
         throw new NotFoundException(
-          `No se encontro Preacher, verifique que en Family Home tenga preacher asignado`,
+          `Preacher was not found, verify that Family Home has a preacher assigned`,
         );
       }
 
       if (!copastor) {
         throw new NotFoundException(
-          `No se encontro Copastor, verifique que en Family Home tenga copastor asignado`,
+          `Copastor was not found, verify that Family Home has a copastor assigned`,
         );
       }
 
       if (!pastor) {
         throw new NotFoundException(
-          `No se encontro Pastor, verifique que en Family Home tenga copastor asignado`,
+          `Pastor was not found, verify that Family Home has a co-pastor assigned`,
         );
       }
 
@@ -851,11 +896,7 @@ export class MembersService {
         member: null,
         their_pastor: null,
       });
-      //! Cuando se sube de nivel un coapstor a pastor, en la tabla preacher se debe asignar un nuevo copastor (actualizar), revisar preacher actualizar
-      //? En Preacher se actualiza el nuevo u otro copastor existente, y en Casa familiar se actualiza y jala las
-      //? nuevas relaciones, haciendo el pasar casas a una zona o seteando el nuevo copastor que adopte todas esas casas
-      //? con zonas
-      //! En actualizar preacher se debe setear su copastor y pastor en Member tmb (ya lo hace)
+
       //* Search the preacher table and delete the relationship.
 
       //? Delete all same co-pastor relationships in Preacher
@@ -868,12 +909,11 @@ export class MembersService {
         async (preacher) => {
           await this.preacherRepository.update(preacher.id, {
             their_copastor: null,
+            their_pastor: null,
           });
         },
       );
 
-      //! Ahora solo quedaria agregarle manualmente el copastor y de este sacar al pastor a cada Miembro en tabla miembro(Actualizar su casa)
-      //! Su casa ya contiene preacher y este a su copastor y pastor. (TODO SIGUE UN ORDEN DE ACTUALIZAR)
       //? Delete all same co-pastor relationships in Member
       const allMembers = await this.memberRepository.find();
       const arrayMembersPreachers = allMembers.filter(
@@ -888,7 +928,6 @@ export class MembersService {
         });
       });
 
-      //! En la tabla family_home se debe actualizar al preacher para que agarre el nuevo copastor y pastor y este setea la casa en Member tmb
       //* Search the familyHome table and delete the relationship.
       const allFamilyHouses = await this.familyHomeRepository.find();
       const arrayHousesByCopastor = allFamilyHouses.filter(
@@ -899,7 +938,6 @@ export class MembersService {
         await this.familyHomeRepository.update(home.id, {
           their_copastor: null,
           their_pastor: null,
-          their_preacher: null,
         });
       });
 
@@ -943,7 +981,7 @@ export class MembersService {
 
       if (!pastor) {
         throw new NotFoundException(
-          `No se encontro Pastor con el ID ${their_pastor}`,
+          `Pastor was not found with the ID ${their_pastor}`,
         );
       }
 
@@ -960,7 +998,6 @@ export class MembersService {
         their_pastor: null,
       });
 
-      //! A la casa familiar se le debe avtualizar un nuevo preacher, y de este saca lo demas, y se setea en Member.
       //* Search the familyHome table and delete the relationship.
       const allFamilyHouses = await this.familyHomeRepository.find();
       const familyHomePreacher = allFamilyHouses.find(
@@ -974,8 +1011,6 @@ export class MembersService {
         their_pastor: null,
       });
 
-      //! Individualmente en Member se asigna un nuevo Casa familiar o la misma a este Miembro, y como ya tiene la casa
-      //! el preacher pastor y copastor, lo sete automativo (PROBAR)
       //? Delete all same co-pastor relationships in Member
       const allMembers = await this.memberRepository.find();
       const arrayMembersPreachers = allMembers.filter(
@@ -1033,18 +1068,16 @@ export class MembersService {
         id: copastor.their_pastor.id,
       });
       familyHome = null;
-      //! No deberia setearse casa_familiar, solo crear el nuevo preacher y desde casa familiar setear al preacher.
-      // NOTE: hacer alerta de promover miembro a preacher e indicar que se cree una nueva casa para asignarlo desde casa familiar.
 
       if (!copastor) {
         throw new NotFoundException(
-          `No se encontro coPastor con el ID ${their_copastor}`,
+          `coPastor was not found with the ID ${their_copastor}`,
         );
       }
 
       if (!pastor) {
         throw new NotFoundException(
-          `No se encontro Pastor con el ID ${copastor.their_pastor.id}`,
+          `Pastor was not found with the ID ${copastor.their_pastor.id}`,
         );
       }
 
@@ -1094,7 +1127,6 @@ export class MembersService {
     });
 
     //! Unsubscribe all places that are related to this pastor, and make it inactive in Pastor and Member
-    // NOTE : recordar que despues de colocar inactivo, al actualizar el pastor se deb empezar por copastor, luego preacher y etc.
     if (
       dataMember.roles.includes('pastor') &&
       dataMember.roles.includes('member')
@@ -1177,9 +1209,6 @@ export class MembersService {
     }
 
     //! Unsubscribe all places that are related to this CoPastor, and make it inactive in CoPastor and Member
-    //NOTE: para actualizar a un nuevo copastor, se empieza desde preacher y luego lo demas..
-    //* Ver si al setear en un lugar en los demas se completa, por ejemplo si seteo un nuenvo copastor, si en casa familiar
-    //* ese preacher ya tiene su copastor modificado.
     if (
       member.roles.includes('copastor') &&
       dataMember.roles.includes('member')
