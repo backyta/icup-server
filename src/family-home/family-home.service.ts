@@ -534,7 +534,7 @@ export class FamilyHomeService {
         !member.roles.includes('preacher'),
     );
 
-    //? Set new relationships (preacher, pastor, co-pastor) to each member of the updated Family House.
+    //? Delete and Set new relationships (preacher, pastor, co-pastor) to each member of the updated Family House.
     const promisesMemberHomeDelete = arrayfamilyHomePreacher.map(
       async (home) => {
         await this.memberRepository.update(home.id, {
@@ -595,12 +595,16 @@ export class FamilyHomeService {
     //? Update and set to null in Member, all those who have the same Family Home
     const allMembers = await this.memberRepository.find();
     const membersByFamilyHome = allMembers.filter(
-      (member) => member.their_family_home.id === familyHome.id,
+      (member) => member.their_family_home.id === dataFamilyHome.id,
     );
 
+    //! Revisar, si despues puedo setear desde preacher nuevo copastor y en casa jalar ese preacher con nueva data y ponerlo en Member.
     const promisesMembers = membersByFamilyHome.map(async (member) => {
       await this.memberRepository.update(member.id, {
         their_family_home: null,
+        their_copastor: null,
+        their_pastor: null,
+        their_preacher: null,
       });
     });
 

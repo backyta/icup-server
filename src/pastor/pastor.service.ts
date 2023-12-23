@@ -346,6 +346,7 @@ export class PastorService {
     const promisesPreacher = preachersByPastor.map(async (preacher) => {
       await this.preacherRepository.update(preacher.id, {
         their_pastor: null,
+        their_copastor: null,
       });
     });
 
@@ -359,6 +360,7 @@ export class PastorService {
       async (familyHome) => {
         await this.familyHomeRepository.update(familyHome.id, {
           their_pastor: null,
+          their_copastor: null,
         });
       },
     );
@@ -372,6 +374,8 @@ export class PastorService {
     const promisesMembers = membersByPastor.map(async (member) => {
       await this.memberRepository.update(member.id, {
         their_pastor: null,
+        their_copastor: null,
+        their_preacher: null,
       });
     });
 

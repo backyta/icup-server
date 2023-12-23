@@ -359,11 +359,17 @@ export class PreacherService {
       });
     }
 
+    //? Eliminar their_family_home si son diferentes
+    const allMemberPreacher = await this.memberRepository.find();
+    const dataMemberPreacher = allMemberPreacher.find(
+      (member) => member.their_preacher.id === preacher.id,
+    );
+
     //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar.)
     //* Counting and assigning the number of members (id-preacher member table)
     const allMembers = await this.memberRepository.find();
     const membersPreacher = allMembers.filter(
-      (members) => members.their_preacher.id === id,
+      (member) => member.their_preacher.id === dataMember.their_preacher.id,
     );
 
     const listMembersID = membersPreacher.map((preacher) => preacher.id);
@@ -377,11 +383,16 @@ export class PreacherService {
     const familyHomeId = familyHome.map((home) => home.id);
 
     //! Preacher their_co-pastor and their_pastor updated in Member-Module
+    //? La casa seria null porque se cambio de copastor, y se setea su nuevo pastor y copastor, a la espere de que setee el nuevo preacher a la casa para que se actualize en Member
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       ...updatePreacherDto,
       their_pastor: pastor,
       their_copastor: copastor,
+      their_family_home:
+        dataMemberPreacher.their_copastor.id !== copastor.id
+          ? null
+          : dataMemberPreacher.their_family_home,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
