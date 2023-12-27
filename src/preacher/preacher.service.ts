@@ -129,6 +129,7 @@ export class PreacherService {
     return await this.preacherRepository.find({
       take: limit,
       skip: offset,
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -149,10 +150,14 @@ export class PreacherService {
       }
 
       //* Counting and assigning the number of members (id-preahcer member table)
-      const allMembers = await this.memberRepository.find();
+      const allMembers = await this.memberRepository.find({
+        relations: ['their_preacher'],
+      });
+
       const membersOfPreacher = allMembers.filter(
-        (members) => members.their_preacher.id === term,
+        (members) => members.their_preacher?.id === term,
       );
+      console.log(membersOfPreacher);
 
       const listMembersID = membersOfPreacher.map(
         (copastores) => copastores.id,
@@ -220,8 +225,11 @@ export class PreacherService {
     if (isUUID(term) && type === SearchType.their_copastor) {
       preacher = await this.preacherRepository
         .createQueryBuilder('preacher')
-        .where('preacher.their_copastor = :term', { term })
-        .andWhere('preacher.is_active = :isActive', { isActive: true })
+        .leftJoinAndSelect('preacher.member', 'rel1')
+        .leftJoinAndSelect('preacher.their_pastor', 'rel2')
+        .leftJoinAndSelect('preacher.their_copastor', 'rel3')
+        .where('preacher.their_copastor =:term', { term })
+        .andWhere('preacher.is_active =:isActive', { isActive: true })
         .skip(offset)
         .limit(limit)
         .getMany();
@@ -243,6 +251,7 @@ export class PreacherService {
           where: [whereCondition],
           take: limit,
           skip: offset,
+          order: { created_at: 'ASC' },
         });
 
         if (preachers.length === 0) {
@@ -252,7 +261,13 @@ export class PreacherService {
         }
         return preachers;
       } catch (error) {
-        throw new BadRequestException(`This term is not a valid boolean value`);
+        if (error.code === '22P02') {
+          throw new BadRequestException(
+            `This term is not a valid boolean value`,
+          );
+        }
+
+        throw error;
       }
     }
 
@@ -521,7 +536,12 @@ export class PreacherService {
       );
 
       if (preacherMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'preachher'`);
+        throw new NotFoundException(
+          `Not found member with role Preacher and with this name : ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
       }
 
       const preachers = await this.preacherRepository.find();
@@ -538,7 +558,7 @@ export class PreacherService {
 
       if (ArrayPreacherMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found Preachers with these names ${term.slice(0, -1)}`,
+          `Not found Preacher with these names ${term.slice(0, -1)}`,
         );
       }
 
@@ -559,7 +579,12 @@ export class PreacherService {
       );
 
       if (preacherMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'Preacher'`);
+        throw new NotFoundException(
+          `Not found member with role Preacher and with these first_name & last_name: ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
       }
 
       const preachers = await this.preacherRepository.find();

@@ -8,7 +8,9 @@ export const validateName = (name: string): string => {
     wordString = sliceWord.split('+').join(' ');
   } else {
     throw new BadRequestException(
-      `${!name ? 'empy value' : name} not valid use '+' to finally string`,
+      `${
+        !name ? 'Empty value' : name
+      } not valid, use letters and '+' to finally string`,
     );
   }
   return wordString;

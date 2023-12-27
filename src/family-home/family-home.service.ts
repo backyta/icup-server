@@ -114,18 +114,22 @@ export class FamilyHomeService {
       codeHome = `${zone}-${numberHome}`;
     }
 
-    const dataFamilyHome = await this.familyHomeRepository.findOneBy({
-      zone: zone,
-    });
+    const dataFamilyHome = allHouses.find(
+      (house) => house.their_copastor.id === copastor.id,
+    );
 
     if (dataFamilyHome !== null) {
-      if (dataFamilyHome.their_copastor.id !== copastor.id) {
+      if (
+        dataFamilyHome.their_copastor.id !== copastor.id ||
+        dataFamilyHome.zone !== zone
+      ) {
         throw new BadRequestException(
           `You cannot assign a preacher with a copastor different from the one already used for this zone: Zone-${dataFamilyHome.zone}, ${dataFamilyHome.their_copastor.member.first_name} ${dataFamilyHome.their_copastor.member.last_name}`,
         );
       }
     }
-
+    //TODO : probrar creando un nuevo predicador, si cumple el setear su casa en Member Proacher role y faltaria hacer lo mismo en Preacher tabla
+    //TODO : desde casa fdamiuliar setear el rpedicador cuando se crea la nueva casa, es decir en tabla predicador colocarle la casa que se esta vinculando (ver)
     //* Creation of the instance
     try {
       const familyHomeInstance = this.familyHomeRepository.create({
@@ -147,6 +151,7 @@ export class FamilyHomeService {
         id: preacher.member.id,
         their_family_home: familyHomeInstance,
       });
+      //!Hacer aqui en Preacher tabal
 
       await this.memberRepository.save(updateMemberTheirFamilyHome);
       return result;

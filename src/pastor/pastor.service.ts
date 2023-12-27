@@ -86,6 +86,7 @@ export class PastorService {
       where: { is_active: true },
       take: limit,
       skip: offset,
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -127,9 +128,9 @@ export class PastorService {
 
       //NOTE : se deberia contar casas tmb?, aunque se podria agregar cuando se tengan mas Pastores(revisar desde el front para agregar.)
       pastor.count_copastores = listCopastores.length;
-      pastor.copastores = listCopastoresID;
+      pastor.copastores_id = listCopastoresID;
 
-      pastor.preachers = listPreachersID;
+      pastor.preachers_id = listPreachersID;
       pastor.count_preachers = listPreachers.length;
 
       //* Update age, when querying by ID
@@ -187,16 +188,24 @@ export class PastorService {
           where: [whereCondition],
           take: limit,
           skip: offset,
+          order: { created_at: 'ASC' },
         });
 
         if (pastores.length === 0) {
           throw new NotFoundException(
-            `Not found Pastores with these names: ${term}`,
+            `Not found Pastores with this term: ${term}`,
           );
         }
+
         return pastores;
       } catch (error) {
-        throw new BadRequestException(`This term is not a valid boolean value`);
+        if (error.code === '22P02') {
+          throw new BadRequestException(
+            `This term is not a valid boolean value`,
+          );
+        }
+
+        throw error;
       }
     }
 
@@ -283,9 +292,9 @@ export class PastorService {
       id: id,
       member: dataMember,
       count_copastores: listCopastores.length,
-      copastores: listCopastoresID,
+      copastores_id: listCopastoresID,
       count_preachers: listPreachers.length,
-      preachers: listPreachersID,
+      preachers_id: listPreachersID,
       updated_at: new Date(),
       is_active: is_active,
       updated_by: 'Kevinxd',
@@ -423,7 +432,12 @@ export class PastorService {
       );
 
       if (pastorMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'Pastor'`);
+        throw new NotFoundException(
+          `Not found member with role Pastor and with this name : ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
       }
 
       const pastores = await this.pastorRepository.find();
@@ -440,7 +454,7 @@ export class PastorService {
 
       if (ArrayPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found pastor with these names ${term.slice(0, -1)}`,
+          `Not found Pastor with these names ${term.slice(0, -1)}`,
         );
       }
 
@@ -461,7 +475,12 @@ export class PastorService {
       );
 
       if (pastorMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'Pastor'`);
+        throw new NotFoundException(
+          `Not found member with role Pastor and with these first_name & last_name: ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
       }
 
       const pastores = await this.pastorRepository.find();
@@ -478,7 +497,7 @@ export class PastorService {
 
       if (ArrayPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found pastor with these names ${term
+          `Not found Pastor with these first_name & last_name: ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,

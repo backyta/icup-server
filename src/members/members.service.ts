@@ -53,6 +53,8 @@ export class MembersService {
     private readonly preacherService: PreacherService,
   ) {}
 
+  //TODO : despues de pribar todo unir ramas y comenzar con module ofrendas
+
   //TODO (UPDATE ENDPOINT): revisar que pasa si se envia en id de preacher en Copastor, ver si lo rechaza o acepta o crear algun problema, deberia solo aceptar id de preacher para preacher de coapstor para copastor, etc
   //! Hacer lo de arriba cuando tengamos todo listo y probar todo junto
 
@@ -114,22 +116,24 @@ export class MembersService {
     }
 
     if (
+      (roles.includes('copastor') && their_pastor) ||
       (roles.includes('copastor') && their_copastor) ||
       (roles.includes('copastor') && their_preacher) ||
       (roles.includes('copastor') && their_family_home)
     ) {
       throw new BadRequestException(
-        `A Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, assign only pastor`,
+        `A Pastor, Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, first create Copastor`,
       );
     }
 
     if (
-      (roles.includes('preacher') && their_preacher) ||
+      (roles.includes('preacher') && their_copastor) ||
+      (roles.includes('preacher') && their_pastor) ||
       (roles.includes('preacher') && their_pastor) ||
       (roles.includes('preacher') && their_family_home)
     ) {
       throw new BadRequestException(
-        `Cannot assign a preacher, pastor or family home to a member with Preacher role, assign only copastor`,
+        `Cannot assign a Pastor, Copastor, Preacher, or family home to a member with Preacher role, first create Preacher`,
       );
     }
 
@@ -138,7 +142,7 @@ export class MembersService {
       !roles.includes('preacher') &&
       !roles.includes('copastor') &&
       !roles.includes('pastor') &&
-      (their_pastor || their_copastor || their_preacher)
+      (their_pastor || their_copastor || their_preacher || !their_family_home)
     ) {
       throw new BadRequestException(
         `A pastor, co-pastor or preacher cannot be assigned to a member with the role only of Member, assign only family_home`,
@@ -151,46 +155,10 @@ export class MembersService {
     let preacher: Preacher;
     let familyHome: FamilyHome;
 
-    //? If their_pastor exists it is because it is a Copastor
-    if (their_pastor) {
-      pastor = await this.pastorRepository.findOneBy({
-        id: their_pastor,
-      });
-      copastor = null;
-      preacher = null;
-      familyHome = null;
-    }
-
-    //? If their_copastor exists it is because he is a Preacher
-    if (their_copastor) {
-      copastor = await this.coPastorRepository.findOneBy({
-        id: their_copastor,
-      });
-      pastor = await this.pastorRepository.findOneBy({
-        id: copastor.their_pastor.id,
-      });
-      preacher = null;
-      familyHome = null;
-    }
-
-    //? If their_preacher exists it is because it is a Family House
-    if (their_preacher) {
-      preacher = await this.preacherRepository.findOneBy({
-        id: their_preacher,
-      });
-      copastor = await this.coPastorRepository.findOneBy({
-        id: preacher.their_copastor.id,
-      });
-      pastor = await this.pastorRepository.findOneBy({
-        id: preacher.their_pastor.id,
-      });
-      familyHome = null;
-    }
-
     //? If their_family_home exists, it is a Member
-    if (their_preacher) {
+    if (their_family_home) {
       familyHome = await this.familyHomeRepository.findOneBy({
-        id: their_preacher,
+        id: their_family_home,
       });
       preacher = await this.preacherRepository.findOneBy({
         id: familyHome.their_preacher.id,
@@ -231,11 +199,12 @@ export class MembersService {
       take: limit,
       skip: offset,
       relations: [
-        'their_pastor_id',
-        'their_copastor_id',
+        'their_pastor',
+        'their_copastor',
         'their_family_home',
         'their_preacher',
       ],
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -252,8 +221,8 @@ export class MembersService {
       member = await this.memberRepository.findOne({
         where: { id: term },
         relations: [
-          'their_copastor_id',
-          'their_pastor_id',
+          'their_copastor',
+          'their_pastor',
           'their_preacher',
           'their_family_home',
         ],
@@ -335,10 +304,10 @@ export class MembersService {
 
       member = await this.memberRepository
         .createQueryBuilder('member')
-        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
-        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
-        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
-        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
+        .leftJoinAndSelect('member.their_pastor', 'rel1')
+        .leftJoinAndSelect('member.their_copastor', 'rel2')
+        .leftJoinAndSelect('member.their_preacher', 'rel3')
+        .leftJoinAndSelect('member.their_family_home', 'rel4')
         .where('member.roles @> ARRAY[:...roles]::text[]', {
           roles: rolesArray,
         })
@@ -358,11 +327,11 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.their_copastor) {
       member = await this.memberRepository
         .createQueryBuilder('member')
-        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
-        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
-        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
-        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
-        .where('member.their_preacher = :term', { term })
+        .leftJoinAndSelect('member.their_pastor', 'rel1')
+        .leftJoinAndSelect('member.their_copastor', 'rel2')
+        .leftJoinAndSelect('member.their_preacher', 'rel3')
+        .leftJoinAndSelect('member.their_family_home', 'rel4')
+        .where('member.their_copastor =:term', { term })
         .skip(offset)
         .limit(limit)
         .getMany();
@@ -378,11 +347,11 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.their_preacher) {
       member = await this.memberRepository
         .createQueryBuilder('member')
-        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
-        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
-        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
-        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
-        .where('member.their_copastor = :term', { term })
+        .leftJoinAndSelect('member.their_pastor', 'rel1')
+        .leftJoinAndSelect('member.their_copastor', 'rel2')
+        .leftJoinAndSelect('member.their_preacher', 'rel3')
+        .leftJoinAndSelect('member.their_family_home', 'rel4')
+        .where('member.their_preacher =:term', { term })
         .skip(offset)
         .limit(limit)
         .getMany();
@@ -398,11 +367,11 @@ export class MembersService {
     if (isUUID(term) && type === SearchType.their_family_home) {
       member = await this.memberRepository
         .createQueryBuilder('member')
-        .leftJoinAndSelect('member.their_pastor_id', 'rel1')
-        .leftJoinAndSelect('member.their_copastor_id', 'rel2')
-        .leftJoinAndSelect('member.their_preacher_id', 'rel3')
-        .leftJoinAndSelect('member.their_family_home_id', 'rel4')
-        .where('member.their_family_home = :term', { term })
+        .leftJoinAndSelect('member.their_pastor', 'rel1')
+        .leftJoinAndSelect('member.their_copastor', 'rel2')
+        .leftJoinAndSelect('member.their_preacher', 'rel3')
+        .leftJoinAndSelect('member.their_family_home', 'rel4')
+        .where('member.their_family_home =:term', { term })
         .skip(offset)
         .limit(limit)
         .getMany();
@@ -1385,21 +1354,29 @@ export class MembersService {
           take: limit,
           skip: offset,
           relations: [
-            'their_pastor_id',
-            'their_copastor_id',
-            'their_preacher_id',
-            'their_family_home_id',
+            'their_pastor',
+            'their_copastor',
+            'their_preacher',
+            'their_family_home',
           ],
+          order: { created_at: 'ASC' },
         });
 
         if (members.length === 0) {
           throw new NotFoundException(
-            `Not found member with these names: ${term}`,
+            `Not found Members with this term: ${term}`,
           );
         }
+
         return members;
       } catch (error) {
-        throw new BadRequestException(`This term is not a valid boolean value`);
+        if (error.code === '22P02') {
+          throw new BadRequestException(
+            `This term is not a valid boolean value`,
+          );
+        }
+
+        throw error;
       }
     }
 
@@ -1411,11 +1388,12 @@ export class MembersService {
       take: limit,
       skip: offset,
       relations: [
-        'their_pastor_id',
-        'their_copastor_id',
-        'their_preacher_id',
-        'their_family_home_id',
+        'their_pastor',
+        'their_copastor',
+        'their_preacher',
+        'their_family_home',
       ],
+      order: { created_at: 'ASC' },
     });
 
     if (members.length === 0) {

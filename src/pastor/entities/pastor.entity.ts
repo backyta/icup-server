@@ -36,10 +36,10 @@ export class Pastor {
 
   //* Array id (data)
   @Column('uuid', { array: true, nullable: true })
-  copastores: string[];
+  copastores_id: string[];
 
   @Column('uuid', { array: true, nullable: true })
-  preachers: string[];
+  preachers_id: string[];
 
   //* Relation columns
   @OneToOne(() => Member, { eager: true })

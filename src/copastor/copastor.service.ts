@@ -108,6 +108,7 @@ export class CoPastorService {
       where: { is_active: true },
       take: limit,
       skip: offset,
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -204,6 +205,7 @@ export class CoPastorService {
           where: [whereCondition],
           take: limit,
           skip: offset,
+          order: { created_at: 'ASC' },
         });
 
         if (coPastores.length === 0) {
@@ -211,9 +213,16 @@ export class CoPastorService {
             `Not found coPastores with these names: ${term}`,
           );
         }
+
         return coPastores;
       } catch (error) {
-        throw new BadRequestException(`This term is not a valid boolean value`);
+        if (error.code === '22P02') {
+          throw new BadRequestException(
+            `This term is not a valid boolean value`,
+          );
+        }
+
+        throw error;
       }
     }
 
@@ -486,7 +495,12 @@ export class CoPastorService {
       );
 
       if (coPastorMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'copastor'`);
+        throw new NotFoundException(
+          `Not found member with role Copastor and with this name : ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
       }
 
       const coPastores = await this.coPastorRepository.find();
@@ -503,7 +517,7 @@ export class CoPastorService {
 
       if (ArrayCoPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found coPastor with these names ${term.slice(0, -1)}`,
+          `Not found Copastor with these names ${term.slice(0, -1)}`,
         );
       }
 
@@ -524,7 +538,12 @@ export class CoPastorService {
       );
 
       if (coPastorMembers.length === 0) {
-        throw new NotFoundException(`Not found member with roles 'Pastor'`);
+        throw new NotFoundException(
+          `Not found member with role Copastor and with these first_name & last_name: ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
       }
 
       const coPastores = await this.coPastorRepository.find();
@@ -541,7 +560,7 @@ export class CoPastorService {
 
       if (ArrayCoPastorMembersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found coPastor with these names ${term
+          `Not found CoPastor with these names ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,
