@@ -99,43 +99,49 @@ export class FamilyHomeService {
 
     //? Validation of zone assignment by copastor and preacher
     const allHouses = await this.familyHomeRepository.find();
-    const allHousesByZone = allHouses.filter((home) => home.zone === zone);
-
-    let numberHome: number;
-    let codeHome: string;
-
-    if (allHousesByZone.length === 0) {
-      numberHome = 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
-
-    if (allHousesByZone.length !== 0) {
-      numberHome = allHousesByZone.length + 1;
-      codeHome = `${zone}-${numberHome}`;
-    }
+    const allHousesByZone = allHouses.filter(
+      (home) => home.zone === zone.toUpperCase(),
+    );
+    console.log(allHousesByZone);
 
     const dataFamilyHome = allHouses.find(
-      (house) => house.their_copastor.id === copastor.id,
+      (house) =>
+        house.zone === zone.toUpperCase() ||
+        house.their_copastor.id === copastor.id,
     );
 
-    if (dataFamilyHome !== null) {
+    if (dataFamilyHome) {
       if (
         dataFamilyHome.their_copastor.id !== copastor.id ||
-        dataFamilyHome.zone !== zone
+        dataFamilyHome.zone !== zone.toUpperCase()
       ) {
         throw new BadRequestException(
           `You cannot assign a preacher with a copastor different from the one already used for this zone: Zone-${dataFamilyHome.zone}, ${dataFamilyHome.their_copastor.member.first_name} ${dataFamilyHome.their_copastor.member.last_name}`,
         );
       }
     }
-    //TODO : probrar creando un nuevo predicador, si cumple el setear su casa en Member Proacher role y faltaria hacer lo mismo en Preacher tabla
-    //TODO : desde casa fdamiuliar setear el rpedicador cuando se crea la nueva casa, es decir en tabla predicador colocarle la casa que se esta vinculando (ver)
+
+    let numberHome: number;
+    let codeHome: string;
+
+    if (allHousesByZone.length === 0) {
+      numberHome = 1;
+      codeHome = `${zone.toUpperCase()}-${numberHome}`;
+    }
+
+    if (allHousesByZone.length !== 0) {
+      numberHome = allHousesByZone.length + 1;
+      codeHome = `${zone.toUpperCase()}-${numberHome}`;
+    }
+
+    //NOTE : desde casa fdamiuliar setear el rpedicador cuando se crea la nueva casa, es decir en tabla predicador colocarle la casa que se esta vinculando (ver)
+    //NOTE : no seria necesario porque se setea cunado se hace la busqueda por ID, aunque se puede agregar si es necesarrio
     //* Creation of the instance
     try {
       const familyHomeInstance = this.familyHomeRepository.create({
         ...createFamilyHomeDto,
         number_home: numberHome.toString(),
-        zone: zone,
+        zone: zone.toUpperCase(),
         code: codeHome,
         their_preacher: preacher,
         their_pastor: pastor,
@@ -151,7 +157,6 @@ export class FamilyHomeService {
         id: preacher.member.id,
         their_family_home: familyHomeInstance,
       });
-      //!Hacer aqui en Preacher tabal
 
       await this.memberRepository.save(updateMemberTheirFamilyHome);
       return result;
@@ -166,6 +171,7 @@ export class FamilyHomeService {
     return await this.familyHomeRepository.find({
       take: limit,
       skip: offset,
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -186,9 +192,12 @@ export class FamilyHomeService {
       }
 
       //* Counting and assigning the number of members (id-familyHome member table)
-      const allMembers = await this.memberRepository.find();
+      const allMembers = await this.memberRepository.find({
+        relations: ['their_family_home'],
+      });
+
       const membersFamilyHome = allMembers.filter(
-        (members) => members.their_family_home.id === term,
+        (members) => members.their_family_home?.id === term,
       );
 
       const listMembersId = membersFamilyHome.map((member) => member.id);
@@ -201,14 +210,17 @@ export class FamilyHomeService {
 
     //* Find Code --> One
     if (term && type === SearchType.code) {
-      familyHome = await this.familyHomeRepository.findOneBy({
-        code: term,
-        is_active: true,
-      });
+      familyHome = await this.familyHomeRepository
+        .createQueryBuilder('fh')
+        .where('UPPER(fh.code) LIKE UPPER(:term)', { term: `%${term}%` })
+        .andWhere('fh.is_active = :isActive', { isActive: true })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
 
-      if (!familyHome) {
+      if (familyHome.length === 0) {
         throw new BadRequestException(
-          `FamilyHome was not found with this code ${term}`,
+          `No FamilyHome was found with this code: ${term}`,
         );
       }
     }
@@ -217,7 +229,7 @@ export class FamilyHomeService {
     if (term && type === SearchType.zone) {
       familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
-        .where('fh.zone LIKE :term', { term: `%${term}%` })
+        .where('UPPER(fh.zone) LIKE UPPER(:term)', { term: `%${term}%` })
         .andWhere('fh.is_active = :isActive', { isActive: true })
         .skip(offset)
         .limit(limit)
@@ -225,7 +237,7 @@ export class FamilyHomeService {
 
       if (familyHome.length === 0) {
         throw new BadRequestException(
-          `No FamilyHome was found with this address: ${term}`,
+          `No FamilyHome was found with this zone: ${term}`,
         );
       }
     }
@@ -234,7 +246,7 @@ export class FamilyHomeService {
     if (term && type === SearchType.address) {
       familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
-        .where('fh.address LIKE :term', { term: `%${term}%` })
+        .where('LOWER(fh.address) LIKE LOWER(:term)', { term: `%${term}%` })
         .andWhere('fh.is_active = :isActive', { isActive: true })
         .skip(offset)
         .limit(limit)
@@ -252,7 +264,7 @@ export class FamilyHomeService {
       familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
         .where('fh.their_preacher = :term', { term })
-        .andWhere('fh.is_active = :isActive', { isActive: true })
+        .andWhere('fh.is_active =:isActive', { isActive: true })
         .getOne();
 
       if (!familyHome) {
@@ -266,8 +278,8 @@ export class FamilyHomeService {
     if (isUUID(term) && type === SearchType.their_copastor) {
       familyHome = await this.familyHomeRepository
         .createQueryBuilder('fh')
-        .where('fh.their_copastor = :term', { term })
-        .andWhere('fh.is_active = :isActive', { isActive: true })
+        .where('fh.their_copastor =:term', { term })
+        .andWhere('fh.is_active =:isActive', { isActive: true })
         .skip(offset)
         .limit(limit)
         .getMany();
@@ -289,6 +301,7 @@ export class FamilyHomeService {
           where: [whereCondition],
           take: limit,
           skip: offset,
+          order: { created_at: 'ASC' },
         });
 
         if (familyHouses.length === 0) {
@@ -296,9 +309,16 @@ export class FamilyHomeService {
             `Not found Preachers with these names: ${term}`,
           );
         }
+
         return familyHouses;
       } catch (error) {
-        throw new BadRequestException(`This term is not a valid boolean value`);
+        if (error.code === '22P02') {
+          throw new BadRequestException(
+            `This term is not a valid boolean value`,
+          );
+        }
+
+        throw error;
       }
     }
 

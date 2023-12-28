@@ -399,6 +399,8 @@ export class MembersService {
     return member;
   }
 
+  //TODO : empezar a probar los updates y delete de todos los lugares, y luyego pasar a unir ramas y crear ofrendas.
+
   //* UPDATE FOR ID
   async update(id: string, updateMemberDto: UpdateMemberDto): Promise<Member> {
     const {
@@ -407,7 +409,6 @@ export class MembersService {
       their_pastor,
       their_preacher,
       their_family_home,
-      is_active,
     } = updateMemberDto;
 
     //! General Validations
@@ -417,11 +418,14 @@ export class MembersService {
       );
     }
 
-    if (is_active === undefined) {
-      throw new BadRequestException(
-        `You must assign a boolean value to is_active`,
-      );
-    }
+    //NOTE : el is_active seria opcional
+    //NOTE : Desde el front evitar que un registro en is_Active true, se pueda cambiar a false desde actualizar, solo se hace desde eliminar, pero un registro que este en false, preguntar si se quiere colocar activo
+    //NOTE : Desde actualizar Si el registro esta en false, preguntar si se quiere activar, si esta en true, mantenerlo y ocultar el isactive
+    // if (is_active === undefined) {
+    //   throw new BadRequestException(
+    //     `You must assign a boolean value to is_active`,
+    //   );
+    // }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -442,6 +446,23 @@ export class MembersService {
     }
 
     //* Role validation (only 1 and member)
+
+    if (!roles.includes('member')) {
+      throw new BadRequestException(
+        `The "member" role should always be included in the roles`,
+      );
+    }
+
+    if (
+      !roles.some((role) =>
+        ['pastor', 'copastor', 'preacher', 'member'].includes(role),
+      )
+    ) {
+      throw new BadRequestException(
+        `The roles should include "pastor", "copastor" or "preacher"`,
+      );
+    }
+
     if (
       (roles.includes('pastor') && roles.includes('copastor')) ||
       (roles.includes('pastor') && roles.includes('preacher')) ||
@@ -461,7 +482,10 @@ export class MembersService {
     if (
       (dataMember.roles.includes('pastor') && roles.includes('copastor')) ||
       (dataMember.roles.includes('pastor') && roles.includes('preacher')) ||
-      (dataMember.roles.includes('pastor') && roles.includes('treasurer'))
+      (dataMember.roles.includes('pastor') && roles.includes('treasurer')) ||
+      (dataMember.roles.includes('pastor') &&
+        roles.includes('member') &&
+        !roles.includes('pastor'))
     ) {
       throw new BadRequestException(
         `You cannot assign a role lower than Pastor`,
@@ -470,16 +494,39 @@ export class MembersService {
 
     if (
       (dataMember.roles.includes('copastor') && roles.includes('preacher')) ||
-      (dataMember.roles.includes('copastor') && roles.includes('treasurer'))
+      (dataMember.roles.includes('copastor') && roles.includes('treasurer')) ||
+      (dataMember.roles.includes('copastor') &&
+        roles.includes('member') &&
+        !roles.includes('copastor') &&
+        !roles.includes('pastor'))
     ) {
       throw new BadRequestException(
         `Cannot be assigned a role lower than CoPastor`,
       );
     }
 
-    if (dataMember.roles.includes('preacher') && roles.includes('pastor')) {
+    if (
+      (dataMember.roles.includes('preacher') && roles.includes('pastor')) ||
+      (dataMember.roles.includes('preacher') &&
+        roles.includes('member') &&
+        !roles.includes('preacher') &&
+        !roles.includes('copastor'))
+    ) {
       throw new BadRequestException(
-        `You cannot assign a higher role without going through the hierarchy: [pracher, co-pastor, pastor]`,
+        `A higher role cannot be assigned without going through the hierarchy: [preacher, co-pastor, pastor]. Also cannot be assigned a role lower than CoPastor`,
+      );
+    }
+
+    if (
+      (dataMember.roles.includes('member') &&
+        !dataMember.roles.includes('preacher') &&
+        !dataMember.roles.includes('copastor') &&
+        !dataMember.roles.includes('pastor') &&
+        roles.includes('copastor')) ||
+      roles.includes('pastor')
+    ) {
+      throw new BadRequestException(
+        `A higher role cannot be assigned without going through the hierarchy: [preacher, co-pastor, pastor]`,
       );
     }
 
@@ -495,19 +542,22 @@ export class MembersService {
 
     if (
       roles.includes('copastor') &&
-      (their_copastor || their_preacher || their_family_home)
+      (their_copastor || their_preacher || their_family_home || !their_pastor)
     ) {
       throw new BadRequestException(
         `A member with the coPastor role cannot be assigned a their_coPastor, their_preacher, or their_family_home, only their_pastor`,
       );
     }
+    //NOTE: desde el front hacer un modal que diga subir de nivel y setear los datos, tmb para colocar casa temporal a preacher
+    //! Colocar el rol como disabled y coloca boton que diga subir de nivel para evitar errores, con las validaciones.
 
+    //NOTE : para asignar a un predicador a un casa moimentanea a la que congrege
     if (
       roles.includes('preacher') &&
-      (their_preacher || their_pastor || !their_copastor || !their_family_home)
+      (their_preacher || their_pastor || !their_copastor)
     ) {
       throw new BadRequestException(
-        `You cannot assign a their_preacher or their_pastor a member with the Preacher role, only their_copastor.`,
+        `You cannot assign a their_preacher or their_pastor a member with the Preacher role, only their_copastor and their_family_home (temporally)`,
       );
     }
 
@@ -602,9 +652,11 @@ export class MembersService {
       );
 
       //? Change pastors in Member to all those who have the same co-pastor
-      const allMembers = await this.memberRepository.find();
+      const allMembers = await this.memberRepository.find({
+        relations: ['their_copastor'],
+      });
       const arrayMembersPreachers = allMembers.filter(
-        (member) => member.their_copastor.id === dataCopastor.id,
+        (member) => member.their_copastor?.id === dataCopastor.id,
       );
 
       const promisesMembers = arrayMembersPreachers.map(async (member) => {
@@ -655,6 +707,7 @@ export class MembersService {
       }
     }
 
+    //TODO : continuar aqui la revision
     //* Tecnicamente aqui solo se podra cambiar la data del member, todo lo demas desde el module Preacher
     //? Y para colocar una casa temporal al preacher que se quedo sin casa relacionada (casa inactiva o preacher cambiado de zona, copastor)
 
@@ -689,36 +742,38 @@ export class MembersService {
         );
       }
 
-      //? Validation same copastor
-      const allMembers = await this.memberRepository.find();
-      const dataMemberPreacher = allMembers.find(
-        (member) => member.their_preacher.id === dataMember.their_preacher.id,
-      );
+      if (dataMember.their_family_home && their_family_home) {
+        throw new BadRequestException(
+          `No se puede colocar un nuevo their_family_home, porque ya existe uno`,
+        );
+      }
 
       //? It is not allowed to change the co-pastor directly here, because he has a house assigned to a zone (co-pastor).
       if (
-        dataMemberPreacher.their_family_home &&
-        dataMemberPreacher.their_copastor.id !== copastor.id
+        dataMember.their_family_home &&
+        dataMember.their_copastor?.id !== copastor.id
       ) {
         throw new BadRequestException(
-          `You cannot switch from their_copastor to a Preacher assigned to a zoned Family House, first update the Their_copastor in Preacher Module`,
+          `You cannot change their_copastor to a Preacher-Member assigned to a Family House, because they already have their_copastor, first update their_copastor in the Preacher Module`,
         );
       }
 
-      //! It is to only temporarily assign a house to the preacher, everything is updated from preacher.
+      //TODO : regresar aqui para pobrar actualizar cuando se elimia si family_home (coloca como inactivo y se elimina la relacion)
+      //! It is to only temporarily assign a house to the preacher, their_copastor must be the same, everything is updated from preacher.
       if (
-        dataMemberPreacher.their_family_home === null &&
-        dataMemberPreacher.their_copastor.id !== copastor.id
+        dataMember.their_family_home === null &&
+        dataMember.their_copastor.id !== copastor.id
       ) {
         throw new BadRequestException(
-          `To assign a temporary house to the preacher without a house, their_copastor must be the same, you cannot use another, if you want to use another, you must first update it in the Preacher Module`,
+          `To assign a temporary house or change their_copastor to the preacher, their_copastor must be the same, if you want to use another, you must first update it in the Preacher Module`,
         );
       }
 
+      //! Esto ya esta probado
       //* If it exists and the co-pastor is the same, the same data is set (only modify the rest)
       if (
-        dataMemberPreacher.their_family_home &&
-        dataMemberPreacher.their_copastor.id === copastor.id
+        dataMember.their_family_home &&
+        dataMember.their_copastor.id === copastor.id
       ) {
         member = await this.memberRepository.preload({
           id: dataMember.id,
@@ -732,10 +787,12 @@ export class MembersService {
         });
       }
 
+      //? Falta probar aqui cuando este en null, la casa y tenga el mismo copastor, osea el predicador solo
+      //? se podra congregar en una residencia de su zona del mismo copasor.
       //* If it does not exist, it exists and the co-pastor is the same, the temporary house is set (the rest is also modified)
       if (
-        dataMemberPreacher.their_family_home === null &&
-        dataMemberPreacher.their_copastor.id === copastor.id
+        dataMember.their_family_home === null &&
+        dataMember.their_copastor.id === copastor.id
       ) {
         member = await this.memberRepository.preload({
           id: dataMember.id,
@@ -748,6 +805,7 @@ export class MembersService {
           their_family_home: familyHome,
         });
       }
+
       const allPreachers = await this.preacherRepository.find();
       const dataPreacher = allPreachers.find(
         (preacher) => preacher.member.id === dataMember.id,
@@ -817,15 +875,6 @@ export class MembersService {
         );
       }
 
-      //? Revisar si es necesario o no
-      const updateInfoMember = await this.memberRepository.preload({
-        id: dataMember.id,
-        their_pastor: null,
-        their_copastor: null,
-        their_preacher: null,
-        their_family_home: null,
-      });
-
       member = await this.memberRepository.preload({
         id: dataMember.id,
         ...updateMemberDto,
@@ -838,7 +887,6 @@ export class MembersService {
       });
 
       try {
-        await this.memberRepository.save(updateInfoMember);
         return await this.memberRepository.save(member);
       } catch (error) {
         this.handleDBExceptions(error);
@@ -846,6 +894,8 @@ export class MembersService {
     }
 
     //? NOW HERE THEY RAISE A LEVEL
+    //NOTE : luego de eliminar las relaciones, se debe elegir nuevo copastor para los preacher huefanos
+    //NOTE : despues en la casa familiar jalar los preachers que se actualizaron sus relaciones (revisar)
 
     //! Validation If co-pastor rises to Pastor role
     if (dataMember.roles.includes('copastor') && roles.includes('pastor')) {
@@ -871,7 +921,7 @@ export class MembersService {
       //? Delete all same co-pastor relationships in Preacher
       const allPreachers = await this.preacherRepository.find();
       const arrayPreachersByCopastor = allPreachers.filter(
-        (preacher) => preacher.their_copastor.id === dataCopastor.id,
+        (preacher) => preacher.their_copastor?.id === dataCopastor.id,
       );
 
       const promisesPreachers = arrayPreachersByCopastor.map(
@@ -884,9 +934,11 @@ export class MembersService {
       );
 
       //? Delete all same co-pastor relationships in Member
-      const allMembers = await this.memberRepository.find();
+      const allMembers = await this.memberRepository.find({
+        relations: ['their_copastor'],
+      });
       const arrayMembersPreachers = allMembers.filter(
-        (member) => member.their_copastor.id === dataCopastor.id,
+        (member) => member.their_copastor?.id === dataCopastor?.id,
       );
 
       const promisesMembers = arrayMembersPreachers.map(async (member) => {
@@ -900,7 +952,7 @@ export class MembersService {
       //* Search the familyHome table and delete the relationship.
       const allFamilyHouses = await this.familyHomeRepository.find();
       const arrayHousesByCopastor = allFamilyHouses.filter(
-        (home) => home.their_copastor.id === dataCopastor.id,
+        (home) => home.their_copastor?.id === dataCopastor.id,
       );
 
       const promisesFamilyHouses = arrayHousesByCopastor.map(async (home) => {
@@ -939,6 +991,7 @@ export class MembersService {
       }
     }
 
+    // NOTE : luego de subir de niuevel, actualizar a las casa desamparadas con nuevo preacher y jalar esa data en Miembros, asignadoles la misma casa y otro (jala la misma data (Miembros))
     //! Validation If preacher rises to Copastor
     if (dataMember.roles.includes('preacher') && roles.includes('copastor')) {
       pastor = await this.pastorRepository.findOneBy({
@@ -957,7 +1010,7 @@ export class MembersService {
       //* Search the preacher table and eliminate the relationship (member, copastor and pastor)
       const allPreachers = await this.preacherRepository.find();
       const dataPreacher = allPreachers.find(
-        (preacher) => preacher.id === dataMember.id,
+        (preacher) => preacher.member.id === dataMember.id,
       );
 
       const updatePreacher = await this.preacherRepository.preload({
@@ -970,7 +1023,7 @@ export class MembersService {
       //* Search the familyHome table and delete the relationship.
       const allFamilyHouses = await this.familyHomeRepository.find();
       const familyHomePreacher = allFamilyHouses.find(
-        (home) => home.their_preacher.id === dataMember.id,
+        (home) => home.their_preacher?.member.id === dataMember.id,
       );
 
       const updateFamilyHome = await this.familyHomeRepository.preload({
@@ -980,10 +1033,12 @@ export class MembersService {
         their_pastor: null,
       });
 
-      //? Delete all same co-pastor relationships in Member
-      const allMembers = await this.memberRepository.find();
+      //? Delete all same preacher relationships in Member
+      const allMembers = await this.memberRepository.find({
+        relations: ['their_preacher'],
+      });
       const arrayMembersPreachers = allMembers.filter(
-        (member) => member.their_preacher.id === dataPreacher.id,
+        (member) => member.their_preacher?.id === dataPreacher.id,
       );
 
       const promisesMembers = arrayMembersPreachers.map(async (member) => {
@@ -1022,6 +1077,9 @@ export class MembersService {
         this.handleDBExceptions(error);
       }
     }
+
+    //NOTE : una vez que se sube de nivel a preacher y se setea su copastor, choca con la validacion de cambiar el copastor desde module-prechaer, porque ya es copastor(role)
+    //NOTE : solo crea al nuevo preacher, de ahi en casa se puede asignar este preacher a una casa segun su copastor (zona)
 
     //! If a Member transforms into a Preacher
     if (
@@ -1075,6 +1133,7 @@ export class MembersService {
     }
   }
 
+  //TODO : continuar aqui tomorrow .... 29/12, y los demas modules sus updates
   //* DELETE FOR ID
   async remove(id: string): Promise<void> {
     if (!isUUID(id)) {

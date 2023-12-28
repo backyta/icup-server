@@ -165,16 +165,14 @@ export class PreacherService {
 
       //* House ID assignment according to Preacher ID
       const familyHouses = await this.familyHomeRepository.find();
-      const familyHome = familyHouses.filter(
+      const familyHome = familyHouses.find(
         (home) => home.their_preacher.id === term,
       );
-
-      const familyHomeId = familyHome.map((home) => home.id);
 
       preacher.count_members = listMembersID.length;
       preacher.members = listMembersID;
 
-      preacher.family_home = familyHomeId;
+      preacher.family_home = [familyHome.id];
 
       //* Update age, when querying by ID
       preacher.member.age = updateAge(preacher.member);

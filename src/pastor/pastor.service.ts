@@ -109,7 +109,7 @@ export class PastorService {
       }
 
       //* Count and assignment of co-pastors
-      const allCopastores = (await this.coPastorRepository.find()) ?? [];
+      const allCopastores = await this.coPastorRepository.find();
       const listCopastores = allCopastores.filter(
         (copastor) => copastor.their_pastor.id === term,
       );
