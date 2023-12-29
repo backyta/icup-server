@@ -111,7 +111,7 @@ export class PastorService {
       //* Count and assignment of co-pastors
       const allCopastores = await this.coPastorRepository.find();
       const listCopastores = allCopastores.filter(
-        (copastor) => copastor.their_pastor.id === term,
+        (copastor) => copastor.their_pastor?.id === term && copastor.is_active,
       );
 
       const listCopastoresID = listCopastores.map(
@@ -119,9 +119,9 @@ export class PastorService {
       );
 
       //* Count and assignment of preachers
-      const allPreachers = (await this.preacherRepository.find()) ?? [];
+      const allPreachers = await this.preacherRepository.find();
       const listPreachers = allPreachers.filter(
-        (preacher) => preacher.their_pastor.id === term,
+        (preacher) => preacher.their_pastor?.id === term && preacher.is_active,
       );
 
       const listPreachersID = listPreachers.map((copastores) => copastores.id);

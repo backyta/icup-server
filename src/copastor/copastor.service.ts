@@ -131,7 +131,7 @@ export class CoPastorService {
       //* Count and assignment of Houses
       const familyHouses = await this.familyHomeRepository.find();
       const listFamilyHouses = familyHouses.filter(
-        (home) => home.their_copastor.id === term,
+        (home) => home.their_copastor?.id === term && home.is_active,
       );
 
       const familyHousesId = listFamilyHouses.map((houses) => houses.id);
@@ -139,7 +139,8 @@ export class CoPastorService {
       //* Counting and assigning Preachers
       const allPreachers = await this.preacherRepository.find();
       const listPreachers = allPreachers.filter(
-        (preacher) => preacher.their_copastor.id === term,
+        (preacher) =>
+          preacher.their_copastor?.id === term && preacher.is_active,
       );
 
       const listPreachersID = listPreachers.map((preacher) => preacher.id);

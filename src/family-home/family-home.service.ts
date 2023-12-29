@@ -465,6 +465,7 @@ export class FamilyHomeService {
     ) {
       const allHouses = await this.familyHomeRepository.find();
 
+      //! Puede ser null
       const familyHomeByCopastor = allHouses.find(
         (home) => home.their_copastor.id === copastor.id,
       );
@@ -617,6 +618,12 @@ export class FamilyHomeService {
       is_active: false,
     });
 
+    //? Update and eliminate relations with their_family_home
+    const member = await this.memberRepository.preload({
+      id: dataFamilyHome.their_preacher.member.id,
+      their_family_home: null,
+    });
+
     //? Update and set to null in Member, all those who have the same Family Home
     const allMembers = await this.memberRepository.find();
     const membersByFamilyHome = allMembers.filter(
@@ -637,6 +644,7 @@ export class FamilyHomeService {
 
     try {
       await this.familyHomeRepository.save(familyHome);
+      await this.memberRepository.save(member);
       await Promise.all(promisesMembers);
     } catch (error) {
       this.handleDBExceptions(error);
