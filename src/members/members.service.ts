@@ -208,7 +208,7 @@ export class MembersService {
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
-  ) {
+  ): Promise<Member[] | Member> {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let member: Member | Member[];
 
@@ -1218,7 +1218,7 @@ export class MembersService {
         throw new NotFoundException(`Not found pastor`);
       }
 
-      //* Update and set null in Pastor
+      //* Update and set is_active false in Pastor
       const pastor = await this.pastorRepository.preload({
         id: pastorMember.id,
         is_active: false,
@@ -1226,7 +1226,7 @@ export class MembersService {
         updated_by: 'Kevin',
       });
 
-      //* Update and set to null in Copastor
+      //* Update and set to null relationships in Copastor
       const allCopastores = await this.coPastorRepository.find();
       const copastoresByPastor = allCopastores.filter(
         (copastor) => copastor.their_pastor?.id === pastorMember.id,
@@ -1240,7 +1240,7 @@ export class MembersService {
         });
       });
 
-      //* Update and set to null in Preacher
+      //* Update and set to null relationships in Preacher
       const allPreachers = await this.preacherRepository.find();
       const preachersByPastor = allPreachers.filter(
         (preacher) => preacher.their_pastor?.id === pastorMember.id,
@@ -1254,7 +1254,7 @@ export class MembersService {
         });
       });
 
-      //* Update and set to null in Family Home
+      //* Update and set to null relationships in Family Home
       const allFamilyHouses = await this.familyHomeRepository.find();
       const familyHousesByPastor = allFamilyHouses.filter(
         (familyHome) => familyHome.their_pastor?.id === pastorMember.id,

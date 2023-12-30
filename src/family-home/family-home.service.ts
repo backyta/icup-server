@@ -355,7 +355,11 @@ export class FamilyHomeService {
     if (!dataFamilyHome) {
       throw new NotFoundException(`Family Home not found with id: ${id}`);
     }
+    //TODO : ver cuando se cambie de pastor , o quiera cambiar de preacher a la casa , si creo  nuevas casas y quiero cambiar de preacher
+    //! que tienen una casa a estas otras este preacher, debe poderse, es como pasar un preacher de una casa a otro,
+    //! se debe eliminar de la actual.
 
+    //! La zona sigue igual, LA CASA SE PUEDE COLOCAR A otro predicador con otro copastor y pastor! , tener esa flexibilidad
     //* Preacher assignment and validation
     const preacher = await this.preacherRepository.findOneBy({
       id: their_preacher,

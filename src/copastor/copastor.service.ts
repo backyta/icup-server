@@ -80,7 +80,7 @@ export class CoPastorService {
       );
     }
 
-    //* Instance assignment
+    //* Creation instances
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       their_pastor: pastor,
@@ -102,9 +102,9 @@ export class CoPastorService {
   }
 
   //* FIND ALL (PAGINATED)
-  findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto): Promise<CoPastor[]> {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.coPastorRepository.find({
+    return await this.coPastorRepository.find({
       where: { is_active: true },
       take: limit,
       skip: offset,
@@ -116,7 +116,7 @@ export class CoPastorService {
   async findTerm(
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
-  ) {
+  ): Promise<CoPastor[] | CoPastor> {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let coPastor: CoPastor | CoPastor[];
 
@@ -244,15 +244,27 @@ export class CoPastorService {
     return coPastor;
   }
 
-  //* UPDATE FOR ID
-  async update(id: string, updateCoPastorDto: UpdateCoPastorDto) {
-    const { their_pastor, is_active } = updateCoPastorDto;
+  //TODO : seguir en preacher y poner mucho ojo en family-home
+  //NOTE :
+  //* No va funcionar cuando tengamos is actuve en false y queramos setear un nuevo pastor, no va encontrar registro con el copastor a buscar porque todas estabn en null
+  //* Solo va setear el Member-Copastor y su Copastor el nuevo Pastor. Pero lo demas se tendra que hacer manual
+  //* Por lo que se tendra que ir a preache y actualizar el nuevo copastor y este jala al pastor
+  //* Se tendra que ir a casa y actualizar el nuevo preacher, este jala al pastor y copastor (REVISAR) AQUI IMPORTANTE
+  //* tendria aque ir a cada mimebro y cambiar su casa y este jala todo lo demas
 
-    if (is_active === undefined) {
-      throw new BadRequestException(
-        `You must assign a boolean value to is_Active`,
-      );
-    }
+  //? Cuando se borran las relaciones se ira al otro modulo a actualizar, por ejemplo si se borra el pastor
+  //? todas sus relaciones en las tablas se borran, se tendria que ir a copastor update y actualizar al copastor con un nuevo pastor
+  //? lo mismo en preacher, estos endpoints nos suirven para asignar uno nuevo que este actuvo, pero cuando se pasa de false
+  //? a true solo se seteara su mismo module osea si es Copastor se setea su Pastor nuevo, pero en los otros no, si es
+  //? Preacher se setea su Pastor y copastor nuevo, pero en family no, y asi...
+
+  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a CoPastor y Member ✅✅
+  //* UPDATE FOR ID
+  async update(
+    id: string,
+    updateCoPastorDto: UpdateCoPastorDto,
+  ): Promise<CoPastor> {
+    const { their_pastor, is_active } = updateCoPastorDto;
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -275,13 +287,7 @@ export class CoPastorService {
       );
     }
 
-    if (!member.roles.includes('copastor')) {
-      throw new BadRequestException(
-        `Cannot assign this member as Copastor, missing role: ['copastor']`,
-      );
-    }
-
-    //* Shepherd assignment and validation
+    //* Pastor assignment and validation
     const pastor = await this.pastorRepository.findOneBy({
       id: their_pastor,
     });
@@ -296,10 +302,10 @@ export class CoPastorService {
       );
     }
 
-    //? Update on all members the new pastor of the co-pastor that is updated.
+    //* Update on all members the new pastor of the co-pastor that is updated.
     const allMembers = await this.memberRepository.find();
     const membersByCoPastor = allMembers.filter(
-      (member) => member.their_copastor.id === dataCoPastor.id,
+      (member) => member.their_copastor?.id === dataCoPastor.id,
     );
 
     const promisesMembers = membersByCoPastor.map(async (member) => {
@@ -308,10 +314,10 @@ export class CoPastorService {
       });
     });
 
-    //? Update in all preachers the new pastor of the copastor that is updated.
+    //* Update in all preachers the new pastor of the copastor that is updated.
     const allPreachers = await this.preacherRepository.find();
     const preachersByCoPastor = allPreachers.filter(
-      (preacher) => preacher.their_copastor.id === dataCoPastor.id,
+      (preacher) => preacher.their_copastor?.id === dataCoPastor.id,
     );
 
     const promisesPreacher = preachersByCoPastor.map(async (preacher) => {
@@ -320,10 +326,10 @@ export class CoPastorService {
       });
     });
 
-    //? Update in all family homes the new co-pastor pastor that is updated.
+    //* Update in all family homes the new co-pastor pastor that is updated.
     const allFamilyHouses = await this.familyHomeRepository.find();
     const familyHousesByPastor = allFamilyHouses.filter(
-      (familyHome) => familyHome.their_copastor.id === dataCoPastor.id,
+      (familyHome) => familyHome.their_copastor?.id === dataCoPastor.id,
     );
 
     const promisesFamilyHouses = familyHousesByPastor.map(
@@ -334,23 +340,22 @@ export class CoPastorService {
       },
     );
 
-    //NOTE : esto no seria necesario porque en busqueda por ID, se haria la actualizacion del conteo y seteo (revisar)
     //* Count and assignment of Houses
     const familyHouses = await this.familyHomeRepository.find();
     const listFamilyHouses = familyHouses.filter(
-      (home) => home.their_copastor.id === id,
+      (home) => home.their_copastor?.id === id,
     );
 
     const familyHousesId = listFamilyHouses.map((houses) => houses.id);
 
     //* Counting and assigning Preachers
     const listPreachers = allPreachers.filter(
-      (preacher) => preacher.their_copastor.id === id,
+      (preacher) => preacher.their_copastor?.id === id,
     );
 
     const listPreachersId = listPreachers.map((preacher) => preacher.id);
 
-    //! Co-pastor their_pastor updated in Member-Module
+    //* Co-pastor their_pastor updated in Member-Module
     const dataMember = await this.memberRepository.preload({
       id: member.id,
       ...updateCoPastorDto,
@@ -363,7 +368,7 @@ export class CoPastorService {
     const coPastor = await this.coPastorRepository.preload({
       id: id,
       family_houses: familyHousesId,
-      count_houses: familyHouses.length,
+      count_houses: listFamilyHouses.length,
       preachers: listPreachersId,
       count_preachers: listPreachers.length,
       member: dataMember,
@@ -374,7 +379,7 @@ export class CoPastorService {
     });
 
     try {
-      await this.memberRepository.save(member);
+      await this.memberRepository.save(dataMember);
       await this.coPastorRepository.save(coPastor);
       await Promise.all(promisesMembers);
       await Promise.all(promisesPreacher);
@@ -387,7 +392,7 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
-  async remove(id: string) {
+  async remove(id: string): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -398,36 +403,43 @@ export class CoPastorService {
       throw new NotFoundException(`CoPastor with id: ${id} not exits`);
     }
 
-    //? Update and set in false is_active on Member
+    //* Update and set in false is_active on Member
     const member = await this.memberRepository.preload({
       id: dataCoPastor.member.id,
+      their_pastor: null,
       is_active: false,
+      updated_at: new Date(),
+      updated_by: 'Kevinxd',
     });
 
-    //? Update and set in false is_active on coPastor
+    //* Update and set in false is_active on coPastor
     const coPastor = await this.coPastorRepository.preload({
       id: dataCoPastor.id,
       their_pastor: null,
       is_active: false,
+      updated_at: new Date(),
+      updated_by: 'Kevinxd',
     });
 
-    //? Update and set to null in Preacher
+    //* Update and set to null in Preacher
     const allPreachers = await this.preacherRepository.find();
     const preachersByPastor = allPreachers.filter(
-      (preacher) => preacher.their_copastor.id === dataCoPastor.id,
+      (preacher) => preacher.their_copastor?.id === dataCoPastor.id,
     );
 
     const promisesPreacher = preachersByPastor.map(async (preacher) => {
       await this.preacherRepository.update(preacher.id, {
         their_copastor: null,
         their_pastor: null,
+        updated_at: new Date(),
+        updated_by: 'Kevinxd',
       });
     });
 
-    //? Update and set to null in Family Home
+    //* Update and set to null in Family Home
     const allFamilyHouses = await this.familyHomeRepository.find();
     const familyHousesByPastor = allFamilyHouses.filter(
-      (familyHome) => familyHome.their_copastor.id === coPastor.id,
+      (familyHome) => familyHome.their_copastor?.id === coPastor.id,
     );
 
     const promisesFamilyHouses = familyHousesByPastor.map(
@@ -435,21 +447,29 @@ export class CoPastorService {
         await this.familyHomeRepository.update(familyHome.id, {
           their_copastor: null,
           their_pastor: null,
+          their_preacher: null,
+          updated_at: new Date(),
+          updated_by: 'Kevinxd',
         });
       },
     );
 
-    //? Update and set to null in Member, all those who have the same coPastor
+    //* Update and set to null in Member, all those who have the same coPastor
     const allMembers = await this.memberRepository.find();
     const membersByPastor = allMembers.filter(
-      (member) => member.their_copastor.id === dataCoPastor.id,
+      (member) => member.their_copastor?.id === dataCoPastor.id,
     );
 
     const promisesMembers = membersByPastor.map(async (member) => {
       await this.memberRepository.update(member.id, {
-        their_copastor: null,
         their_pastor: null,
+        their_copastor: null,
         their_preacher: null,
+        their_family_home: !member.their_preacher
+          ? null
+          : member.their_family_home,
+        updated_at: new Date(),
+        updated_by: 'Kevinxd',
       });
     });
 
@@ -480,7 +500,7 @@ export class CoPastorService {
     limit: number,
     offset: number,
     repository: Repository<Member>,
-  ) => {
+  ): Promise<CoPastor | CoPastor[]> => {
     //* Para find by first or last name
     if (searchType === 'first_name' || searchType === 'last_name') {
       const members = await searchPerson({

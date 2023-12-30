@@ -87,25 +87,20 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  province: string;
+  @IsOptional()
+  province?: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(20)
-  district: string;
+  @IsOptional()
+  district?: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  address: string;
-
-  //* Relations
-  // @IsString()
-  // @IsNotEmpty()
-  // @IsUUID()
-  // @IsOptional()
-  // id_member: string;
-  //! No se necesita, porque se saca el member del idPastor
+  @IsOptional()
+  address?: string;
 }
