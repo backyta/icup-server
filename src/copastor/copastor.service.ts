@@ -251,6 +251,7 @@ export class CoPastorService {
   //* Por lo que se tendra que ir a preache y actualizar el nuevo copastor y este jala al pastor
   //* Se tendra que ir a casa y actualizar el nuevo preacher, este jala al pastor y copastor (REVISAR) AQUI IMPORTANTE
   //* tendria aque ir a cada mimebro y cambiar su casa y este jala todo lo demas
+  //! OJO, ACORDARSE DE ESTO
 
   //? Cuando se borran las relaciones se ira al otro modulo a actualizar, por ejemplo si se borra el pastor
   //? todas sus relaciones en las tablas se borran, se tendria que ir a copastor update y actualizar al copastor con un nuevo pastor

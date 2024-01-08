@@ -68,7 +68,7 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  origin_country: string;
+  origin_country?: string;
 
   //* Info adress
   @IsString()
@@ -87,17 +87,20 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  province: string;
+  @IsOptional()
+  province?: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(20)
-  district: string;
+  @IsOptional()
+  district?: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  address: string;
+  @IsOptional()
+  address?: string;
 }
