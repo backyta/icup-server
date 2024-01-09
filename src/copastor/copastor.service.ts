@@ -244,21 +244,6 @@ export class CoPastorService {
     return coPastor;
   }
 
-  //TODO : seguir en preacher y poner mucho ojo en family-home
-  //NOTE :
-  //* No va funcionar cuando tengamos is actuve en false y queramos setear un nuevo pastor, no va encontrar registro con el copastor a buscar porque todas estabn en null
-  //* Solo va setear el Member-Copastor y su Copastor el nuevo Pastor. Pero lo demas se tendra que hacer manual
-  //* Por lo que se tendra que ir a preache y actualizar el nuevo copastor y este jala al pastor
-  //* Se tendra que ir a casa y actualizar el nuevo preacher, este jala al pastor y copastor (REVISAR) AQUI IMPORTANTE
-  //* tendria aque ir a cada mimebro y cambiar su casa y este jala todo lo demas
-  //! OJO, ACORDARSE DE ESTO
-
-  //? Cuando se borran las relaciones se ira al otro modulo a actualizar, por ejemplo si se borra el pastor
-  //? todas sus relaciones en las tablas se borran, se tendria que ir a copastor update y actualizar al copastor con un nuevo pastor
-  //? lo mismo en preacher, estos endpoints nos suirven para asignar uno nuevo que este actuvo, pero cuando se pasa de false
-  //? a true solo se seteara su mismo module osea si es Copastor se setea su Pastor nuevo, pero en los otros no, si es
-  //? Preacher se setea su Pastor y copastor nuevo, pero en family no, y asi...
-
   //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a CoPastor y Member ✅✅
   //* UPDATE FOR ID
   async update(
@@ -456,7 +441,14 @@ export class CoPastorService {
     );
 
     //* Update and set to null in Member, all those who have the same coPastor
-    const allMembers = await this.memberRepository.find();
+    const allMembers = await this.memberRepository.find({
+      relations: [
+        'their_pastor',
+        'their_copastor',
+        'their_family_home',
+        'their_preacher',
+      ],
+    });
     const membersByPastor = allMembers.filter(
       (member) => member.their_copastor?.id === dataCoPastor.id,
     );

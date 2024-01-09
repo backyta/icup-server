@@ -278,6 +278,7 @@ export class PreacherService {
     return preacher;
   }
 
+  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Preacher y Member ✅✅
   //* UPDATE PREACHER
   async update(
     id: string,
@@ -296,11 +297,11 @@ export class PreacherService {
     }
 
     //* Member assignment and validation
-    const member = await this.memberRepository.findOneBy({
+    const dataMember = await this.memberRepository.findOneBy({
       id: dataPreacher.member.id,
     });
 
-    if (!member) {
+    if (!dataMember) {
       throw new NotFoundException(
         `Member not found with id ${dataPreacher.member.id}`,
       );
@@ -354,47 +355,17 @@ export class PreacherService {
       }
     });
 
-    //TODO : PROBAR update and delete, continuar tomorrow 31/12
-    //NOTE: SI se borra en un midulo el isactive en la mayporia se pone null, es decir si se borra en pastor se setea
-    //* Casi todo a null, y al querer borrar el preacher(false is active) no lo encontrara porque esta null
-    //* Solo deja su family home como referencia a los miembros, los demas se actualizan desde su Tabla.
-    //! Si en eliminar pastor ya se seteo a null en todos en family home, no encontrara al preacher o copastor, pero ya estara seteado en null
-
-    //NOTE : ver si se deja el their_family para poder identificar cuales actualizat el nuevo predicador
-    //! IMPORTANTE (Revisar desde family home, el actualizar cuando se setee un nuevo pracher que tenga mismo copastor al de la zona buscar.)
-
-    //* Bajo este contexto, las casas son independientes de copastor o preacher, por tanto cuando se cambia un preacher de copastor
-    //* se puede asignar solo este nuevo preacher a la zona que tiene relacion con copastor, hacer busqueda si existe el copastor
-    //* y validar. (Zone y copastor)
-
-    //* Las casas pertenecen a ala zona, si cambio el copastor del preacher, se debe borrar de la casa familiar todos sis
-    //* relaciones y asignar otro predicador que cumpla con el copastor que riga esa zona. Por ejemplo si se pasa a Pamela
-    //* a copastor Mercedes, en casa familiar de Pamela se debe eliminar sus relaciones, y asignar a esta casa otro predicador
-    //* que cumpla con el copastor que rige la zona.
-
-    //* Actualizar casa familiar si son diferentes copastores.
-    //! No encuentra la casa familiar con el preacher id porque esta en null, despues de stear isactive a false.
-    //? Lo otro seria que se haga la acxtualizacion en preacher no mas, y desde family home ya
-    //? jale al nuevo preacher. (esto se hara)
-
-    //? A la family le puedo setear solo el que tenga la misma zona pero si elimine todos los poreacher porque elimine su copastor
-    //? ahi ver que se agrege un nuevo copastror a esa zona.
-
-    //! Aqui solo hay 2 tipos de cambios, el primero para setear a is active true, cuando estaba en false
-    //! asignando un nuevo copastor y pastor al predicador y a su miembro - preacher, todas las demas relaciones
-    //! se actualizan desde su mismo modulo.
-    //! El segundo es cuando se quiere cambiar de copastor y pastor al preacher aun teniendo uno ya seteado, para este
-    //! caso se elimina las relaciones en los miembros que tengan relacion con este preacher, y tmb en faily home
-    //! se elimnan las relaciones ya que cambia de copastor y por ende es otra zona.
-
-    //* Setear a null si el copastor es diferente, porque el preacher cambio de zona (copastor)
+    //* Si se encuentra casa con el preacher y su copastor es diferente al que queremos actualizar (eliminar relaciones)
     const allFamilyHouses = await this.familyHomeRepository.find();
     const dataFamilyHomeByPreacher = allFamilyHouses.find(
       (home) => home.their_preacher?.id === dataPreacher.id,
     );
 
     let updateFamilyHome: FamilyHome;
-    if (dataFamilyHomeByPreacher?.their_copastor.id !== copastor.id) {
+    if (
+      dataFamilyHomeByPreacher &&
+      dataFamilyHomeByPreacher?.their_copastor?.id !== copastor.id
+    ) {
       updateFamilyHome = await this.familyHomeRepository.preload({
         id: dataFamilyHomeByPreacher?.id,
         their_preacher: null,
@@ -405,7 +376,7 @@ export class PreacherService {
 
     //* Counting and assigning the number of members (id-preacher member table)
     const membersPreacher = allMembers.filter(
-      (member) => member.their_preacher?.id === dataMember.their_preacher?.id,
+      (member) => member.their_preacher?.id === dataPreacher.id,
     );
 
     const listMembersID = membersPreacher.map((preacher) => preacher.id);
@@ -418,49 +389,46 @@ export class PreacherService {
 
     const familyHomeId = familyHome.map((home) => home.id);
 
-    // NOTE: en family_se debe actualizar en el mimebro-preacher su casa nueva
-    //? Actualizar de is_active false a true
-    //! Si quiero setear a is active en true y un nuevo copastor, solo se hara en preacher y su member-preacher
-    //! Al member tengo que jalar el preacher, copastor y pastor, de su casa familiar (desde module-member)
-
-    //! Update Preacher and Member-Preacher, their_co-pastor and their_pastor.
-    const dataMember = await this.memberRepository.preload({
-      id: member.id,
-      ...updatePreacherDto,
-      their_pastor: pastor,
-      their_copastor: copastor,
-      their_family_home:
-        member.their_copastor?.id !== copastor.id
-          ? null
-          : member.their_family_home,
-      is_active: is_active,
-      updated_at: new Date(),
-      updated_by: 'Kevinxd',
-    });
-
-    const preacher = await this.preacherRepository.preload({
-      id: dataPreacher.id,
-      member: dataMember,
-      their_pastor: pastor,
-      their_copastor: copastor,
-      members: listMembersID,
-      count_members: listMembersID.length,
-      family_home: familyHomeId,
-      is_active: is_active,
-      updated_at: new Date(),
-      updated_by: 'Kevinxd',
-    });
-
+    //* Update Preacher and Member-Preacher, their_co-pastor and their_pastor.
     try {
+      const member = await this.memberRepository.preload({
+        id: dataMember.id,
+        ...updatePreacherDto,
+        their_pastor: pastor,
+        their_copastor: copastor,
+        their_family_home:
+          dataMember.their_copastor?.id !== copastor.id
+            ? null
+            : dataMember.their_family_home,
+        is_active: is_active,
+        updated_at: new Date(),
+        updated_by: 'Kevinxd',
+      });
+
       await this.memberRepository.save(member);
+
+      const preacher = await this.preacherRepository.preload({
+        id: dataPreacher.id,
+        member: dataMember,
+        their_pastor: pastor,
+        their_copastor: copastor,
+        members: listMembersID,
+        count_members: listMembersID.length,
+        family_home: familyHomeId,
+        is_active: is_active,
+        updated_at: new Date(),
+        updated_by: 'Kevinxd',
+      });
+
       await this.preacherRepository.save(preacher);
-      await this.familyHomeRepository.save(updateFamilyHome);
+      updateFamilyHome &&
+        (await this.familyHomeRepository.save(updateFamilyHome));
       await Promise.all(promisesMembers);
+
+      return preacher;
     } catch (error) {
       this.handleDBExceptions(error);
     }
-
-    return preacher;
   }
 
   //* DELETE FOR ID
@@ -515,7 +483,14 @@ export class PreacherService {
     );
 
     //* Update and set to null in Member, all those who have the same Preacher
-    const allMembers = await this.memberRepository.find();
+    const allMembers = await this.memberRepository.find({
+      relations: [
+        'their_pastor',
+        'their_copastor',
+        'their_family_home',
+        'their_preacher',
+      ],
+    });
     const membersByPreacher = allMembers.filter(
       (member) => member.their_preacher?.id === dataPreacher.id,
     );

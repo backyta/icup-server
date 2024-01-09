@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -11,16 +12,6 @@ export class CreateFamilyHomeDto {
   @IsString()
   @IsNotEmpty()
   zone: string;
-
-  // @IsString()
-  // @IsOptional()
-  // @IsNotEmpty()
-  // number_home?: string;
-
-  // @IsString()
-  // @IsOptional()
-  // @IsNotEmpty()
-  // code?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -39,7 +30,7 @@ export class CreateFamilyHomeDto {
   @IsNotEmpty()
   address: string;
 
-  @IsString()
+  @IsBoolean()
   @IsNotEmpty()
   @IsOptional()
   is_active?: boolean;

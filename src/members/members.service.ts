@@ -53,9 +53,6 @@ export class MembersService {
     private readonly preacherService: PreacherService,
   ) {}
 
-  //TODO : Revisar NOTES y Comentarios para armar la documentacion en Notion
-  //TODO : despues de pribar todo unir ramas y comenzar con module ofrendas
-
   //* CREATE MEMBER
   async create(createMemberDto: CreateMemberDto): Promise<Member> {
     const {

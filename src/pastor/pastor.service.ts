@@ -371,7 +371,14 @@ export class PastorService {
     );
 
     //* Update and set to null relationships in Member, all those who have the same Pastor.
-    const allMembers = await this.memberRepository.find();
+    const allMembers = await this.memberRepository.find({
+      relations: [
+        'their_pastor',
+        'their_copastor',
+        'their_family_home',
+        'their_preacher',
+      ],
+    });
     const membersByPastor = allMembers.filter(
       (member) => member.their_pastor?.id === dataPastor.id,
     );
