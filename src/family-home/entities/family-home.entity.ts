@@ -1,6 +1,6 @@
 import { CoPastor } from '../../copastor/entities/copastor.entity';
-import { Member } from '../../members/entities/member.entity';
 import { Pastor } from '../../pastor/entities/pastor.entity';
+import { Preacher } from '../../preacher/entities/preacher.entity';
 import {
   Column,
   Entity,
@@ -11,17 +11,36 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class Preacher {
+export class FamilyHome {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('int', { default: 0 })
-  count_members: number;
+  @Column('text')
+  zone: string;
+
+  @Column('text')
+  number_home: string;
+
+  @Column('text', { unique: true })
+  code: string;
+
+  @Column('text', { unique: true })
+  name_home: string;
 
   @Column('bool', { default: true })
   is_active: boolean;
 
-  //* User create and updated
+  //* Address
+  @Column('text')
+  district: string;
+
+  @Column('text')
+  address: string;
+
+  @Column('int', { default: 0 })
+  count_members: number;
+
+  //* User create and update
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
@@ -34,17 +53,15 @@ export class Preacher {
   @Column('text', { nullable: true })
   updated_by: string;
 
-  //* Array or single id (data)
+  //* Array id (data)
   @Column('uuid', { array: true, nullable: true })
   members: string[];
 
-  @Column('uuid', { array: true, nullable: true })
-  family_home: string[];
-
   //* Relation columns
-  @OneToOne(() => Member, { eager: true })
-  @JoinColumn({ name: 'member_id' })
-  member: Member;
+
+  @OneToOne(() => Preacher, { eager: true })
+  @JoinColumn({ name: 'their_preacher_id' })
+  their_preacher: Preacher;
 
   @ManyToOne(() => CoPastor, { eager: true })
   @JoinColumn({ name: 'their_copastor_id' })

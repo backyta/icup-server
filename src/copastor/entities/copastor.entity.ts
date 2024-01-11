@@ -42,22 +42,11 @@ export class CoPastor {
   family_houses: string[];
 
   //* Relations Column
-  @OneToOne(() => Member, { eager: true }) // Carga el Miembro automáticamente al consultar Pastor
+  @OneToOne(() => Member, { eager: true })
   @JoinColumn({ name: 'member_id' })
   member: Member;
-
-  //! Error aqui de Unique, solo puede tener un pastor por cada copastor, deberia ser muchos copastores pueden tener un pastor
-  // @OneToOne(() => Pastor, { eager: true, nullable: true })
-  // @JoinColumn({ name: 'their_pastor_id' })
-  // their_pastor: Pastor;
 
   @ManyToOne(() => Pastor, { eager: true })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
-
-  //* Hacer relacion many to One con lideres y setear conteo en columna
-  //* Relacion con lideres y con residencias
 }
-
-//! Se agregaria el id del usuario en creacion y actualizacion (relacion) Created By y updated By
-//* Esta propiedad tmb seria una relacion con @OneToOne, igual que abajo para tomar la info del usuario que creo, y devuelvo olo la que necesito en este caso el ID

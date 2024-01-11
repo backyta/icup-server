@@ -1,7 +1,8 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Member } from '../../members/entities/member.entity';
+
 import { validateName } from './validate-name.helper';
 import { SearchFullnameOptions } from '../interfaces/search-fullname.interface';
-import { Member } from '../../members/entities/member.entity';
 
 export const searchFullname = async ({
   term,
@@ -11,7 +12,7 @@ export const searchFullname = async ({
 }: SearchFullnameOptions<Member>): Promise<Member[]> => {
   if (!term.includes('-')) {
     throw new BadRequestException(
-      `Term not valid, use allow '-' for concatc firstname and lastname`,
+      `Term not valid, use allow '-' for concat firstname and lastname`,
     );
   }
 
@@ -21,8 +22,10 @@ export const searchFullname = async ({
 
   const queryBuilder = repository.createQueryBuilder('member');
   const member = await queryBuilder
-    .leftJoinAndSelect('member.their_pastor_id', 'rel1')
-    .leftJoinAndSelect('member.their_copastor_id', 'rel2')
+    .leftJoinAndSelect('member.their_pastor', 'rel1')
+    .leftJoinAndSelect('member.their_copastor', 'rel2')
+    .leftJoinAndSelect('member.their_preacher', 'rel3')
+    .leftJoinAndSelect('member.their_family_home', 'rel4')
     .where(`member.first_name ILIKE :searchTerm1`, {
       searchTerm1: `%${firstName}%`,
     })

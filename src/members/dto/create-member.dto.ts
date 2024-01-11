@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsIn,
@@ -35,6 +36,10 @@ export class CreateMemberDto {
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
 
   @IsIn(['male', 'female'])
   gender: string;
@@ -80,7 +85,7 @@ export class CreateMemberDto {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  province: string;
+  province?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -95,10 +100,10 @@ export class CreateMemberDto {
   address: string;
 
   //* Relations
-  // @IsString()
-  // @IsUUID()
-  // @IsOptional()
-  // their_family_home?: string | ;
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  their_family_home?: string;
 
   @IsString()
   @IsUUID()

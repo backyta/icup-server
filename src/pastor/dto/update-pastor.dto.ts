@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreatePastorDto } from './create-pastor.dto';
 import {
-  IsArray,
+  IsBoolean,
   IsEmail,
   IsEnum,
   IsIn,
@@ -12,10 +12,10 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { MaritalStatus } from 'src/members/enums/marital-status.enum';
-import { ValidRoles } from 'src/members/enums/valid-roles.enum';
+import { MaritalStatus } from '../../members/enums/marital-status.enum';
 
 export class UpdatePastorDto extends PartialType(CreatePastorDto) {
+  //* Info member
   @IsString()
   @IsOptional()
   @IsNotEmpty()
@@ -33,11 +33,15 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsString()
   @IsOptional()
   @IsNotEmpty()
-  date_birth: string | Date;
+  date_birth?: string | Date;
 
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
 
   @IsIn(['male', 'female'])
   @IsOptional()
@@ -52,6 +56,7 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsOptional()
   marital_status?: string;
 
+  //NOTE: Transformar desde el front a string y enviarlo con - y +51 (solo peru)
   @IsString()
   @IsOptional()
   phone?: string;
@@ -63,11 +68,39 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsString()
   @IsNotEmpty()
   @IsOptional()
-  nationality?: string;
+  origin_country: string;
 
-  @IsEnum(ValidRoles, { each: true })
-  @IsArray()
-  @IsNotEmpty()
+  //* Info adress
+  @IsString()
   @IsOptional()
-  roles?: string[];
+  @MinLength(1)
+  @MaxLength(10)
+  residence_country?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  departament?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(1)
+  @MaxLength(15)
+  @IsOptional()
+  province?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(20)
+  @IsOptional()
+  district?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(1)
+  @MaxLength(50)
+  @IsOptional()
+  address?: string;
 }

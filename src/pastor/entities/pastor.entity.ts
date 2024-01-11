@@ -21,6 +21,7 @@ export class Pastor {
   @Column('bool', { default: true })
   is_active: boolean;
 
+  //* User create and updated
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
@@ -33,21 +34,15 @@ export class Pastor {
   @Column('text', { nullable: true })
   updated_by: string;
 
+  //* Array id (data)
   @Column('uuid', { array: true, nullable: true })
-  copastores: string[];
+  copastores_id: string[];
 
   @Column('uuid', { array: true, nullable: true })
-  preachers: string[];
+  preachers_id: string[];
 
   //* Relation columns
   @OneToOne(() => Member, { eager: true })
   @JoinColumn({ name: 'member_id' })
   member: Member;
-
-  //NOTE : Al actualizar si el id del pastor le asigno otro copastores, gracias a esta relacion, se actualiza el id del pastor en la tabla copastor.
-  // @OneToMany(() => CoPastor, (copastor) => copastor.pastor, { nullable: true })
-  // copastores: CoPastor[]; // esto no se mostrara en la tabla, pero la cargamos aparte.
 }
-
-//! Se agregaria el id del usuario en creacion y actualizacion (relacion) CRATED by
-//* Esta propiedad tmb seria una relacion con @OneToOne, igual que abajo para tomar la info del usuario que creo, y devuelvo olo la que necesito en este caso el ID

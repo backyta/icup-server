@@ -9,10 +9,5 @@ export class CreatePreacherDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  their_pastor: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @IsUUID()
   their_copastor: string;
 }

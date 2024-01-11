@@ -7,7 +7,8 @@ import { PastorService } from './pastor.service';
 
 import { MembersModule } from '../members/members.module';
 import { CopastorModule } from '../copastor/copastor.module';
-import { PreacherModule } from 'src/preacher/preacher.module';
+import { PreacherModule } from '../preacher/preacher.module';
+import { FamilyHomeModule } from '../family-home/family-home.module';
 
 @Module({
   controllers: [PastorController],
@@ -17,6 +18,7 @@ import { PreacherModule } from 'src/preacher/preacher.module';
     forwardRef(() => MembersModule),
     CopastorModule,
     PreacherModule,
+    FamilyHomeModule,
   ],
   exports: [TypeOrmModule, PastorService],
 })

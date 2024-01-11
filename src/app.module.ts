@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { MembersModule } from './members/members.module';
 import { CommonModule } from './common/common.module';
 import { PastorModule } from './pastor/pastor.module';
 import { CopastorModule } from './copastor/copastor.module';
 import { PreacherModule } from './preacher/preacher.module';
+import { FamilyHomeModule } from './family-home/family-home.module';
 
 @Module({
   imports: [
@@ -20,11 +22,12 @@ import { PreacherModule } from './preacher/preacher.module';
       autoLoadEntities: true, // para cargar automaticamente las entidades que definimos.
       synchronize: true, // sincronizacion automatica con DB (no production, hacer migrations)
     }),
-    MembersModule,
     CommonModule,
+    MembersModule,
     PastorModule,
     CopastorModule,
     PreacherModule,
+    FamilyHomeModule,
   ],
 })
 export class AppModule {}

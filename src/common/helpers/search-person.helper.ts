@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';
 import { Member } from '../../members/entities/member.entity';
+
+import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';
 
 export const searchPerson = async ({
   term,
@@ -30,9 +31,10 @@ export const searchPerson = async ({
 
   const queryBuilder = repository.createQueryBuilder('member');
   const member = await queryBuilder
-    .leftJoinAndSelect('member.their_pastor_id', 'rel1')
-    .leftJoinAndSelect('member.their_copastor_id', 'rel2')
-    // .leftJoinAndSelect('member.their_preacher_id', 'rel3')
+    .leftJoinAndSelect('member.their_pastor', 'rel1')
+    .leftJoinAndSelect('member.their_copastor', 'rel2')
+    .leftJoinAndSelect('member.their_preacher', 'rel3')
+    .leftJoinAndSelect('member.their_family_home', 'rel4')
     .where(`member.${searchType} ILIKE :searchTerm`, {
       searchTerm: `%${dataPerson}%`,
     })
