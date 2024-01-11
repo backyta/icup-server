@@ -224,6 +224,7 @@ export class PastorService {
 
     return pastor;
   }
+
   //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Pastor y Member ✅✅
   //* UPDATE FOR ID
   async update(id: string, updatePastorDto: UpdatePastorDto): Promise<Pastor> {

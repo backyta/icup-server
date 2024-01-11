@@ -355,7 +355,7 @@ export class PreacherService {
       }
     });
 
-    //* Si se encuentra casa con el preacher y su copastor es diferente al que queremos actualizar (eliminar relaciones)
+    //* If you find a house with the preacher and your co-pastor is different from the one we want to update (delete relationships)
     const allFamilyHouses = await this.familyHomeRepository.find();
     const dataFamilyHomeByPreacher = allFamilyHouses.find(
       (home) => home.their_preacher?.id === dataPreacher.id,
@@ -364,7 +364,8 @@ export class PreacherService {
     let updateFamilyHome: FamilyHome;
     if (
       dataFamilyHomeByPreacher &&
-      dataFamilyHomeByPreacher?.their_copastor?.id !== copastor.id
+      (dataFamilyHomeByPreacher?.their_copastor?.id !== copastor.id ||
+        dataFamilyHomeByPreacher?.their_pastor?.id !== pastor.id)
     ) {
       updateFamilyHome = await this.familyHomeRepository.preload({
         id: dataFamilyHomeByPreacher?.id,

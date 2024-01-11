@@ -58,7 +58,7 @@ export class FamilyHome {
   members: string[];
 
   //* Relation columns
-  //! Revisar si el eager en tru no afecta.
+
   @OneToOne(() => Preacher, { eager: true })
   @JoinColumn({ name: 'their_preacher_id' })
   their_preacher: Preacher;

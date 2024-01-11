@@ -33,7 +33,7 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsString()
   @IsOptional()
   @IsNotEmpty()
-  date_birth: string | Date;
+  date_birth?: string | Date;
 
   @IsEmail()
   @IsOptional()

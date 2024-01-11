@@ -459,7 +459,7 @@ export class MembersService {
       );
     }
 
-    //* Validation when updating roles (of the member), they cannot be lower
+    //* Validation when updating roles (of the member), they cannot be lower.
     if (
       (dataMember.roles.includes('pastor') && roles.includes('copastor')) ||
       (dataMember.roles.includes('pastor') && roles.includes('preacher')) ||
@@ -766,7 +766,8 @@ export class MembersService {
       //! Valdidation if family_home exists and you want to assign a different co-pastor
       if (
         dataMember.their_family_home &&
-        dataMember.their_copastor?.id !== copastor.id
+        dataMember.their_copastor?.id !== copastor.id &&
+        dataMember.their_pastor?.id !== pastor.id
       ) {
         throw new BadRequestException(
           `You cannot change their_copastor to a Preacher-Member assigned to a Family House: ${dataMember.their_family_home.code}, Copastor: ${dataMember.their_family_home.their_copastor.member.first_name} ${dataMember.their_family_home.their_copastor.member.last_name}, if you want to change first update their_copastor in the Preacher Module`,
@@ -777,6 +778,7 @@ export class MembersService {
       if (
         dataMember.their_family_home &&
         dataMember.their_copastor.id === copastor.id &&
+        dataMember.their_pastor.id === pastor.id &&
         dataMember.is_active
       ) {
         member = await this.memberRepository.preload({
@@ -790,10 +792,6 @@ export class MembersService {
           their_family_home: dataMember.their_family_home,
         });
       }
-
-      //TODO : tomorrow seguir con pastor revisar UPDATE y delete de todo lo demas, cambiar, los update_by y at en cada eDELETE de los demas modules, hacer igual que en member
-      //TODO : regresar aqui para pobrar actualizar cuando se elimia si family_home (coloca como inactivo y se elimina la relacion)
-      //TODO : volver a probar cuando se actualize la family home y se setee nuevos copastores y pastor
 
       //! Temporary house setting for the preacher without home, as long as his house is in the same area as his co-pastor
       if (
@@ -814,7 +812,7 @@ export class MembersService {
           });
         } else {
           throw new BadRequestException(
-            `Se debe asignar una casa familiar temporal que este dentro de la zona del copastor, verificar si family_home tiene copastor asignado`,
+            `A temporary family home must be assigned that is within the co-pastor's area, check if family_home has a co-pastor assigned`,
           );
         }
       }

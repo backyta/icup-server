@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';
 import { Member } from '../../members/entities/member.entity';
+
+import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';
 
 export const searchPerson = async ({
   term,

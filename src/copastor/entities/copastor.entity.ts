@@ -50,6 +50,3 @@ export class CoPastor {
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 }
-
-//TODO : Se agregaria el id del usuario en creacion y actualizacion (relacion) Created By y updated By
-//* Esta propiedad tmb seria una relacion con @OneToOne, igual que abajo para tomar la info del usuario que creo, y devuelvo olo la que necesito en este caso el ID

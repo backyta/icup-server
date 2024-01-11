@@ -1,7 +1,8 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { Member } from '../../members/entities/member.entity';
+
 import { validateName } from './validate-name.helper';
 import { SearchFullnameOptions } from '../interfaces/search-fullname.interface';
-import { Member } from '../../members/entities/member.entity';
 
 export const searchFullname = async ({
   term,

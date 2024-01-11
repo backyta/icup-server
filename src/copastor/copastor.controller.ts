@@ -9,8 +9,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { CoPastorService } from './copastor.service';
+
 import { CreateCoPastorDto } from './dto/create-copastor.dto';
 import { UpdateCoPastorDto } from './dto/update-copastor.dto';
+
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Controller('copastor')

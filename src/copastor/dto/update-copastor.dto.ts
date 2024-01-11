@@ -12,7 +12,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { MaritalStatus } from 'src/members/enums/marital-status.enum';
+import { MaritalStatus } from '../../members/enums/marital-status.enum';
 
 export class UpdateCoPastorDto extends PartialType(CreateCoPastorDto) {
   //* Info member

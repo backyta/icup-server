@@ -64,15 +64,15 @@ export class FamilyHomeService {
     }
 
     //* Validation copastor
-    const copastor = await this.coPastorRepository.findOneBy({
-      id: preacher.their_copastor.id,
-    });
-
-    if (!copastor) {
+    if (!preacher.their_copastor) {
       throw new NotFoundException(
-        `Not faound CoPastor with id ${preacher.their_copastor.id}`,
+        `CoPastor was not found, verify that Preacher has a copastor assigned`,
       );
     }
+
+    const copastor = await this.coPastorRepository.findOneBy({
+      id: preacher?.their_copastor.id,
+    });
 
     if (!copastor.is_active) {
       throw new BadRequestException(
@@ -81,15 +81,15 @@ export class FamilyHomeService {
     }
 
     //* Validation pastor
-    const pastor = await this.pastorRepository.findOneBy({
-      id: preacher.their_pastor.id,
-    });
-
-    if (!pastor) {
+    if (!preacher.their_pastor) {
       throw new NotFoundException(
-        `Not faound Pastor with id ${preacher.their_pastor.id}`,
+        `Pastor was not found, verify that Preacher has a pastor assigned`,
       );
     }
+
+    const pastor = await this.pastorRepository.findOneBy({
+      id: preacher?.their_pastor.id,
+    });
 
     if (!pastor.is_active) {
       throw new BadRequestException(
@@ -97,27 +97,29 @@ export class FamilyHomeService {
       );
     }
 
-    //? Validation of zone assignment by copastor and preacher
+    //! Validation of zone assignment by copastor and preacher
     const allHouses = await this.familyHomeRepository.find();
     const allHousesByZone = allHouses.filter(
       (home) => home.zone === zone.toUpperCase(),
     );
 
-    const dataFamilyHome = allHouses.find(
+    const familyHomeByZone = allHouses.find(
       (house) =>
         house.zone === zone.toUpperCase() ||
-        house.their_copastor.id === copastor.id,
+        house.their_copastor.id === copastor.id ||
+        house.their_pastor.id === pastor.id,
     );
 
-    if (dataFamilyHome) {
-      if (
-        dataFamilyHome.their_copastor.id !== copastor.id ||
-        dataFamilyHome.zone !== zone.toUpperCase()
-      ) {
-        throw new BadRequestException(
-          `You cannot assign a preacher with a copastor different from the one already used for this zone: Zone-${dataFamilyHome.zone}, ${dataFamilyHome.their_copastor.member.first_name} ${dataFamilyHome.their_copastor.member.last_name}`,
-        );
-      }
+    //* Check if there is a reference with co-pastor, pastor and zone, that these are the same.
+    if (
+      familyHomeByZone &&
+      ((familyHomeByZone.their_copastor.id !== copastor.id &&
+        familyHomeByZone.their_pastor.id !== pastor.id) ||
+        familyHomeByZone.zone !== zone.toUpperCase())
+    ) {
+      throw new BadRequestException(
+        `You cannot assign a preacher with a copastor and pastor different from the one already used for this zone: Zone-${familyHomeByZone.zone}, CoPastor: ${familyHomeByZone.their_copastor.member.first_name} ${familyHomeByZone.their_copastor.member.last_name}, Pastor: ${familyHomeByZone.their_pastor.member.first_name} ${familyHomeByZone.their_pastor.member.last_name}`,
+      );
     }
 
     let numberHome: number;
@@ -333,8 +335,9 @@ export class FamilyHomeService {
     return familyHome;
   }
 
-  //TODO : documentar y trasnformar todo lo demas a ingles, revisar archivos rutas relativas y hacer merge
+  //TODO : tomorrow make it merge in github
 
+  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Casa_Familiar y en Member family-home  ✅✅
   //* UPDATE FAMILY HOME ID
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
     const { their_preacher, is_active, zone } = updateFamilyHomeDto;
@@ -402,6 +405,7 @@ export class FamilyHomeService {
     //* If there is data in their_copastor and their_pastor
     let updateFamilyHome: FamilyHome;
     let updateFamilyHomePreacher: FamilyHome;
+
     if (
       dataFamilyHome.their_preacher !== null &&
       dataFamilyHome.their_copastor !== null &&
@@ -410,19 +414,19 @@ export class FamilyHomeService {
       //* If you want to update a preacher with a different copastor to the area
       if (
         dataFamilyHome.their_copastor.id !== copastor.id ||
-        dataFamilyHome.zone !== zone
+        dataFamilyHome.their_pastor.id !== pastor.id
       ) {
         throw new BadRequestException(
-          `A preacher cannot be assigned with a copastor or zone different from the one already used for this zone: Zone-${dataFamilyHome.zone}, ${dataFamilyHome.their_copastor.member.first_name} ${dataFamilyHome.their_copastor.member.last_name}, first co-pastor must be changed in the Preacher entity`,
+          `A family home cannot be assigned a different co-pastor or pastor than the one the zone already has: Zone-${dataFamilyHome.zone}, Copastor: ${dataFamilyHome.their_copastor.member.first_name} - ${dataFamilyHome.their_copastor.member.last_name}, Pastor: ${dataFamilyHome.their_pastor.member.first_name} - ${dataFamilyHome.their_pastor.member.last_name}, first co-pastor must be changed in the Preacher entity`,
         );
       }
 
-      //* Colocar un nuevo preacher a la casa familiar debe ser de la misma zone, se borra las relaciones
+      //* To place a new preacher in the family home he must be from the same area, previous relationships are eliminated.
       if (
         dataFamilyHome.their_copastor.id === copastor.id &&
-        dataFamilyHome.zone === zone
+        dataFamilyHome.their_pastor.id === pastor.id
       ) {
-        //* Borrar las relaciones de la casa vieja
+        //* Delete relationships from the old house
         updateFamilyHome = await this.familyHomeRepository.preload({
           id: dataFamilyHome.id,
           their_preacher: null,
@@ -430,7 +434,7 @@ export class FamilyHomeService {
           their_pastor: null,
         });
 
-        //* Buscamos si el preacher a setear esta relacionado a otra casa y borramos sus relaciones
+        //* We look to see if the preacher to be set is related to another house and we delete its relationships.
         const allFamilyHouses = await this.familyHomeRepository.find();
         const familyHomePreacher = allFamilyHouses.find(
           (home) => home.their_preacher?.id === preacher.id,
@@ -457,39 +461,53 @@ export class FamilyHomeService {
       dataFamilyHome.their_copastor === null ||
       dataFamilyHome.their_preacher === null
     ) {
+      if (!is_active) {
+        throw new BadRequestException(
+          `You must place a value in the is_active property`,
+        );
+      }
       const allHouses = await this.familyHomeRepository.find();
       const allHousesByZone = allHouses.filter((home) => home.zone === zone);
 
-      //* Buscar si coincide el copastor con la zona
+      //* Find out if the co-stor and pastor match the area
       const familyHomeByCopastor = allHouses.find(
-        (home) => home.their_copastor?.id === copastor.id,
+        (home) =>
+          home.their_copastor?.id === copastor.id &&
+          home.their_pastor?.id === pastor.id,
       );
 
-      // TODO : probar esto maniana nuevamente, pasar todo al ingles y hacer el merge
-      if (
-        (familyHomeByCopastor === undefined || familyHomeByCopastor) &&
-        zone
-      ) {
-        throw new BadRequestException(
-          `No es necesario colocar la zone, se esta seteando un copastor para esta zone o un preacher con una zona ya establecida`,
-        );
-      }
-
-      //* Si no se encuentra copastor en esta zona, y no hay zone en el DTO se setea a este copastor a esta zona.
+      //* If there is no co-pastor and pastor in this zone, this co-pastor and pastor are set to this zone.
       if (familyHomeByCopastor === undefined && !zone) {
         numberHome = +dataFamilyHome.number_home;
         codeHome = dataFamilyHome.code;
         zoneHome = dataFamilyHome.zone;
       }
 
-      //* Si se encuentra copastor para esta zona, no se envia zone en DTO, se setea los mismos valores para esta casa con su nuevo predicador y copastor de la misma zona.
-      if (familyHomeByCopastor && !zone) {
-        numberHome = +familyHomeByCopastor.number_home;
-        codeHome = familyHomeByCopastor.code;
-        zoneHome = familyHomeByCopastor.zone;
+      if (
+        familyHomeByCopastor &&
+        !zone &&
+        dataFamilyHome.zone !== familyHomeByCopastor.zone
+      ) {
+        throw new BadRequestException(
+          `You cannot assign a copastor that governs the zone ${familyHomeByCopastor.zone} to the zone ${dataFamilyHome.zone}, if you want to merge the family_home you must submit the new zone`,
+        );
       }
 
-      //* Fusionar una casa de una zona a otra zona, previamente se cambia el copastor y se manda la zona en el DTO
+      //* If a co-pastor is found who already governs this zone, the same values ​​are set for this house with its new preacher and co-pastor from the same zone.
+      //! Crashes validation if preacher ID is being used
+      if (familyHomeByCopastor && !zone) {
+        numberHome = +dataFamilyHome.number_home;
+        codeHome = dataFamilyHome.code;
+        zoneHome = dataFamilyHome.zone;
+      }
+
+      if (familyHomeByCopastor && zone && familyHomeByCopastor.zone !== zone) {
+        throw new BadRequestException(
+          `If you want to merge a family house to another zone, you must enter the correct zone according to the co-pastor`,
+        );
+      }
+
+      //* Merging a house from one zone to another zone, the co-pastor and pastor are previously changed and the zone is sent to the DTO.
       if (
         familyHomeByCopastor &&
         familyHomeByCopastor.zone === zone &&
@@ -498,17 +516,6 @@ export class FamilyHomeService {
         numberHome = allHousesByZone.length + 1;
         codeHome = `${zone}-${numberHome}`;
         zoneHome = zone;
-      }
-
-      if (
-        familyHomeByCopastor &&
-        zone &&
-        familyHomeByCopastor.zone !== zone &&
-        dataFamilyHome.zone === zone
-      ) {
-        throw new BadRequestException(
-          `Si se quiere fusionar una casa familiar a otra zona, se debe colocar la zone correcta segun el copastor`,
-        );
       }
     }
 
@@ -521,13 +528,14 @@ export class FamilyHomeService {
         'their_preacher',
       ],
     });
+
     const membersFamilyHome = allMembers.filter(
       (members) => members?.their_family_home?.id === dataFamilyHome.id,
     );
 
     const listMembersId = membersFamilyHome.map((member) => member.id);
 
-    //* Update or set the new preacher released to the family home, according to the condition
+    //* Update or set the new preacher released to the family home, according to the condition.
     const familyHome = await this.familyHomeRepository.preload({
       id: id,
       ...updateFamilyHomeDto,
@@ -536,15 +544,16 @@ export class FamilyHomeService {
       their_preacher: preacher,
       code: codeHome,
       zone: zoneHome,
+      number_home: numberHome?.toString(),
       is_active: is_active,
-      number_home: numberHome.toString(),
       members: listMembersId,
       count_members: listMembersId.length,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
 
-    //* Elimina la family home del anterior casa que se hara el cambio de preacher (puede ser null).
+    //! Changes to Member-Preacher
+    //* Removes the family_home from the previous member-preacher that will make the change (can be null).
     let updateOldFamilyHome: Member;
     if (dataFamilyHome.their_preacher) {
       updateOldFamilyHome = await this.memberRepository.preload({
@@ -553,7 +562,7 @@ export class FamilyHomeService {
       });
     }
 
-    //* Buscar y eliminar las relaciones del nuevo predicador a establecer
+    //* Find and eliminate the relationships of the new preacher to establish
     const familyHomeMember = allMembers.find(
       (member) => member.id === preacher.member.id,
     );
@@ -566,7 +575,7 @@ export class FamilyHomeService {
       });
     }
 
-    //* Establecer casa familiar al pracher-member
+    //* Set family home to pracher-member
     const updateMemberFamilyHome = await this.memberRepository.preload({
       id: preacher.member.id,
       their_family_home: familyHome,
@@ -639,7 +648,7 @@ export class FamilyHomeService {
       is_active: false,
     });
 
-    //? Update and eliminate relations with their_family_home
+    //* Update and eliminate relations with their_family_home
     let member: Member;
     if (familyHome.their_copastor) {
       member = await this.memberRepository.preload({
@@ -648,7 +657,7 @@ export class FamilyHomeService {
       });
     }
 
-    //? Update and set to null in Member, all those who have the same Family Home
+    //* Update and set to null in Member, all those who have the same Family Home
     const allMembers = await this.memberRepository.find({
       relations: [
         'their_pastor',

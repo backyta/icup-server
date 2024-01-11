@@ -7,8 +7,8 @@ import { PastorService } from './pastor.service';
 
 import { MembersModule } from '../members/members.module';
 import { CopastorModule } from '../copastor/copastor.module';
-import { PreacherModule } from 'src/preacher/preacher.module';
-import { FamilyHomeModule } from 'src/family-home/family-home.module';
+import { PreacherModule } from '../preacher/preacher.module';
+import { FamilyHomeModule } from '../family-home/family-home.module';
 
 @Module({
   controllers: [PastorController],
