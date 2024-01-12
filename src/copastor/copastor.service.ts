@@ -288,6 +288,7 @@ export class CoPastorService {
       );
     }
 
+    //! Si se cambia el pastor solo afectar al copastor y a su member-copastor, los demas quedan libres para setear data (solo se va el copastor, con otro pastor)
     //* Update on all members the new pastor of the co-pastor that is updated.
     const allMembers = await this.memberRepository.find();
     const membersByCoPastor = allMembers.filter(
@@ -296,7 +297,10 @@ export class CoPastorService {
 
     const promisesMembers = membersByCoPastor.map(async (member) => {
       await this.memberRepository.update(member.id, {
-        their_pastor: pastor,
+        their_pastor: null,
+        their_copastor: null,
+        their_preacher: null,
+        their_family_home: null,
       });
     });
 
@@ -308,7 +312,10 @@ export class CoPastorService {
 
     const promisesPreacher = preachersByCoPastor.map(async (preacher) => {
       await this.preacherRepository.update(preacher.id, {
-        their_pastor: pastor,
+        their_pastor: null,
+        their_copastor: null,
+        family_home: null,
+        members: null,
       });
     });
 
@@ -321,7 +328,10 @@ export class CoPastorService {
     const promisesFamilyHouses = familyHousesByPastor.map(
       async (familyHome) => {
         await this.familyHomeRepository.update(familyHome.id, {
-          their_pastor: pastor,
+          their_pastor: null,
+          their_copastor: null,
+          their_preacher: null,
+          members: null,
         });
       },
     );
@@ -417,6 +427,8 @@ export class CoPastorService {
       await this.preacherRepository.update(preacher.id, {
         their_copastor: null,
         their_pastor: null,
+        family_home: null,
+        members: null,
         updated_at: new Date(),
         updated_by: 'Kevinxd',
       });
@@ -434,6 +446,7 @@ export class CoPastorService {
           their_copastor: null,
           their_pastor: null,
           their_preacher: null,
+          members: null,
           updated_at: new Date(),
           updated_by: 'Kevinxd',
         });
