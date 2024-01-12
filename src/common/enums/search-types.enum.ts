@@ -9,7 +9,6 @@ export enum SearchType {
   roles = 'roles',
 
   //* Extras
-
   code = 'code',
   their_pastor = 'their_pastor',
   their_copastor = 'their_copastor',
@@ -17,4 +16,14 @@ export enum SearchType {
   their_family_home = 'their_family_home',
   address = 'address',
   zone = 'zone',
+
+  //* Offering
+
+  type = 'type',
+  sub_type = 'sub_type',
+  date = 'date',
+
+  copastor_id = 'copastor_id',
+  family_home_id = 'family_home_id',
+  member_id = 'member_id',
 }

@@ -149,20 +149,96 @@ export class MembersService {
     let preacher: Preacher;
     let familyHome: FamilyHome;
 
-    //? If their_family_home exists, it is a Member
-    if (their_family_home) {
+    //* If their_family_home exists, it is a Member
+    if (
+      their_family_home &&
+      !their_pastor &&
+      !their_copastor &&
+      !their_preacher
+    ) {
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
+
+      if (!familyHome) {
+        throw new BadRequestException(
+          `Family-Home was not found with id ${their_family_home}`,
+        );
+      }
+
+      if (!familyHome.their_preacher) {
+        throw new BadRequestException(
+          `Preacher was not found, verify that FamilyHome has a preacher assigned`,
+        );
+      }
+
       preacher = await this.preacherRepository.findOneBy({
         id: familyHome.their_preacher.id,
       });
+
+      if (!familyHome.their_copastor) {
+        throw new BadRequestException(
+          `CoPastor was not found, verify that FamilyHome has a copastor assigned`,
+        );
+      }
+
       copastor = await this.coPastorRepository.findOneBy({
         id: familyHome.their_copastor.id,
       });
+
+      if (!familyHome.their_pastor) {
+        throw new BadRequestException(
+          `Pastor was not found, verify that FamilyHome has a pastor assigned`,
+        );
+      }
       pastor = await this.pastorRepository.findOneBy({
         id: familyHome.their_pastor.id,
       });
+    }
+
+    //* If their_copastor exists, it is a Preacher
+    if (
+      their_copastor &&
+      !their_pastor &&
+      !their_family_home &&
+      !their_preacher
+    ) {
+      copastor = await this.coPastorRepository.findOneBy({
+        id: their_copastor,
+      });
+
+      if (!copastor) {
+        throw new BadRequestException(
+          `CoPastor was not found with id ${their_copastor}`,
+        );
+      }
+
+      if (!copastor.their_pastor) {
+        throw new BadRequestException(
+          `Pastor was not found, verify that Copastor has a pastor assigned`,
+        );
+      }
+      pastor = await this.pastorRepository.findOneBy({
+        id: copastor?.their_pastor.id,
+      });
+    }
+
+    //* If their_pastor exists, it is a Copastor
+    if (
+      their_pastor &&
+      !their_family_home &&
+      !their_preacher &&
+      !their_copastor
+    ) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+
+      if (!pastor) {
+        throw new BadRequestException(
+          `Pastor was not found with id ${their_pastor}`,
+        );
+      }
     }
 
     try {

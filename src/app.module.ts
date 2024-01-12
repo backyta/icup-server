@@ -8,6 +8,7 @@ import { PastorModule } from './pastor/pastor.module';
 import { CopastorModule } from './copastor/copastor.module';
 import { PreacherModule } from './preacher/preacher.module';
 import { FamilyHomeModule } from './family-home/family-home.module';
+import { OfferingModule } from './offering/offering.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { FamilyHomeModule } from './family-home/family-home.module';
     CopastorModule,
     PreacherModule,
     FamilyHomeModule,
+    OfferingModule,
   ],
 })
 export class AppModule {}

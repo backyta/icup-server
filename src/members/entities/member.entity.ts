@@ -1,7 +1,7 @@
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { FamilyHome } from 'src/family-home/entities/family-home.entity';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
+import { CoPastor } from '../../copastor/entities/copastor.entity';
+import { FamilyHome } from '../../family-home/entities/family-home.entity';
+import { Pastor } from '../../pastor/entities/pastor.entity';
+import { Preacher } from '../../preacher/entities/preacher.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
