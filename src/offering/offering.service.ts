@@ -16,6 +16,7 @@ import { FamilyHome } from 'src/family-home/entities/family-home.entity';
 import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
 import { isUUID } from 'class-validator';
 import { SearchType } from 'src/common/enums/search-types.enum';
+import { searchFullname, searchPerson } from 'src/common/helpers';
 
 @Injectable()
 export class OfferingService {
@@ -155,7 +156,65 @@ export class OfferingService {
       }
     }
 
+    //TODO : probar
     //TODO : agregar busqueda por miembro o copastor (nombre) o casa familiar codigo (copiar de otros modulos)
+    //! Falta hacer la de codigo
+
+    //* Find firstName --> Many
+    if (term && type === SearchType.firstName) {
+      const resultSearch = await this.searchOfferingBy(
+        term,
+        SearchType.firstName,
+        limit,
+        offset,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //* Find lastName --> Many
+    if (term && type === SearchType.lastName) {
+      const resultSearch = await this.searchOfferingBy(
+        term,
+        SearchType.lastName,
+        limit,
+        offset,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //* Find fullName --> One
+    if (term && type === SearchType.fullName) {
+      const resultSearch = await this.searchOfferingBy(
+        term,
+        SearchType.fullName,
+        limit,
+        offset,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //* Find Code --> One
+    if (term && type === SearchType.code) {
+      offering = await this.offeringRepository
+        .createQueryBuilder('offering')
+        .where('UPPER(offering.code) LIKE UPPER(:term)', { term: `%${term}%` })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (offering.length === 0) {
+        throw new BadRequestException(
+          `No Offerings were found with this code of Family Home: ${term}`,
+        );
+      }
+    }
+
     //! Independiente quiero solo consultar la pertenencia, por copastor, por miembro, por casa.
 
     //* Find Offering (zonal) by copastor_id --> Many
@@ -364,4 +423,78 @@ export class OfferingService {
       'Unexpected errors, check server logs',
     );
   }
+
+  private searchOfferingBy = async (
+    term: string,
+    searchType: SearchType,
+    limit: number,
+    offset: number,
+    repository: Repository<Member>,
+  ): Promise<Offering | Offering[]> => {
+    //* Para find by first or last name
+    if (searchType === 'first_name' || searchType === 'last_name') {
+      const members = await searchPerson({
+        term,
+        searchType,
+        limit,
+        offset,
+        repository,
+      });
+
+      const offerings = await this.offeringRepository.find();
+
+      const offeringsMember = members.map((member) => {
+        const newOfferings = offerings.filter(
+          (offering) =>
+            offering.member.id === member.id ||
+            offering.copastor.member.id === member.id,
+        );
+        return newOfferings;
+      });
+
+      const ArrayOfferingsMemberFlattened = offeringsMember.flat();
+
+      if (ArrayOfferingsMemberFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Offerings with these names ${term.slice(0, -1)}`,
+        );
+      }
+
+      return ArrayOfferingsMemberFlattened;
+    }
+
+    //* Para find by full_name
+    if (searchType === 'full_name') {
+      const members = await searchFullname({
+        term,
+        limit,
+        offset,
+        repository,
+      });
+
+      const offerings = await this.offeringRepository.find();
+
+      const offeringsMember = members.map((member) => {
+        const newOfferings = offerings.filter(
+          (offering) =>
+            offering.member.id === member.id ||
+            offering.copastor.member.id === member.id,
+        );
+        return newOfferings;
+      });
+
+      const ArrayOfferingsMemberFlattened = offeringsMember.flat();
+
+      if (ArrayOfferingsMemberFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Offerings with these first_name & last_name: ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+
+      return ArrayOfferingsMemberFlattened;
+    }
+  };
 }
