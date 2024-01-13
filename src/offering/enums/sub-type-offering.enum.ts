@@ -1,12 +1,12 @@
 export enum subTypesOffering {
-  cultoDominical = 'culto-dominical',
-  ayunoGeneral = 'ayuno-general',
-  ayunoZonal = 'ayuno-zonal',
-  vigilia = 'vigilia',
-  casaFamiliar = 'casa-familiar',
-  escuelaDominical = 'escuela-dominical',
-  cultoJovenes = 'culto-jovenes',
-  especial = 'especial',
+  sundayWorship = 'sunday_worship',
+  generalFasting = 'general_fasting',
+  zonalFasting = 'zonal_fasting',
+  vigil = 'vigil',
+  familyHome = 'family_home',
+  sundaySchool = 'sunday_school',
+  youthWorship = 'youth_worship',
+  special = 'special',
 }
 
 //* el ayuno zonal deb tener copastor como identificador?

@@ -17,12 +17,14 @@ export enum SearchType {
   address = 'address',
   zone = 'zone',
 
-  //* Offering
+  //* Offering and Thite
 
   type = 'type',
-  sub_type = 'sub_type',
-  date = 'date',
+  offering_sub_type = 'offering_sub_type',
+  offering_sub_type_date = 'offering_sub_type_date',
+  type_date = 'type_date',
 
+  date = 'date',
   copastor_id = 'copastor_id',
   family_home_id = 'family_home_id',
   member_id = 'member_id',

@@ -18,7 +18,8 @@ export class CreateOfferingDto {
 
   @IsEnum(subTypesOffering)
   @IsNotEmpty()
-  sub_type: string;
+  @IsOptional()
+  sub_type?: string;
 
   @IsNumber()
   @IsNotEmpty()

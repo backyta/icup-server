@@ -41,7 +41,7 @@ export class OfferingController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateOfferingDto: UpdateOfferingDto,
   ) {
-    return this.offeringService.update(+id, updateOfferingDto);
+    return this.offeringService.update(id, updateOfferingDto);
   }
 
   //* Posiblemente no se necesite Eliminar un diezmo y ofrenda, solo actualizar

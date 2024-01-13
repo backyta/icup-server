@@ -17,7 +17,7 @@ export class Offering {
   @Column('text')
   type: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   sub_type: string;
 
   @Column('int')

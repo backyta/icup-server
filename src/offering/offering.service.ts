@@ -37,51 +37,73 @@ export class OfferingService {
 
   //* CREATE MEMBER
   async create(createOfferingDto: CreateOfferingDto): Promise<Offering> {
-    const { copastor_id, member_id, family_home_id, type } = createOfferingDto;
+    const { copastor_id, member_id, family_home_id, type, sub_type } =
+      createOfferingDto;
 
     //TODO : hacer validacion cuando pase a autenticacion, solo podra hacer un tesosrero o superusuario
-    //! Ver si se hace la valdacion sola con el type y subtype(DTO)
 
-    if (type === 'tithe' && (copastor_id || family_home_id)) {
+    if (type === 'tithe' && (copastor_id || family_home_id || sub_type)) {
       throw new BadRequestException(
         `Para diezmos solo se requiere el member_id`,
       );
     }
 
-    if (type === 'offering' && member_id) {
+    if (type === 'offering' && (member_id || !sub_type)) {
       throw new BadRequestException(
-        `Para cualquier tipo de ofrendas no se requiere el member_id`,
+        `Para cualquier tipo de ofrendas se requiere asignar un sub_type y no se requiere el member_id`,
       );
     }
 
-    const dataCopastor = await this.coPastorRepository.findOneBy({
-      id: copastor_id,
-    });
-
-    if (!dataCopastor) {
+    if (type === 'offering' && sub_type === 'zonal_fasting' && !copastor_id) {
       throw new BadRequestException(
-        `Coastor was not found with id ${copastor_id}`,
+        `Para registrar ofrendas con sub_type 'zonal-fasting' se requiere el copastor_id`,
       );
     }
 
-    const dataFamilyHome = await this.familyHomeRepository.findOneBy({
-      id: family_home_id,
-    });
-
-    if (!dataFamilyHome) {
+    if (type === 'offering' && sub_type === 'family_home' && !family_home_id) {
       throw new BadRequestException(
-        `Family-Home was not found with id ${family_home_id}`,
+        `Para registrar ofrendas con sub_type 'family_home' se requiere el family_home_id`,
       );
     }
 
-    const dataMember = await this.memberRepository.findOneBy({
-      id: member_id,
-    });
+    let dataCopastor: CoPastor;
+    let dataFamilyHome: FamilyHome;
+    let dataMember: Member;
 
-    if (!dataMember) {
-      throw new BadRequestException(
-        `Member was not found with id ${member_id}`,
-      );
+    if (copastor_id) {
+      dataCopastor = await this.coPastorRepository.findOneBy({
+        id: copastor_id,
+      });
+
+      if (!dataCopastor) {
+        throw new BadRequestException(
+          `Coastor was not found with id ${copastor_id}`,
+        );
+      }
+    }
+
+    if (family_home_id) {
+      dataFamilyHome = await this.familyHomeRepository.findOneBy({
+        id: family_home_id,
+      });
+
+      if (!dataFamilyHome) {
+        throw new BadRequestException(
+          `Family-Home was not found with id ${family_home_id}`,
+        );
+      }
+    }
+
+    if (member_id) {
+      dataMember = await this.memberRepository.findOneBy({
+        id: member_id,
+      });
+
+      if (!dataMember) {
+        throw new BadRequestException(
+          `Member was not found with id ${member_id}`,
+        );
+      }
     }
 
     try {
@@ -110,6 +132,7 @@ export class OfferingService {
     });
   }
 
+  //TODO : probar esto.... el domingo 14-01 (cada condicion y corregir)
   //* FIND BY SEARCH TERM AND TYPE (FILTER)
   async findTerm(
     term: string,
@@ -132,8 +155,10 @@ export class OfferingService {
       }
     }
 
+    //TODO : agregar busqueda por miembro o copastor (nombre) o casa familiar codigo (copiar de otros modulos)
     //! Independiente quiero solo consultar la pertenencia, por copastor, por miembro, por casa.
-    //* Find Offering by copastor_id --> Many
+
+    //* Find Offering (zonal) by copastor_id --> Many
     if (isUUID(term) && type === SearchType.copastor_id) {
       offering = await this.offeringRepository
         .createQueryBuilder('records')
@@ -149,7 +174,7 @@ export class OfferingService {
       }
     }
 
-    //* Find Offering by family_home_id --> Many
+    //* Find Offering (home) by family_home_id --> Many
     if (isUUID(term) && type === SearchType.family_home_id) {
       offering = await this.offeringRepository
         .createQueryBuilder('records')
@@ -181,39 +206,99 @@ export class OfferingService {
       }
     }
 
-    //* Desde el front debo hacer un panel que diga eliga que desea buscar, por por tipo y fecha
-    //* por ofrendas zonales(ayuno-copastor), ofrendas dominicales(fecha), diezmos, y hacer una vista.
-    //* por tipo y subtipo, con fecha o sin fecha, si la coloca o no, etc (hacer todos esos casos.)
+    //! Consultas por tipo, sub_type, date (mixins)
 
-    //TODO : tomorrow seguir con esto (los de verde y ver mas casos)
-    //? Importante: colocar fecha en el cuadro master(vista frontendt)
+    //* Find by date (offering & tithe) --> Many
+    if (term && type === SearchType.date) {
+      offering = await this.offeringRepository
+        .createQueryBuilder('records')
+        .where('records.date =:term', { term })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
 
-    //! Hacer typo de ofrenda y diezmo y mandar al seachType
-    //* Se quiero buscar todos los diezmos (sin fecha) - todos
-    //* Se quiero buscar todos las ofrendeas (sin fecha ni sub tipo)
+      if (offering.length === 0) {
+        throw new BadRequestException(
+          `No records found with this date: ${term} `,
+        );
+      }
+    }
 
-    //* Derrepente quiero buscar diezmo de la fecha tal...
-    //* Derrepente quiero buscar Ofrenda con subtipo tal..., y en fecha tal...
-    //* Derrepente quiero buscar Ofrenda con subtipo (sin fecha)
-    //! Para buscar un subtipo debo mandar el tipo. (y colocarlo en el query)
-    //! Podriamos cortar toda el termino por un - y setear a cada columna, y mandar un tipo especial,
-    //! dependiendo cuantos termino mandemos
+    //* Find by type(offering or thite) --> Many
+    if (term && type === SearchType.type) {
+      offering = await this.offeringRepository
+        .createQueryBuilder('records')
+        .where('records.type =:term', { term })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
 
-    //* Find by type --> Many
-    // if (term && type === SearchType.type) {
-    //   offering = await this.offeringRepository
-    //     .createQueryBuilder('records')
-    //     .where('records.type =:term', { term })
-    //     .skip(offset)
-    //     .limit(limit)
-    //     .getMany();
+      if (offering.length === 0) {
+        throw new BadRequestException(
+          `Not found records with these type: ${term}`,
+        );
+      }
+    }
 
-    //   if (offering.length === 0) {
-    //     throw new BadRequestException(
-    //       `Not found records with these type: ${term}`,
-    //     );
-    //   }
-    // }
+    //* Find by type & sub-type(offering) --> Many
+    if (term && type === SearchType.offering_sub_type) {
+      const parts = term.split('+');
+
+      const offering = await this.offeringRepository
+        .createQueryBuilder('records')
+        .where('records.type =:term', { term: parts[0] })
+        .andWhere('records.sub_type =:term', { term: parts[1] })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (offering.length === 0) {
+        throw new BadRequestException(
+          `Not found records with these offering_sub_type: ${term}`,
+        );
+      }
+    }
+
+    //* Find by type & sub-type & date (offering) --> Many
+    //! Revisar el date
+    if (term && type === SearchType.offering_sub_type_date) {
+      const parts = term.split('+');
+
+      const offering = await this.offeringRepository
+        .createQueryBuilder('records')
+        .where('records.type =:term', { term: parts[0] })
+        .andWhere('records.sub_type =:term', { term: parts[1] })
+        .andWhere('records.date =:term', { term: parts[2] })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (offering.length === 0) {
+        throw new BadRequestException(
+          `Not found records with these offering_sub_type_date: ${term}`,
+        );
+      }
+    }
+
+    //* Find by type & date (thite & offering) --> Many
+    //! Revisar el date
+    if (term && type === SearchType.type_date) {
+      const parts = term.split('+');
+
+      const offering = await this.offeringRepository
+        .createQueryBuilder('records')
+        .where('records.type =:term', { term: parts[0] })
+        .andWhere('records.date =:term', { term: parts[1] })
+        .skip(offset)
+        .limit(limit)
+        .getMany();
+
+      if (offering.length === 0) {
+        throw new BadRequestException(
+          `Not found records with these type_date: ${term}`,
+        );
+      }
+    }
 
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
@@ -232,10 +317,40 @@ export class OfferingService {
     return offering;
   }
 
-  update(id: number, updateOfferingDto: UpdateOfferingDto) {
-    return `This action updates a #${id} offering`;
+  //TODO : hacer obligatorio el comnetario o motivo del porqu eesta actualizando
+  async update(
+    id: string,
+    updateOfferingDto: UpdateOfferingDto,
+  ): Promise<Offering> {
+    const { comments } = updateOfferingDto;
+
+    if (!comments) {
+      throw new BadRequestException(
+        `Se requiere motivo por el cual se esta modificando este registro`,
+      );
+    }
+
+    if (!isUUID(id)) {
+      throw new BadRequestException(`Not valid UUID`);
+    }
+
+    const dataOffering = await this.offeringRepository.findOneBy({ id });
+
+    const updateOffering = await this.offeringRepository.preload({
+      id: dataOffering.id,
+      ...updateOfferingDto,
+      updated_at: new Date(),
+      updated_by: 'Kevinxd',
+    });
+
+    try {
+      return await this.offeringRepository.save(updateOffering);
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
+  //? Se tendria que eliminar o solo actualizar?
   // remove(id: number) {
   //   return `This action removes a #${id} offering`;
   // }
