@@ -26,7 +26,7 @@ export class Offering {
   @Column('text')
   currency: string;
 
-  @Column('text')
+  @Column('text', { nullable: true })
   comments: string;
 
   //* Info register and update date

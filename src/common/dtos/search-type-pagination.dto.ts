@@ -14,4 +14,8 @@ export class SearchTypeAndPaginationDto {
   @Min(0)
   @Type(() => Number)
   offset?: number;
+
+  @IsOptional()
+  @IsString()
+  query_type?: string;
 }

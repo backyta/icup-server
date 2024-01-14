@@ -32,7 +32,7 @@ export class CreateOfferingDto {
   @IsString()
   @IsOptional()
   @MinLength(1)
-  @MaxLength(20)
+  @MaxLength(30)
   comments?: string;
 
   //* Relations
