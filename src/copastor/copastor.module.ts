@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CopastorController } from './copastor.controller';
 import { CoPastorService } from './copastor.service';
-
 import { CoPastor } from './entities/copastor.entity';
 
 import { MembersModule } from '../members/members.module';

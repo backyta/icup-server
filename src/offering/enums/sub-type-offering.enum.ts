@@ -8,5 +8,3 @@ export enum subTypesOffering {
   youthWorship = 'youth_worship',
   special = 'special',
 }
-
-//* el ayuno zonal deb tener copastor como identificador?

@@ -44,11 +44,9 @@ export class OfferingController {
     return this.offeringService.update(id, updateOfferingDto);
   }
 
-  //* Posiblemente no se necesite Eliminar un diezmo y ofrenda, solo actualizar
+  //? Posiblemente no se necesite Eliminar un diezmo y ofrenda, solo actualizar
   // @Delete(':id')
   // remove(@Param('id') id: string) {
   //   return this.offeringService.remove(+id);
   // }
 }
-
-//TODO : continuar con el servicio

@@ -7,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
+import { CoPastor } from '../../copastor/entities/copastor.entity';
 
 @Entity()
 export class Offering {

@@ -5,18 +5,21 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOfferingDto } from './dto/create-offering.dto';
-import { UpdateOfferingDto } from './dto/update-offering.dto';
-import { Offering } from './entities/offering.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Member } from 'src/members/entities/member.entity';
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { FamilyHome } from 'src/family-home/entities/family-home.entity';
-import { PaginationDto, SearchTypeAndPaginationDto } from 'src/common/dtos';
 import { isUUID } from 'class-validator';
-import { SearchType } from 'src/common/enums/search-types.enum';
-import { searchFullname, searchPerson } from 'src/common/helpers';
+
+import { CreateOfferingDto } from './dto/create-offering.dto';
+import { UpdateOfferingDto } from './dto/update-offering.dto';
+
+import { Offering } from './entities/offering.entity';
+import { Member } from '../members/entities/member.entity';
+import { CoPastor } from '../copastor/entities/copastor.entity';
+import { FamilyHome } from '../family-home/entities/family-home.entity';
+
+import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+import { SearchType } from '../common/enums/search-types.enum';
+import { searchFullname, searchPerson } from '../common/helpers';
 
 @Injectable()
 export class OfferingService {
@@ -41,29 +44,35 @@ export class OfferingService {
     const { copastor_id, member_id, family_home_id, type, sub_type } =
       createOfferingDto;
 
-    //TODO : hacer validacion cuando pase a autenticacion, solo podra hacer un tesosrero o superusuario
+    //TODO : hacer validacion cuando pase a autenticacion, solo podra hacer un tesosrero o superusuario (ofrenda y diezmo)
 
     if (type === 'tithe' && (copastor_id || family_home_id || sub_type)) {
       throw new BadRequestException(
-        `Para diezmos solo se requiere el member_id`,
+        `For tithes only the member_id is required`,
       );
     }
 
-    if (type === 'offering' && (member_id || !sub_type)) {
+    if (type === 'offering' && !sub_type) {
       throw new BadRequestException(
-        `Para cualquier tipo de ofrendas se requiere asignar un sub_type y no se requiere el member_id`,
+        `For any type of offerings it is required to assign a sub_type`,
       );
     }
 
     if (type === 'offering' && sub_type === 'zonal_fasting' && !copastor_id) {
       throw new BadRequestException(
-        `Para registrar ofrendas con sub_type 'zonal-fasting' se requiere el copastor_id`,
+        `To register offerings with sub_type 'zonal-fasting' the copastor_id is required`,
       );
     }
 
     if (type === 'offering' && sub_type === 'family_home' && !family_home_id) {
       throw new BadRequestException(
-        `Para registrar ofrendas con sub_type 'family_home' se requiere el family_home_id`,
+        `To register offerings with sub_type 'family_home' the family_home_id is required`,
+      );
+    }
+
+    if (type === 'offering' && sub_type === 'special' && !member_id) {
+      throw new BadRequestException(
+        `To register offerings with sub_type 'special' the member_id is required`,
       );
     }
 
@@ -78,7 +87,7 @@ export class OfferingService {
 
       if (!dataCopastor) {
         throw new BadRequestException(
-          `Coastor was not found with id ${copastor_id}`,
+          `CoPastor was not found with id ${copastor_id}`,
         );
       }
     }
@@ -159,12 +168,15 @@ export class OfferingService {
       }
     }
 
-    //! BUSCAR DIEZMOS
-
-    //? Buscar registro de Diezmo por nombres de miembro.
+    //* SEARCH TITHES
+    //! Search Tithe record by member names.
 
     //* Find by first-name Member --> Many
-    if (term && type === SearchType.firstName && query_type === 'member') {
+    if (
+      term &&
+      type === SearchType.firstName &&
+      query_type === 'member-tithe'
+    ) {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.firstName,
@@ -178,7 +190,7 @@ export class OfferingService {
     }
 
     //* Find last-name Member --> Many
-    if (term && type === SearchType.lastName && query_type === 'member') {
+    if (term && type === SearchType.lastName && query_type === 'member-tithe') {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.lastName,
@@ -192,7 +204,7 @@ export class OfferingService {
     }
 
     //* Find full-name Member --> One
-    if (term && type === SearchType.fullName && query_type === 'member') {
+    if (term && type === SearchType.fullName && query_type === 'member-tithe') {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.fullName,
@@ -205,11 +217,64 @@ export class OfferingService {
       return resultSearch;
     }
 
-    //! BUSCAR OFRENDAS
+    //* SEARCH OFFERINGS
+    //! Search record of Special-Offerings by Member names.
 
-    //! Buscar Ofrendas por casa Familiar
+    //* Find by first-name Member --> Many
+    if (
+      term &&
+      type === SearchType.firstName &&
+      query_type === 'member-offering'
+    ) {
+      const resultSearch = await this.searchOfferingBy(
+        term,
+        SearchType.firstName,
+        limit,
+        offset,
+        query_type,
+        this.memberRepository,
+      );
 
-    //? Buscar registro de Ofrendas por nombres de predicador
+      return resultSearch;
+    }
+
+    //* Find last-name Member --> Many
+    if (
+      term &&
+      type === SearchType.lastName &&
+      query_type === 'member-offering'
+    ) {
+      const resultSearch = await this.searchOfferingBy(
+        term,
+        SearchType.lastName,
+        limit,
+        offset,
+        query_type,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //* Find full-name Member --> One
+    if (
+      term &&
+      type === SearchType.fullName &&
+      query_type === 'member-offering'
+    ) {
+      const resultSearch = await this.searchOfferingBy(
+        term,
+        SearchType.fullName,
+        limit,
+        offset,
+        query_type,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //! Search record of Offerings - Family House by preacher names
 
     //* Find by first-name Preacher --> Many
     if (term && type === SearchType.firstName && query_type === 'preacher') {
@@ -253,7 +318,7 @@ export class OfferingService {
       return resultSearch;
     }
 
-    //? Buscar registro de Ofrendas por codigo de casa
+    //! Search record of Offerings by house code
 
     //* Find Code (Only Offering family_home) --> Many
     if (term && type === SearchType.code) {
@@ -292,8 +357,6 @@ export class OfferingService {
       return arrayOfferingsFamilyHomeFlattened;
     }
 
-    //? Buscar Ofrendas por Ayuno Zonal (copastor)
-
     //* Find Offering by copastor_id --> Many
     if (isUUID(term) && type === SearchType.copastor_id) {
       offering = await this.offeringRepository
@@ -311,7 +374,7 @@ export class OfferingService {
       }
     }
 
-    //! Consultas Mezcladas por tipo, sub_type, date (mixins)
+    //! MIXED QUERIES by type, sub_type, date
 
     //* Find by date (offering & tithe) --> Many
     if (term && type === SearchType.date) {
@@ -319,6 +382,9 @@ export class OfferingService {
 
       offering = await this.offeringRepository
         .createQueryBuilder('records')
+        .leftJoinAndSelect('records.copastor', 'rel1')
+        .leftJoinAndSelect('records.member', 'rel2')
+        .leftJoinAndSelect('records.family_home', 'rel3')
         .where('records.created_at::date =:term', { term: parsedDate })
         .skip(offset)
         .limit(limit)
@@ -331,11 +397,13 @@ export class OfferingService {
       }
     }
 
-    //TODO : continuar revisando aqui tomorrow lunes...
     //* Find by type(offering or thite) --> Many
     if (term && type === SearchType.type) {
       offering = await this.offeringRepository
         .createQueryBuilder('records')
+        .leftJoinAndSelect('records.copastor', 'rel1')
+        .leftJoinAndSelect('records.member', 'rel2')
+        .leftJoinAndSelect('records.family_home', 'rel3')
         .where('records.type =:term', { term })
         .skip(offset)
         .limit(limit)
@@ -349,61 +417,76 @@ export class OfferingService {
     }
 
     //* Find by type & sub-type(offering) --> Many
-    if (term && type === SearchType.offering_sub_type) {
+    if (term && type === SearchType.type_sub_type) {
       const parts = term.split('+');
 
-      const offering = await this.offeringRepository
+      offering = await this.offeringRepository
         .createQueryBuilder('records')
-        .where('records.type =:term', { term: parts[0] })
-        .andWhere('records.sub_type =:term', { term: parts[1] })
+        .leftJoinAndSelect('records.copastor', 'rel1')
+        .leftJoinAndSelect('records.member', 'rel2')
+        .leftJoinAndSelect('records.family_home', 'rel3')
+        .where('records.type =:term1', { term1: parts[0] })
+        .andWhere('records.sub_type =:term2', { term2: parts[1] })
         .skip(offset)
         .limit(limit)
         .getMany();
 
       if (offering.length === 0) {
         throw new BadRequestException(
-          `Not found records with these offering_sub_type: ${term}`,
+          `Not found records with these type & sub_type: ${term
+            .split('+')
+            .join(' - ')}`,
         );
       }
     }
 
     //* Find by type & sub-type & date (offering) --> Many
-    //! Revisar el date
-    if (term && type === SearchType.offering_sub_type_date) {
+    if (term && type === SearchType.type_sub_type_date) {
       const parts = term.split('+');
+      const parsedDate = new Date(parts[2]).toISOString().split('T')[0];
 
-      const offering = await this.offeringRepository
+      offering = await this.offeringRepository
         .createQueryBuilder('records')
-        .where('records.type =:term', { term: parts[0] })
-        .andWhere('records.sub_type =:term', { term: parts[1] })
-        .andWhere('records.date =:term', { term: parts[2] })
+        .leftJoinAndSelect('records.copastor', 'rel1')
+        .leftJoinAndSelect('records.member', 'rel2')
+        .leftJoinAndSelect('records.family_home', 'rel3')
+        .where('records.type =:term1', { term1: parts[0] })
+        .andWhere('records.sub_type =:term2', { term2: parts[1] })
+        .andWhere('records.created_at::date =:term3', { term3: parsedDate })
         .skip(offset)
         .limit(limit)
         .getMany();
 
       if (offering.length === 0) {
         throw new BadRequestException(
-          `Not found records with these offering_sub_type_date: ${term}`,
+          `Not found records with these type & sub_type & date: ${term
+            .split('+')
+            .join(' - ')}`,
         );
       }
     }
 
     //* Find by type & date (thite & offering) --> Many
-    //! Revisar el date
     if (term && type === SearchType.type_date) {
       const parts = term.split('+');
+      const parsedDate = new Date(parts[1]).toISOString().split('T')[0];
 
-      const offering = await this.offeringRepository
+      offering = await this.offeringRepository
         .createQueryBuilder('records')
-        .where('records.type =:term', { term: parts[0] })
-        .andWhere('records.date =:term', { term: parts[1] })
+        .leftJoinAndSelect('records.copastor', 'rel1')
+        .leftJoinAndSelect('records.member', 'rel2')
+        .leftJoinAndSelect('records.family_home', 'rel3')
+        .where('records.type =:term1', { term1: parts[0] })
+        .andWhere('records.created_at::date =:term2', { term2: parsedDate })
         .skip(offset)
         .limit(limit)
         .getMany();
 
       if (offering.length === 0) {
         throw new BadRequestException(
-          `Not found records with these type_date: ${term}`,
+          `Not found records with these type_date: ${term
+            .split('+')
+            .join(' - ')}`,
         );
       }
     }
@@ -427,16 +510,18 @@ export class OfferingService {
     return offering;
   }
 
-  //TODO : hacer obligatorio el comnetario o motivo del porqu eesta actualizando
   async update(
     id: string,
     updateOfferingDto: UpdateOfferingDto,
   ): Promise<Offering> {
-    const { comments } = updateOfferingDto;
+    const { type, sub_type, copastor_id, family_home_id, member_id, comments } =
+      updateOfferingDto;
+
+    const dataOffering = await this.offeringRepository.findOneBy({ id });
 
     if (!comments) {
       throw new BadRequestException(
-        `Se requiere motivo por el cual se esta modificando este registro`,
+        `Reason (comments) why this record is being modified is required`,
       );
     }
 
@@ -444,11 +529,108 @@ export class OfferingService {
       throw new BadRequestException(`Not valid UUID`);
     }
 
-    const dataOffering = await this.offeringRepository.findOneBy({ id });
+    if (
+      type === 'tithe' &&
+      (dataOffering.copastor ||
+        dataOffering.family_home ||
+        dataOffering.sub_type !== 'special') &&
+      sub_type
+    ) {
+      throw new BadRequestException(
+        `You can only update an offering record to a tithe record if the sub_type is 'special', do not assign 'sub_type' to the record being updated to tithe`,
+      );
+    }
+
+    if (
+      dataOffering.type === 'tithe' &&
+      type === 'offering' &&
+      sub_type !== 'special'
+    ) {
+      throw new BadRequestException(
+        `A record can only be updated from tithe to offering if the sub_type is 'special'`,
+      );
+    }
+
+    if (type === 'offering' && !sub_type) {
+      throw new BadRequestException(
+        `To update any type of offerings it is required to assign a sub_type`,
+      );
+    }
+
+    if (type === 'offering' && sub_type === 'zonal_fasting' && !copastor_id) {
+      throw new BadRequestException(
+        `To update offerings with sub_type 'zonal-fasting' the copastor_id is required`,
+      );
+    }
+
+    if (type === 'offering' && sub_type === 'family_home' && !family_home_id) {
+      throw new BadRequestException(
+        `To update offerings with sub_type 'family_home' the family_home_id is required`,
+      );
+    }
+
+    if (type === 'offering' && sub_type === 'special' && !member_id) {
+      throw new BadRequestException(
+        `To update offerings with sub_type 'special' the member_id is required`,
+      );
+    }
+
+    let dataCopastor: CoPastor;
+    let dataFamilyHome: FamilyHome;
+    let dataMember: Member;
+
+    if (copastor_id) {
+      dataCopastor = await this.coPastorRepository.findOneBy({
+        id: copastor_id,
+      });
+
+      if (!dataCopastor) {
+        throw new BadRequestException(
+          `CoPastor was not found with id ${copastor_id}`,
+        );
+      }
+
+      dataFamilyHome = null;
+      dataMember = null;
+    }
+
+    if (family_home_id) {
+      dataFamilyHome = await this.familyHomeRepository.findOneBy({
+        id: family_home_id,
+      });
+
+      if (!dataFamilyHome) {
+        throw new BadRequestException(
+          `Family-Home was not found with id ${family_home_id}`,
+        );
+      }
+
+      dataCopastor = null;
+      dataMember = null;
+    }
+
+    if (member_id) {
+      dataMember = await this.memberRepository.findOneBy({
+        id: member_id,
+      });
+
+      if (!dataMember) {
+        throw new BadRequestException(
+          `Member was not found with id ${member_id}`,
+        );
+      }
+
+      dataCopastor = null;
+      dataFamilyHome = null;
+    }
 
     const updateOffering = await this.offeringRepository.preload({
       id: dataOffering.id,
       ...updateOfferingDto,
+      sub_type: type === 'tithe' ? null : sub_type,
+      member: dataMember,
+      copastor: dataCopastor,
+      family_home: dataFamilyHome,
       updated_at: new Date(),
       updated_by: 'Kevinxd',
     });
@@ -496,10 +678,23 @@ export class OfferingService {
       const offerings = await this.offeringRepository.find();
 
       let offeringsMember: Offering[][];
-      if (query_type === 'member') {
+      if (query_type === 'member-offering') {
         offeringsMember = members.map((member) => {
           const newOfferings = offerings.filter(
-            (offering) => offering.member?.id === member.id,
+            (offering) =>
+              offering.member?.id === member.id &&
+              offering.type === 'offering' &&
+              offering.sub_type === 'special',
+          );
+          return newOfferings;
+        });
+      }
+
+      if (query_type === 'member-tithe') {
+        offeringsMember = members.map((member) => {
+          const newOfferings = offerings.filter(
+            (offering) =>
+              offering.member?.id === member.id && offering.type === 'tithe',
           );
           return newOfferings;
         });
@@ -541,10 +736,23 @@ export class OfferingService {
       const offerings = await this.offeringRepository.find();
 
       let offeringsMember: Offering[][];
-      if (query_type === 'member') {
+      if (query_type === 'member-offering') {
         offeringsMember = members.map((member) => {
           const newOfferings = offerings.filter(
-            (offering) => offering.member?.id === member.id,
+            (offering) =>
+              offering.member?.id === member.id &&
+              offering.type === 'offering' &&
+              offering.sub_type === 'special',
+          );
+          return newOfferings;
+        });
+      }
+
+      if (query_type === 'member-tithe') {
+        offeringsMember = members.map((member) => {
+          const newOfferings = offerings.filter(
+            (offering) =>
+              offering.member?.id === member.id && offering.type === 'tithe',
           );
           return newOfferings;
         });

@@ -20,8 +20,8 @@ export enum SearchType {
   //* Offering and Thite
 
   type = 'type',
-  offering_sub_type = 'offering_sub_type',
-  offering_sub_type_date = 'offering_sub_type_date',
+  type_sub_type = 'type_sub_type',
+  type_sub_type_date = 'type_sub_type_date',
   type_date = 'type_date',
 
   date = 'date',

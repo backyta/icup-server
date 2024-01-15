@@ -335,8 +335,6 @@ export class FamilyHomeService {
     return familyHome;
   }
 
-  //TODO : tomorrow make it merge in github
-
   //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Casa_Familiar y en Member family-home  ✅✅
   //* UPDATE FAMILY HOME ID
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {

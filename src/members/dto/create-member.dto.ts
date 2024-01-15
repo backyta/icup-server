@@ -57,6 +57,7 @@ export class CreateMemberDto {
   phone?: string;
 
   @IsString()
+  @IsOptional()
   date_joinig?: string | Date;
 
   @IsString()

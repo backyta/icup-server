@@ -33,7 +33,7 @@ export class UpdateCoPastorDto extends PartialType(CreateCoPastorDto) {
   @IsString()
   @IsOptional()
   @IsNotEmpty()
-  date_birth: string | Date;
+  date_birth?: string | Date;
 
   @IsEmail()
   @IsOptional()
