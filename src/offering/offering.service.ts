@@ -151,7 +151,7 @@ export class OfferingService {
       type,
       limit = 20,
       offset = 0,
-      query_type,
+      type_of_name,
     } = searchTypeAndPaginationDto;
     let offering: Offering | Offering[];
 
@@ -168,21 +168,17 @@ export class OfferingService {
       }
     }
 
-    //* SEARCH TITHES
-    //! Search Tithe record by member names.
+    //* SEARCH TITHES OR OFFERINGS BY NAMES
+    //! Search all by name Copastor(zonal, home), Preacher(home), Member(tithe & offe.special)
 
     //* Find by first-name Member --> Many
-    if (
-      term &&
-      type === SearchType.firstName &&
-      query_type === 'member-tithe'
-    ) {
+    if (term && type === SearchType.firstName && type_of_name) {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.firstName,
         limit,
         offset,
-        query_type,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -190,13 +186,13 @@ export class OfferingService {
     }
 
     //* Find last-name Member --> Many
-    if (term && type === SearchType.lastName && query_type === 'member-tithe') {
+    if (term && type === SearchType.lastName && type_of_name) {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.lastName,
         limit,
         offset,
-        query_type,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -204,13 +200,13 @@ export class OfferingService {
     }
 
     //* Find full-name Member --> One
-    if (term && type === SearchType.fullName && query_type === 'member-tithe') {
+    if (term && type === SearchType.fullName && type_of_name) {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.fullName,
         limit,
         offset,
-        query_type,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -221,7 +217,7 @@ export class OfferingService {
     //! Search record of Special-Offerings by Member names.
 
     //* Find by first-name Member --> Many
-    if (
+    /* if (
       term &&
       type === SearchType.firstName &&
       query_type === 'member-offering'
@@ -236,10 +232,10 @@ export class OfferingService {
       );
 
       return resultSearch;
-    }
+    } */
 
     //* Find last-name Member --> Many
-    if (
+    /* if (
       term &&
       type === SearchType.lastName &&
       query_type === 'member-offering'
@@ -254,10 +250,10 @@ export class OfferingService {
       );
 
       return resultSearch;
-    }
+    } */
 
     //* Find full-name Member --> One
-    if (
+    /* if (
       term &&
       type === SearchType.fullName &&
       query_type === 'member-offering'
@@ -272,12 +268,12 @@ export class OfferingService {
       );
 
       return resultSearch;
-    }
+    } */
 
     //! Search record of Offerings - Family House by preacher names
 
     //* Find by first-name Preacher --> Many
-    if (term && type === SearchType.firstName && query_type === 'preacher') {
+    /*  if (term && type === SearchType.firstName && query_type === 'preacher') {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.firstName,
@@ -288,10 +284,10 @@ export class OfferingService {
       );
 
       return resultSearch;
-    }
+    } */
 
     //* Find by last-name Preacher --> Many
-    if (term && type === SearchType.lastName && query_type === 'preacher') {
+    /* if (term && type === SearchType.lastName && query_type === 'preacher') {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.lastName,
@@ -302,10 +298,10 @@ export class OfferingService {
       );
 
       return resultSearch;
-    }
+    } */
 
     //* Find by full-name Preacher --> Many
-    if (term && type === SearchType.fullName && query_type === 'preacher') {
+    /* if (term && type === SearchType.fullName && query_type === 'preacher') {
       const resultSearch = await this.searchOfferingBy(
         term,
         SearchType.fullName,
@@ -316,7 +312,7 @@ export class OfferingService {
       );
 
       return resultSearch;
-    }
+    }*/
 
     //! Search record of Offerings by house code
 
@@ -502,6 +498,16 @@ export class OfferingService {
       );
     }
 
+    if (
+      term &&
+      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
+      !type_of_name
+    ) {
+      throw new BadRequestException(
+        `To search by names, the query_type is required`,
+      );
+    }
+
     if (!offering)
       throw new NotFoundException(
         `Offerings or Tithe records with this term: ${term} not found`,
@@ -662,10 +668,10 @@ export class OfferingService {
     searchType: SearchType,
     limit: number,
     offset: number,
-    query_type: string,
+    type_of_name: string,
     repository: Repository<Member>,
   ): Promise<Offering | Offering[]> => {
-    //* Para find by first or last name
+    //! Para find by first or last name
     if (searchType === 'first_name' || searchType === 'last_name') {
       const members = await searchPerson({
         term,
@@ -677,9 +683,9 @@ export class OfferingService {
 
       const offerings = await this.offeringRepository.find();
 
-      let offeringsMember: Offering[][];
-      if (query_type === 'member-offering') {
-        offeringsMember = members.map((member) => {
+      let offeringsByName: Offering[][];
+      if (type_of_name === 'member-offering') {
+        offeringsByName = members.map((member) => {
           const newOfferings = offerings.filter(
             (offering) =>
               offering.member?.id === member.id &&
@@ -690,8 +696,8 @@ export class OfferingService {
         });
       }
 
-      if (query_type === 'member-tithe') {
-        offeringsMember = members.map((member) => {
+      if (type_of_name === 'member-tithe') {
+        offeringsByName = members.map((member) => {
           const newOfferings = offerings.filter(
             (offering) =>
               offering.member?.id === member.id && offering.type === 'tithe',
@@ -700,8 +706,8 @@ export class OfferingService {
         });
       }
 
-      if (query_type === 'preacher') {
-        offeringsMember = members.map((member) => {
+      if (type_of_name === 'preacher-house') {
+        offeringsByName = members.map((member) => {
           const newOfferings = offerings.filter(
             (offering) =>
               offering.family_home?.their_preacher.member.id === member.id,
@@ -710,21 +716,49 @@ export class OfferingService {
         });
       }
 
-      const ArrayOfferingsMemberFlattened = offeringsMember.flat();
+      if (type_of_name === 'copastor-house') {
+        offeringsByName = members.map((member) => {
+          const newOfferings = offerings.filter(
+            (offering) =>
+              offering.family_home?.their_copastor?.member.id === member.id,
+          );
+          return newOfferings;
+        });
+      }
 
-      if (ArrayOfferingsMemberFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Offerings or Tithes with these names: ${term.slice(
+      if (type_of_name === 'copastor-fasting') {
+        offeringsByName = members.map((member) => {
+          const newOfferings = offerings.filter(
+            (offering) => offering.copastor?.member.id === member.id,
+          );
+          return newOfferings;
+        });
+      }
+
+      if (!offeringsByName) {
+        throw new BadRequestException(
+          `Not found Offerings or Tithes with these names of '${type_of_name}': ${term.slice(
             0,
             -1,
           )}`,
         );
       }
 
-      return ArrayOfferingsMemberFlattened;
+      const ArrayOfferingsFlattened = offeringsByName.flat();
+
+      if (ArrayOfferingsFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Offerings or Tithes with these names '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
+      }
+
+      return ArrayOfferingsFlattened;
     }
 
-    //* Para find by full_name
+    //! For find by full_name
     if (searchType === 'full_name') {
       const members = await searchFullname({
         term,
@@ -735,9 +769,9 @@ export class OfferingService {
 
       const offerings = await this.offeringRepository.find();
 
-      let offeringsMember: Offering[][];
-      if (query_type === 'member-offering') {
-        offeringsMember = members.map((member) => {
+      let offeringsByName: Offering[][];
+      if (type_of_name === 'member-offering') {
+        offeringsByName = members.map((member) => {
           const newOfferings = offerings.filter(
             (offering) =>
               offering.member?.id === member.id &&
@@ -748,8 +782,8 @@ export class OfferingService {
         });
       }
 
-      if (query_type === 'member-tithe') {
-        offeringsMember = members.map((member) => {
+      if (type_of_name === 'member-tithe') {
+        offeringsByName = members.map((member) => {
           const newOfferings = offerings.filter(
             (offering) =>
               offering.member?.id === member.id && offering.type === 'tithe',
@@ -758,28 +792,56 @@ export class OfferingService {
         });
       }
 
-      if (query_type === 'preacher') {
-        offeringsMember = members.map((member) => {
+      if (type_of_name === 'preacher-house') {
+        offeringsByName = members.map((member) => {
           const newOfferings = offerings.filter(
             (offering) =>
-              offering.family_home?.their_preacher.member.id === member.id,
+              offering.family_home?.their_preacher?.member.id === member.id,
           );
           return newOfferings;
         });
       }
 
-      const ArrayOfferingsMemberFlattened = offeringsMember.flat();
+      if (type_of_name === 'copastor-house') {
+        offeringsByName = members.map((member) => {
+          const newOfferings = offerings.filter(
+            (offering) =>
+              offering.family_home?.their_copastor?.member.id === member.id,
+          );
+          return newOfferings;
+        });
+      }
 
-      if (ArrayOfferingsMemberFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Offerings or Tithes with these first_name & last_name: ${term
+      if (type_of_name === 'copastor-fasting') {
+        offeringsByName = members.map((member) => {
+          const newOfferings = offerings.filter(
+            (offering) => offering.copastor?.member.id === member.id,
+          );
+          return newOfferings;
+        });
+      }
+
+      if (!offeringsByName) {
+        throw new BadRequestException(
+          `Not found Offerings or Tithes with these first_name & last_name of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,
         );
       }
 
-      return ArrayOfferingsMemberFlattened;
+      const ArrayOfferingsFlattened = offeringsByName.flat();
+
+      if (ArrayOfferingsFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Offerings or Tithes with these first_name & last_name of '${type_of_name}': ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+
+      return ArrayOfferingsFlattened;
     }
   };
 }

@@ -20,6 +20,7 @@ import { CoPastor } from '../copastor/entities/copastor.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { SearchType } from '../common/enums/search-types.enum';
+import { searchFullname, searchPerson } from 'src/common/helpers';
 
 @Injectable()
 export class FamilyHomeService {
@@ -53,7 +54,7 @@ export class FamilyHomeService {
 
     if (!preacher) {
       throw new NotFoundException(
-        `Not faound CoPastor with id ${their_preacher}`,
+        `Not found CoPastor with id ${their_preacher}`,
       );
     }
 
@@ -179,7 +180,12 @@ export class FamilyHomeService {
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ) {
-    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
+    const {
+      type,
+      limit = 20,
+      offset = 0,
+      type_of_name,
+    } = searchTypeAndPaginationDto;
     let familyHome: FamilyHome | FamilyHome[];
 
     //* Find ID --> One
@@ -205,6 +211,49 @@ export class FamilyHomeService {
       familyHome.members = listMembersId;
 
       await this.familyHomeRepository.save(familyHome);
+    }
+
+    //! Search Family House by Preacher or Copastor names
+    //* Find by first-name Preacher --> Many
+    if (term && type === SearchType.firstName && type_of_name) {
+      const resultSearch = await this.searchFamilyHomeBy(
+        term,
+        SearchType.firstName,
+        limit,
+        offset,
+        type_of_name,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //* Find by last-name Preacher --> Many
+    if (term && type === SearchType.lastName && type_of_name) {
+      const resultSearch = await this.searchFamilyHomeBy(
+        term,
+        SearchType.lastName,
+        limit,
+        offset,
+        type_of_name,
+        this.memberRepository,
+      );
+
+      return resultSearch;
+    }
+
+    //* Find by full-name Preacher --> Many
+    if (term && type === SearchType.fullName && type_of_name) {
+      const resultSearch = await this.searchFamilyHomeBy(
+        term,
+        SearchType.fullName,
+        limit,
+        offset,
+        type_of_name,
+        this.memberRepository,
+      );
+
+      return resultSearch;
     }
 
     //* Find Code --> One
@@ -331,6 +380,21 @@ export class FamilyHomeService {
         `Type not valid, should be: ${Object.values(SearchType).join(', ')}`,
       );
     }
+
+    if (
+      term &&
+      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
+      !type_of_name
+    ) {
+      throw new BadRequestException(
+        `To search by names, the query_type is required`,
+      );
+    }
+
+    if (!familyHome)
+      throw new NotFoundException(
+        `Family Houses with this term: ${term} not found`,
+      );
 
     return familyHome;
   }
@@ -696,4 +760,121 @@ export class FamilyHomeService {
       'Unexpected errors, check server logs',
     );
   }
+
+  private searchFamilyHomeBy = async (
+    term: string,
+    searchType: SearchType,
+    limit: number,
+    offset: number,
+    type_of_name: string,
+    repository: Repository<Member>,
+  ): Promise<FamilyHome | FamilyHome[]> => {
+    //! Para find by first or last name
+    if (searchType === 'first_name' || searchType === 'last_name') {
+      const members = await searchPerson({
+        term,
+        searchType,
+        limit,
+        offset,
+        repository,
+      });
+
+      const familyHouses = await this.familyHomeRepository.find();
+
+      let familyHomeByName: FamilyHome[][];
+
+      if (type_of_name === 'preacher') {
+        familyHomeByName = members.map((member) => {
+          const newFamilyHouses = familyHouses.filter(
+            (home) => home.their_preacher?.member?.id === member.id,
+          );
+          return newFamilyHouses;
+        });
+      }
+
+      if (type_of_name === 'copastor') {
+        familyHomeByName = members.map((member) => {
+          const newFamilyHouses = familyHouses.filter(
+            (home) => home.their_copastor?.member?.id === member.id,
+          );
+          return newFamilyHouses;
+        });
+      }
+
+      if (!familyHomeByName) {
+        throw new BadRequestException(
+          `Not found Family Houses with these names of '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
+      }
+
+      const ArrayFamilyHousesFlattened = familyHomeByName.flat();
+
+      if (ArrayFamilyHousesFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Family Houses with these names of '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
+      }
+
+      return ArrayFamilyHousesFlattened;
+    }
+
+    //! For find by full_name
+    if (searchType === 'full_name') {
+      const members = await searchFullname({
+        term,
+        limit,
+        offset,
+        repository,
+      });
+
+      const familyHouses = await this.familyHomeRepository.find();
+
+      let familyHomeByName: FamilyHome[][];
+
+      if (type_of_name === 'preacher') {
+        familyHomeByName = members.map((member) => {
+          const newFamilyHouses = familyHouses.filter(
+            (home) => home.their_preacher?.member.id === member.id,
+          );
+          return newFamilyHouses;
+        });
+      }
+
+      if (type_of_name === 'copastor') {
+        familyHomeByName = members.map((member) => {
+          const newFamilyHouses = familyHouses.filter(
+            (home) => home.their_copastor?.member.id === member.id,
+          );
+          return newFamilyHouses;
+        });
+      }
+
+      if (!familyHomeByName) {
+        throw new BadRequestException(
+          `Not found Family Houses with these first_name & last_name of '${type_of_name}': ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+      const ArrayFamilyHousesFlattened = familyHomeByName.flat();
+
+      if (ArrayFamilyHousesFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Family Houses with these first_name & last_name of '${type_of_name}': ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+
+      return ArrayFamilyHousesFlattened;
+    }
+  };
 }

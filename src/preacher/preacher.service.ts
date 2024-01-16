@@ -131,7 +131,12 @@ export class PreacherService {
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<Preacher | Preacher[]> {
-    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
+    const {
+      type,
+      limit = 20,
+      offset = 0,
+      type_of_name,
+    } = searchTypeAndPaginationDto;
     let preacher: Preacher | Preacher[];
 
     //* Find ID --> One (Busca por ID, activo o inactivo)
@@ -172,13 +177,15 @@ export class PreacherService {
       await this.preacherRepository.save(preacher);
     }
 
+    //! Search Preachers by Preacher or Copastor names
     //* Find firstName --> Many
-    if (term && type === SearchType.firstName) {
+    if (term && type === SearchType.firstName && type_of_name) {
       const resultSearch = await this.searchPreacherBy(
         term,
         SearchType.firstName,
         limit,
         offset,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -186,12 +193,13 @@ export class PreacherService {
     }
 
     //* Find lastName --> Many
-    if (term && type === SearchType.lastName) {
+    if (term && type === SearchType.lastName && type_of_name) {
       const resultSearch = await this.searchPreacherBy(
         term,
         SearchType.lastName,
         limit,
         offset,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -199,12 +207,13 @@ export class PreacherService {
     }
 
     //* Find fullName --> One
-    if (term && type === SearchType.fullName) {
+    if (term && type === SearchType.fullName && type_of_name) {
       const resultSearch = await this.searchPreacherBy(
         term,
         SearchType.fullName,
         limit,
         offset,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -272,8 +281,18 @@ export class PreacherService {
       );
     }
 
+    if (
+      term &&
+      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
+      !type_of_name
+    ) {
+      throw new BadRequestException(
+        `To search by names, the query_type is required`,
+      );
+    }
+
     if (!preacher)
-      throw new NotFoundException(`CoPastor with ${term} not found`);
+      throw new NotFoundException(`CoPastor with this ${term} not found`);
 
     return preacher;
   }
@@ -531,9 +550,10 @@ export class PreacherService {
     searchType: SearchType,
     limit: number,
     offset: number,
+    type_of_name: string,
     repository: Repository<Member>,
   ): Promise<Preacher | Preacher[]> => {
-    //* For find by first or last name
+    //! For find by first or last name
     if (searchType === 'first_name' || searchType === 'last_name') {
       const members = await searchPerson({
         term,
@@ -543,41 +563,54 @@ export class PreacherService {
         repository,
       });
 
-      const preacherMembers = members.filter((member) =>
-        member.roles.includes('preacher'),
-      );
+      const preachers = await this.preacherRepository.find();
 
-      if (preacherMembers.length === 0) {
-        throw new NotFoundException(
-          `Not found member with role Preacher and with this name : ${term.slice(
+      let preachersByName: Preacher[][];
+      if (type_of_name === 'preacher-member') {
+        preachersByName = members.map((member) => {
+          const newPreachers = preachers.filter(
+            (preacher) =>
+              preacher?.member.id === member.id && preacher?.is_active === true,
+          );
+          return newPreachers;
+        });
+      }
+
+      if (type_of_name === 'copastor') {
+        preachersByName = members.map((member) => {
+          const newPreachers = preachers.filter(
+            (preacher) =>
+              preacher?.their_copastor?.member.id === member.id &&
+              preacher?.is_active === true,
+          );
+          return newPreachers;
+        });
+      }
+
+      if (!preachersByName) {
+        throw new BadRequestException(
+          `Not found Preacher with this names of '${type_of_name}': ${term.slice(
             0,
             -1,
           )}`,
         );
       }
 
-      const preachers = await this.preacherRepository.find();
+      const ArrayPreachersFlattened = preachersByName.flat();
 
-      const newPreacherMembers = preacherMembers.map((member) => {
-        const newPreachers = preachers.filter(
-          (preacher) =>
-            preacher.member.id === member.id && preacher.is_active === true,
-        );
-        return newPreachers;
-      });
-
-      const ArrayPreacherMembersFlattened = newPreacherMembers.flat();
-
-      if (ArrayPreacherMembersFlattened.length === 0) {
+      if (ArrayPreachersFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found Preacher with these names ${term.slice(0, -1)}`,
+          `Not found Preacher with these names of '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
         );
       }
 
-      return ArrayPreacherMembersFlattened;
+      return ArrayPreachersFlattened;
     }
 
-    //* Para find by full_name
+    //! For find by full_name
     if (searchType === 'full_name') {
       const members = await searchFullname({
         term,
@@ -586,41 +619,51 @@ export class PreacherService {
         repository,
       });
 
-      const preacherMembers = members.filter((member) =>
-        member.roles.includes('preacher'),
-      );
-
-      if (preacherMembers.length === 0) {
-        throw new NotFoundException(
-          `Not found member with role Preacher and with these first_name & last_name: ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
       const preachers = await this.preacherRepository.find();
 
-      const newPreacherMembers = preacherMembers.map((member) => {
-        const newPreacher = preachers.filter(
-          (preacher) =>
-            preacher.member.id === member.id && preacher.is_active === true,
-        );
-        return newPreacher;
-      });
+      let preachersByName: Preacher[][];
+      if (type_of_name === 'preacher-member') {
+        preachersByName = members.map((member) => {
+          const newPreachers = preachers.filter(
+            (preacher) =>
+              preacher?.member?.id === member.id && preacher.is_active === true,
+          );
+          return newPreachers;
+        });
+      }
 
-      const ArrayPreacherMembersFlattened = newPreacherMembers.flat();
+      if (type_of_name === 'copastor') {
+        preachersByName = members.map((member) => {
+          const newPreachers = preachers.filter(
+            (preacher) =>
+              preacher?.their_copastor?.member.id === member.id &&
+              preacher.is_active === true,
+          );
+          return newPreachers;
+        });
+      }
 
-      if (ArrayPreacherMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Preachers with these names ${term
+      if (!preachersByName) {
+        throw new BadRequestException(
+          `Not found Preachers with these first_name & last_name of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,
         );
       }
 
-      return ArrayPreacherMembersFlattened;
+      const ArrayPreachersFlattened = preachersByName.flat();
+
+      if (ArrayPreachersFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Preachers with these  first_name & last_name of '${type_of_name}': ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+
+      return ArrayPreachersFlattened;
     }
   };
 }

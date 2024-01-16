@@ -282,7 +282,12 @@ export class MembersService {
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<Member[] | Member> {
-    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
+    const {
+      type,
+      limit = 20,
+      offset = 0,
+      type_of_name,
+    } = searchTypeAndPaginationDto;
     let member: Member | Member[];
 
     //* Find UUID --> One
@@ -336,35 +341,45 @@ export class MembersService {
     }
 
     //* Find firstName --> Many
-    if (term && type === SearchType.firstName) {
-      member = await searchPerson({
+    if (term && type === SearchType.firstName && type_of_name) {
+      const resultSearch = await this.searchMemberBy(
         term,
-        searchType: SearchType.firstName,
+        SearchType.firstName,
         limit,
         offset,
-        repository: this.memberRepository,
-      });
+        type_of_name,
+        this.memberRepository,
+      );
+
+      return resultSearch;
     }
 
     //* Find lastName --> Many
-    if (term && type === SearchType.lastName) {
-      member = await searchPerson({
+    if (term && type === SearchType.lastName && type_of_name) {
+      const resultSearch = await this.searchMemberBy(
         term,
-        searchType: SearchType.lastName,
+        SearchType.lastName,
         limit,
         offset,
-        repository: this.memberRepository,
-      });
+        type_of_name,
+        this.memberRepository,
+      );
+
+      return resultSearch;
     }
 
     //* Find fullName --> Many
-    if (term && type === SearchType.fullName) {
-      member = await searchFullname({
+    if (term && type === SearchType.fullName && type_of_name) {
+      const resultSearch = await this.searchMemberBy(
         term,
+        SearchType.fullName,
         limit,
         offset,
-        repository: this.memberRepository,
-      });
+        type_of_name,
+        this.memberRepository,
+      );
+
+      return resultSearch;
     }
 
     //* Find roles --> Many
@@ -460,6 +475,16 @@ export class MembersService {
     if (term && !Object.values(SearchType).includes(type as SearchType)) {
       throw new BadRequestException(
         `Type not valid, should be: ${Object.values(SearchType).join(', ')}`,
+      );
+    }
+
+    if (
+      term &&
+      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
+      !type_of_name
+    ) {
+      throw new BadRequestException(
+        `To search by names, the query_type is required`,
       );
     }
 
@@ -1614,4 +1639,170 @@ export class MembersService {
     }
     return members;
   }
+
+  private searchMemberBy = async (
+    term: string,
+    searchType: SearchType,
+    limit: number,
+    offset: number,
+    type_of_name: string,
+    repository: Repository<Member>,
+  ): Promise<Member | Member[]> => {
+    //! For find by first or last name
+    if (searchType === 'first_name' || searchType === 'last_name') {
+      const members = await searchPerson({
+        term,
+        searchType,
+        limit,
+        offset,
+        repository,
+      });
+
+      const allMembers = await this.memberRepository.find({
+        relations: [
+          'their_pastor',
+          'their_copastor',
+          'their_preacher',
+          'their_family_home',
+        ],
+      });
+
+      let membersByName: Member[][];
+
+      if (type_of_name === 'preacher') {
+        const preacherMembers = members.filter((member) =>
+          member.roles.includes('preacher'),
+        );
+
+        membersByName = preacherMembers.map((memberPreacher) => {
+          const newMembersByPreacher = allMembers.filter(
+            (member) =>
+              member?.their_preacher?.member.id === memberPreacher.id &&
+              member.is_active === true,
+          );
+          return newMembersByPreacher;
+        });
+      }
+
+      if (type_of_name === 'copastor') {
+        const copastorMembers = members.filter((member) =>
+          member.roles.includes('copastor'),
+        );
+
+        membersByName = copastorMembers.map((memberCopastor) => {
+          const newMembersByCopastor = allMembers.filter(
+            (member) =>
+              member?.their_copastor?.member.id === memberCopastor.id &&
+              member.is_active === true,
+          );
+
+          return newMembersByCopastor;
+        });
+      }
+
+      if (type_of_name === 'member') {
+        return members;
+      }
+
+      if (!membersByName) {
+        throw new BadRequestException(
+          `Not found Members with these names of '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
+      }
+
+      const ArrayMembersFlattened = membersByName.flat();
+
+      if (ArrayMembersFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Members with these names of '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
+        );
+      }
+
+      return ArrayMembersFlattened;
+    }
+
+    //! For find by full_name
+    if (searchType === 'full_name') {
+      const members = await searchFullname({
+        term,
+        limit,
+        offset,
+        repository,
+      });
+
+      const allMembers = await this.memberRepository.find({
+        relations: [
+          'their_pastor',
+          'their_copastor',
+          'their_preacher',
+          'their_family_home',
+        ],
+      });
+
+      let membersByName: Member[][];
+
+      if (type_of_name === 'preacher') {
+        const preacherMembers = members.filter((member) =>
+          member.roles.includes('preacher'),
+        );
+
+        membersByName = preacherMembers.map((memberPreacher) => {
+          const newMembersByPreacher = allMembers.filter(
+            (member) =>
+              member?.their_preacher?.member.id === memberPreacher.id &&
+              member.is_active === true,
+          );
+
+          return newMembersByPreacher;
+        });
+      }
+
+      if (type_of_name === 'copastor') {
+        const copastorMembers = members.filter((member) =>
+          member.roles.includes('copastor'),
+        );
+
+        membersByName = copastorMembers.map((memberCopastor) => {
+          const newMembersByCopastor = allMembers.filter(
+            (member) =>
+              member?.their_copastor?.member.id === memberCopastor.id &&
+              member.is_active === true,
+          );
+          return newMembersByCopastor;
+        });
+      }
+
+      if (type_of_name === 'member') {
+        return members;
+      }
+
+      if (!membersByName) {
+        throw new BadRequestException(
+          `Not found Members with these names of '${type_of_name}': ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+
+      const ArrayMembersFlattened = membersByName.flat();
+
+      if (ArrayMembersFlattened.length === 0) {
+        throw new NotFoundException(
+          `Not found Members with these names of '${type_of_name}': ${term
+            .split('-')
+            .map((word) => word.slice(0, -1))
+            .join(' ')}`,
+        );
+      }
+
+      return ArrayMembersFlattened;
+    }
+  };
 }
