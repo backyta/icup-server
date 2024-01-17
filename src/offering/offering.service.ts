@@ -155,7 +155,7 @@ export class OfferingService {
     } = searchTypeAndPaginationDto;
     let offering: Offering | Offering[];
 
-    //* Find UUID --> One
+    //* Find UUID --> One (inactive or active)
     if (isUUID(term) && type === SearchType.id) {
       offering = await this.offeringRepository.findOne({
         where: { id: term },
@@ -214,105 +214,6 @@ export class OfferingService {
     }
 
     //* SEARCH OFFERINGS
-    //! Search record of Special-Offerings by Member names.
-
-    //* Find by first-name Member --> Many
-    /* if (
-      term &&
-      type === SearchType.firstName &&
-      query_type === 'member-offering'
-    ) {
-      const resultSearch = await this.searchOfferingBy(
-        term,
-        SearchType.firstName,
-        limit,
-        offset,
-        query_type,
-        this.memberRepository,
-      );
-
-      return resultSearch;
-    } */
-
-    //* Find last-name Member --> Many
-    /* if (
-      term &&
-      type === SearchType.lastName &&
-      query_type === 'member-offering'
-    ) {
-      const resultSearch = await this.searchOfferingBy(
-        term,
-        SearchType.lastName,
-        limit,
-        offset,
-        query_type,
-        this.memberRepository,
-      );
-
-      return resultSearch;
-    } */
-
-    //* Find full-name Member --> One
-    /* if (
-      term &&
-      type === SearchType.fullName &&
-      query_type === 'member-offering'
-    ) {
-      const resultSearch = await this.searchOfferingBy(
-        term,
-        SearchType.fullName,
-        limit,
-        offset,
-        query_type,
-        this.memberRepository,
-      );
-
-      return resultSearch;
-    } */
-
-    //! Search record of Offerings - Family House by preacher names
-
-    //* Find by first-name Preacher --> Many
-    /*  if (term && type === SearchType.firstName && query_type === 'preacher') {
-      const resultSearch = await this.searchOfferingBy(
-        term,
-        SearchType.firstName,
-        limit,
-        offset,
-        query_type,
-        this.memberRepository,
-      );
-
-      return resultSearch;
-    } */
-
-    //* Find by last-name Preacher --> Many
-    /* if (term && type === SearchType.lastName && query_type === 'preacher') {
-      const resultSearch = await this.searchOfferingBy(
-        term,
-        SearchType.lastName,
-        limit,
-        offset,
-        query_type,
-        this.memberRepository,
-      );
-
-      return resultSearch;
-    } */
-
-    //* Find by full-name Preacher --> Many
-    /* if (term && type === SearchType.fullName && query_type === 'preacher') {
-      const resultSearch = await this.searchOfferingBy(
-        term,
-        SearchType.fullName,
-        limit,
-        offset,
-        query_type,
-        this.memberRepository,
-      );
-
-      return resultSearch;
-    }*/
 
     //! Search record of Offerings by house code
 
@@ -516,6 +417,7 @@ export class OfferingService {
     return offering;
   }
 
+  //* UPDATE FOR ID
   async update(
     id: string,
     updateOfferingDto: UpdateOfferingDto,
@@ -648,7 +550,6 @@ export class OfferingService {
     }
   }
 
-  //? Se tendria que eliminar o solo actualizar?
   // remove(id: number) {
   //   return `This action removes a #${id} offering`;
   // }

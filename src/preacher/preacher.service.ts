@@ -139,7 +139,7 @@ export class PreacherService {
     } = searchTypeAndPaginationDto;
     let preacher: Preacher | Preacher[];
 
-    //* Find ID --> One (Busca por ID, activo o inactivo)
+    //* Find ID --> One (inactivo or active)
     if (isUUID(term) && type === SearchType.id) {
       preacher = await this.preacherRepository.findOneBy({ id: term });
 
@@ -297,7 +297,7 @@ export class PreacherService {
     return preacher;
   }
 
-  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Preacher y Member ✅✅
+  //NOTE: it is updated to is_active true, and it also sets updated data to Preacher and Member ✅✅
   //* UPDATE PREACHER
   async update(
     id: string,

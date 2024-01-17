@@ -88,8 +88,6 @@ export class Member {
   updated_by: string;
 
   //* Relations
-  //NOTE: Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor de manera recursiva, y al no encontrar da error, igual con el copastor.
-
   @ManyToOne(() => FamilyHome, { nullable: true })
   @JoinColumn({ name: 'their_family_home_id' })
   their_family_home: FamilyHome;

@@ -20,7 +20,7 @@ import { CoPastor } from '../copastor/entities/copastor.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { SearchType } from '../common/enums/search-types.enum';
-import { searchFullname, searchPerson } from 'src/common/helpers';
+import { searchFullname, searchPerson } from '../common/helpers';
 
 @Injectable()
 export class FamilyHomeService {
@@ -188,7 +188,7 @@ export class FamilyHomeService {
     } = searchTypeAndPaginationDto;
     let familyHome: FamilyHome | FamilyHome[];
 
-    //* Find ID --> One
+    //* Find ID --> One (inactive or active)
     if (isUUID(term) && type === SearchType.id) {
       familyHome = await this.familyHomeRepository.findOneBy({ id: term });
 
@@ -399,7 +399,7 @@ export class FamilyHomeService {
     return familyHome;
   }
 
-  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Casa_Familiar y en Member family-home  ✅✅
+  //NOTE: it is updated to is_active true, and it also sets updated data to Family_Home and Member family-home ✅✅
   //* UPDATE FAMILY HOME ID
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
     const { their_preacher, is_active, zone } = updateFamilyHomeDto;

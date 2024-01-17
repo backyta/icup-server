@@ -1,4 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+
 import { Member } from '../../members/entities/member.entity';
 
 import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';

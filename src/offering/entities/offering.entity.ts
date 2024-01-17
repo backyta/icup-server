@@ -1,4 +1,4 @@
-import { Member } from 'src/members/entities/member.entity';
+import { Member } from '../../members/entities/member.entity';
 import { FamilyHome } from '../../family-home/entities/family-home.entity';
 import {
   Column,
@@ -59,6 +59,3 @@ export class Offering {
   @JoinColumn({ name: 'copastor_id' })
   copastor: CoPastor;
 }
-
-//! Agregar busqueda por codigo cuando se filtre casa a ingresar su ofrenda, A-2, para identificar la casa
-//! De la misma manera filtrar los copastores, para setear en ayunoZonal.

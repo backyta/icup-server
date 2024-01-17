@@ -120,7 +120,7 @@ export class CoPastorService {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let coPastor: CoPastor | CoPastor[];
 
-    //* Find ID --> One (ID por activo o inactivo)
+    //* Find ID --> One (active or inactive)
     if (isUUID(term) && type === SearchType.id) {
       coPastor = await this.coPastorRepository.findOneBy({ id: term });
 
@@ -157,6 +157,7 @@ export class CoPastorService {
       await this.coPastorRepository.save(coPastor);
     }
 
+    // TODO : agregar busqueda por nombre de pastor y member-copastor
     //* Find firstName --> Many
     if (term && type === SearchType.firstName) {
       const resultSearch = await this.searchCoPastorBy(
@@ -244,7 +245,7 @@ export class CoPastorService {
     return coPastor;
   }
 
-  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a CoPastor y Member ✅✅
+  //NOTE: it is updated to is_active true, and it also sets updated data to CoPastor and Member ✅✅
   //* UPDATE FOR ID
   async update(
     id: string,
@@ -288,7 +289,7 @@ export class CoPastorService {
       );
     }
 
-    //! Si se cambia el pastor solo afectar al copastor y a su member-copastor, los demas quedan libres para setear data (solo se va el copastor, con otro pastor)
+    //! it will only affect the co-pastor and his member-copastor.
     //* Update on all members the new pastor of the co-pastor that is updated.
     const allMembers = await this.memberRepository.find();
     const membersByCoPastor = allMembers.filter(

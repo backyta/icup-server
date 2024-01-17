@@ -1,4 +1,5 @@
 export enum SearchType {
+  //* Basic
   id = 'id',
   gender = 'gender',
   maritalStatus = 'marital_status',
@@ -18,7 +19,6 @@ export enum SearchType {
   zone = 'zone',
 
   //* Offering and Thite
-
   type = 'type',
   type_sub_type = 'type_sub_type',
   type_sub_type_date = 'type_sub_type_date',

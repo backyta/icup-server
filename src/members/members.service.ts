@@ -290,7 +290,7 @@ export class MembersService {
     } = searchTypeAndPaginationDto;
     let member: Member | Member[];
 
-    //* Find UUID --> One
+    //* Find UUID --> One (inactive or active)
     if (isUUID(term) && type === SearchType.id) {
       member = await this.memberRepository.findOne({
         where: { id: term },
@@ -658,7 +658,7 @@ export class MembersService {
     let familyHome: FamilyHome;
     let member: Member;
 
-    //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Member y Pastor ✅✅
+    //NOTE: it is updated to is_active true, and it also sets updated data to Member and Pastor ✅✅
     //! Pastor Validation (If pastor remains in pastor role)
     if (dataMember.roles.includes('pastor') && roles.includes('pastor')) {
       pastor = null;
@@ -708,7 +708,7 @@ export class MembersService {
       }
     }
 
-    //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Member y Copastor ✅✅
+    //NOTE: it is updated to is_active true, and it also sets updated data to Member and Copastor ✅✅
     //! CoPastor Validation (If copastor remains in copastor role)
     if (dataMember.roles.includes('copastor') && roles.includes('copastor')) {
       pastor = await this.pastorRepository.findOneBy({
@@ -813,7 +813,7 @@ export class MembersService {
       }
     }
 
-    //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Member y Preacher, y se coloca casa temporal al predicador sin home ✅✅
+    //NOTE: it is updated to is_active true, and it also sets updated data to Member and Preacher, and a temporary home is placed on the preacher without a home ✅✅
     //! Preacher Validation (If preacher remains in preacher role)
     if (dataMember.roles.includes('preacher') && roles.includes('preacher')) {
       copastor = await this.coPastorRepository.findOneBy({
@@ -959,7 +959,7 @@ export class MembersService {
       }
     }
 
-    //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Member ✅✅
+    //NOTE: it is updated to is_active true, and it also sets updated data to Member ✅✅
     //! Member Validation (If member remains in member)
     if (
       dataMember.roles.includes('member') &&

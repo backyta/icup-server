@@ -20,8 +20,8 @@ import { OfferingModule } from './offering/offering.module';
       database: process.env.DB_NAME,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
-      autoLoadEntities: true, // para cargar automaticamente las entidades que definimos.
-      synchronize: true, // sincronizacion automatica con DB (no production, hacer migrations)
+      autoLoadEntities: true, // to automatically load the entities we define.
+      synchronize: true, // automatic synchronization with DB (no production, do migrations)
     }),
     CommonModule,
     MembersModule,
