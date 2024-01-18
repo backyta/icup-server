@@ -14,7 +14,7 @@ import { FamilyHomeModule } from '../family-home/family-home.module';
   controllers: [CopastorController],
   providers: [CoPastorService],
   imports: [
-    TypeOrmModule.forFeature([CoPastor]), // registra entidades para usar dentro del modulo(tabla que se guarda en DB).
+    TypeOrmModule.forFeature([CoPastor]),
     forwardRef(() => MembersModule),
     forwardRef(() => PastorModule),
     PreacherModule,

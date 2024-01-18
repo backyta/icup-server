@@ -86,7 +86,7 @@ export class OfferingService {
       });
 
       if (!dataCopastor) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `CoPastor was not found with id ${copastor_id}`,
         );
       }
@@ -98,7 +98,7 @@ export class OfferingService {
       });
 
       if (!dataFamilyHome) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Family-Home was not found with id ${family_home_id}`,
         );
       }
@@ -110,7 +110,7 @@ export class OfferingService {
       });
 
       if (!dataMember) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Member was not found with id ${member_id}`,
         );
       }
@@ -162,7 +162,7 @@ export class OfferingService {
       });
 
       if (!offering) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Offering record was not found with this UUID`,
         );
       }
@@ -229,7 +229,7 @@ export class OfferingService {
         .getMany();
 
       if (allFamilyHouses.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No FamilyHouses were found with this code of Family Home: ${term}`,
         );
       }
@@ -265,7 +265,7 @@ export class OfferingService {
         .getMany();
 
       if (offering.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No offering records found with this copastor_id: ${term} `,
         );
       }
@@ -288,7 +288,7 @@ export class OfferingService {
         .getMany();
 
       if (offering.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No records found with this date: ${term} `,
         );
       }
@@ -307,7 +307,7 @@ export class OfferingService {
         .getMany();
 
       if (offering.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found records with these type: ${term}`,
         );
       }
@@ -329,7 +329,7 @@ export class OfferingService {
         .getMany();
 
       if (offering.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found records with these type & sub_type: ${term
             .split('+')
             .join(' - ')}`,
@@ -355,7 +355,7 @@ export class OfferingService {
         .getMany();
 
       if (offering.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found records with these type & sub_type & date: ${term
             .split('+')
             .join(' - ')}`,
@@ -380,7 +380,7 @@ export class OfferingService {
         .getMany();
 
       if (offering.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found records with these type_date: ${term
             .split('+')
             .join(' - ')}`,
@@ -493,7 +493,7 @@ export class OfferingService {
       });
 
       if (!dataCopastor) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `CoPastor was not found with id ${copastor_id}`,
         );
       }
@@ -508,7 +508,7 @@ export class OfferingService {
       });
 
       if (!dataFamilyHome) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Family-Home was not found with id ${family_home_id}`,
         );
       }
@@ -523,7 +523,7 @@ export class OfferingService {
       });
 
       if (!dataMember) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Member was not found with id ${member_id}`,
         );
       }
@@ -637,7 +637,7 @@ export class OfferingService {
       }
 
       if (!offeringsByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Offerings or Tithes with these names of '${type_of_name}': ${term.slice(
             0,
             -1,
@@ -723,7 +723,7 @@ export class OfferingService {
       }
 
       if (!offeringsByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Offerings or Tithes with these first_name & last_name of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))

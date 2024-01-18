@@ -5,6 +5,7 @@ export enum searchTypeByName {
   copastoHouse = 'copastor-house',
   preacherHouse = 'preacher-house',
   preacherMember = 'preacher-member',
+  copastorMember = 'copastor-member',
   member = 'member',
   preacher = 'preacher',
   copastor = 'copastor',

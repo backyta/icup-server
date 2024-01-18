@@ -45,14 +45,14 @@ export class PreacherService {
 
   //* CREATE PREACHER
   async create(createPreacherDto: CreatePreacherDto) {
-    const { id_member, their_copastor } = createPreacherDto;
+    const { member_id, their_copastor } = createPreacherDto;
 
     const member = await this.memberRepository.findOneBy({
-      id: id_member,
+      id: member_id,
     });
 
     if (!member) {
-      throw new NotFoundException(`Not faound Member with id ${id_member}`);
+      throw new NotFoundException(`Not found Member with id ${member_id}`);
     }
 
     if (!member.roles.includes('preacher')) {
@@ -144,7 +144,7 @@ export class PreacherService {
       preacher = await this.preacherRepository.findOneBy({ id: term });
 
       if (!preacher) {
-        throw new BadRequestException(`Preacher was not found with this UUID`);
+        throw new NotFoundException(`Preacher was not found with this UUID`);
       }
 
       //* Counting and assigning the number of members (id-preahcer member table)
@@ -234,7 +234,7 @@ export class PreacherService {
         .getMany();
 
       if (preacher.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No Preacher was found with this their_copastor: ${term}`,
         );
       }
@@ -303,7 +303,13 @@ export class PreacherService {
     id: string,
     updatePreacherDto: UpdatePreacherDto,
   ): Promise<Preacher> {
-    const { their_copastor, is_active } = updatePreacherDto;
+    const { their_copastor, is_active, member_id } = updatePreacherDto;
+
+    if (!member_id) {
+      throw new BadRequestException(
+        `member_id should not be sent, member id cannot be updated`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -332,7 +338,7 @@ export class PreacherService {
     });
 
     if (!copastor) {
-      throw new NotFoundException(`Pastor Not found with id ${their_copastor}`);
+      throw new NotFoundException(`Pastor not found with id ${their_copastor}`);
     }
 
     if (!copastor.is_active) {
@@ -588,7 +594,7 @@ export class PreacherService {
       }
 
       if (!preachersByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Preacher with this names of '${type_of_name}': ${term.slice(
             0,
             -1,
@@ -644,7 +650,7 @@ export class PreacherService {
       }
 
       if (!preachersByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Preachers with these first_name & last_name of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))

@@ -85,6 +85,7 @@ export class MembersService {
       );
     }
 
+    //* Only a Preacher can serve as Treasurer
     if (
       roles.includes('member') &&
       roles.includes('treasurer') &&
@@ -110,24 +111,22 @@ export class MembersService {
     }
 
     if (
-      (roles.includes('copastor') && their_pastor) ||
       (roles.includes('copastor') && their_copastor) ||
       (roles.includes('copastor') && their_preacher) ||
       (roles.includes('copastor') && their_family_home)
     ) {
       throw new BadRequestException(
-        `A Pastor, Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, first create Copastor`,
+        `A Copastor, Preacher or Family House cannot be assigned to a member with a Copastor role, only their_pastor can be assigned`,
       );
     }
 
     if (
-      (roles.includes('preacher') && their_copastor) ||
       (roles.includes('preacher') && their_pastor) ||
-      (roles.includes('preacher') && their_pastor) ||
+      (roles.includes('preacher') && their_preacher) ||
       (roles.includes('preacher') && their_family_home)
     ) {
       throw new BadRequestException(
-        `Cannot assign a Pastor, Copastor, Preacher, or family home to a member with Preacher role, first create Preacher`,
+        `Cannot assign a Pastor, Preacher, or Family Home to a member with Preacher role, only their_copastor can be assigned`,
       );
     }
 
@@ -143,31 +142,132 @@ export class MembersService {
       );
     }
 
-    //* Validations Pastor, Copastor, Preacher, Home
+    //* Validations Pastor, Copastor, Preacher, Family-Home.
     let pastor: Pastor;
     let copastor: CoPastor;
     let preacher: Preacher;
     let familyHome: FamilyHome;
 
-    //* If their_family_home exists, it is a Member
-    if (
-      their_family_home &&
-      !their_pastor &&
-      !their_copastor &&
-      !their_preacher
-    ) {
+    //! If no relationship is sent and the role is 'pastor', create member and pastor.
+    if (roles.includes('pastor')) {
+      try {
+        const member = this.memberRepository.create({
+          ...createMemberDto,
+          their_copastor: copastor,
+          their_pastor: pastor,
+          their_preacher: preacher,
+          their_family_home: familyHome,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        await this.memberRepository.save(member);
+
+        await this.pastorService.create({
+          member_id: member.id,
+        });
+
+        return member;
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //! If their_pastor exists and the role is 'copastor', create member and copastor.
+    if (their_pastor && roles.includes('copastor')) {
+      pastor = await this.pastorRepository.findOneBy({
+        id: their_pastor,
+      });
+
+      if (!pastor) {
+        throw new NotFoundException(
+          `Pastor was not found with id ${their_pastor}`,
+        );
+      }
+
+      try {
+        const member = this.memberRepository.create({
+          ...createMemberDto,
+          their_copastor: copastor,
+          their_pastor: pastor,
+          their_preacher: preacher,
+          their_family_home: familyHome,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        await this.memberRepository.save(member);
+
+        await this.coPastorService.create({
+          member_id: member.id,
+          their_pastor: pastor.id,
+        });
+
+        return member;
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //! If their_copastor exists and the role is 'preacher', create member and preacher.
+    if (their_copastor && roles.includes('preacher')) {
+      copastor = await this.coPastorRepository.findOneBy({
+        id: their_copastor,
+      });
+
+      if (!copastor) {
+        throw new NotFoundException(
+          `CoPastor was not found with id ${their_copastor}`,
+        );
+      }
+
+      if (!copastor.their_pastor) {
+        throw new NotFoundException(
+          `Pastor was not found, verify that Copastor has a pastor assigned`,
+        );
+      }
+      pastor = await this.pastorRepository.findOneBy({
+        id: copastor?.their_pastor.id,
+      });
+
+      try {
+        const member = this.memberRepository.create({
+          ...createMemberDto,
+          their_copastor: copastor,
+          their_pastor: pastor,
+          their_preacher: preacher,
+          their_family_home: familyHome,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
+
+        await this.memberRepository.save(member);
+
+        await this.preacherService.create({
+          member_id: member.id,
+          their_copastor: copastor.id,
+        });
+
+        return member;
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
+    }
+
+    //! If their_familyHome exists and their role is just 'member', create just member.
+    if (their_family_home && roles.includes('member')) {
       familyHome = await this.familyHomeRepository.findOneBy({
         id: their_family_home,
       });
 
       if (!familyHome) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Family-Home was not found with id ${their_family_home}`,
         );
       }
 
       if (!familyHome.their_preacher) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Preacher was not found, verify that FamilyHome has a preacher assigned`,
         );
       }
@@ -177,7 +277,7 @@ export class MembersService {
       });
 
       if (!familyHome.their_copastor) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `CoPastor was not found, verify that FamilyHome has a copastor assigned`,
         );
       }
@@ -187,76 +287,52 @@ export class MembersService {
       });
 
       if (!familyHome.their_pastor) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Pastor was not found, verify that FamilyHome has a pastor assigned`,
         );
       }
       pastor = await this.pastorRepository.findOneBy({
         id: familyHome.their_pastor.id,
       });
-    }
 
-    //* If their_copastor exists, it is a Preacher
-    if (
-      their_copastor &&
-      !their_pastor &&
-      !their_family_home &&
-      !their_preacher
-    ) {
-      copastor = await this.coPastorRepository.findOneBy({
-        id: their_copastor,
-      });
+      try {
+        const member = this.memberRepository.create({
+          ...createMemberDto,
+          their_copastor: copastor,
+          their_pastor: pastor,
+          their_preacher: preacher,
+          their_family_home: familyHome,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
 
-      if (!copastor) {
-        throw new BadRequestException(
-          `CoPastor was not found with id ${their_copastor}`,
-        );
-      }
+        await this.memberRepository.save(member);
 
-      if (!copastor.their_pastor) {
-        throw new BadRequestException(
-          `Pastor was not found, verify that Copastor has a pastor assigned`,
-        );
-      }
-      pastor = await this.pastorRepository.findOneBy({
-        id: copastor?.their_pastor.id,
-      });
-    }
-
-    //* If their_pastor exists, it is a Copastor
-    if (
-      their_pastor &&
-      !their_family_home &&
-      !their_preacher &&
-      !their_copastor
-    ) {
-      pastor = await this.pastorRepository.findOneBy({
-        id: their_pastor,
-      });
-
-      if (!pastor) {
-        throw new BadRequestException(
-          `Pastor was not found with id ${their_pastor}`,
-        );
+        return member;
+      } catch (error) {
+        this.handleDBExceptions(error);
       }
     }
 
-    try {
-      const member = this.memberRepository.create({
-        ...createMemberDto,
-        their_copastor: copastor,
-        their_pastor: pastor,
-        their_preacher: preacher,
-        their_family_home: familyHome,
-        created_at: new Date(),
-        created_by: 'Kevin',
-      });
+    //! If no relationship is sent, create only member without relationships.
+    if (!their_pastor && !their_copastor && !their_preacher) {
+      try {
+        const member = this.memberRepository.create({
+          ...createMemberDto,
+          their_copastor: copastor,
+          their_pastor: pastor,
+          their_preacher: preacher,
+          their_family_home: familyHome,
+          created_at: new Date(),
+          created_by: 'Kevin',
+        });
 
-      await this.memberRepository.save(member);
+        await this.memberRepository.save(member);
 
-      return member;
-    } catch (error) {
-      this.handleDBExceptions(error);
+        return member;
+      } catch (error) {
+        this.handleDBExceptions(error);
+      }
     }
   }
 
@@ -303,7 +379,7 @@ export class MembersService {
       });
 
       if (!member) {
-        throw new BadRequestException(`Pastor was not found with this UUID`);
+        throw new NotFoundException(`Pastor was not found with this UUID`);
       }
 
       member.age = updateAge(member);
@@ -401,7 +477,7 @@ export class MembersService {
         .getMany();
 
       if (member.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found members with these roles: ${rolesArray}`,
         );
       }
@@ -421,7 +497,7 @@ export class MembersService {
         .getMany();
 
       if (member.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No Members found with this their_copastor: ${term} `,
         );
       }
@@ -441,7 +517,7 @@ export class MembersService {
         .getMany();
 
       if (member.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No Members found with this their_preacher : ${term} `,
         );
       }
@@ -461,7 +537,7 @@ export class MembersService {
         .getMany();
 
       if (member.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No members found with this your_family_home : ${term} `,
         );
       }
@@ -1116,7 +1192,7 @@ export class MembersService {
         await Promise.all(promisesFamilyHouses);
         await this.coPastorRepository.delete(dataCopastor.id);
         await this.pastorService.create({
-          id_member: dataMember.id,
+          member_id: dataMember.id,
         });
         return result;
       } catch (error) {
@@ -1208,7 +1284,7 @@ export class MembersService {
         await Promise.all(promisesMembers);
         await this.preacherRepository.delete(dataPreacher.id);
         await this.coPastorService.create({
-          id_member: dataMember.id,
+          member_id: dataMember.id,
           their_pastor: pastor.id,
         });
         return result;
@@ -1264,7 +1340,7 @@ export class MembersService {
       try {
         const result = await this.memberRepository.save(member);
         await this.preacherService.create({
-          id_member: dataMember.id,
+          member_id: dataMember.id,
           their_copastor: copastor.id,
         });
         return result;
@@ -1705,7 +1781,7 @@ export class MembersService {
       }
 
       if (!membersByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Members with these names of '${type_of_name}': ${term.slice(
             0,
             -1,
@@ -1783,7 +1859,7 @@ export class MembersService {
       }
 
       if (!membersByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Members with these names of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))

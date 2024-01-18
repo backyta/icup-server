@@ -193,7 +193,7 @@ export class FamilyHomeService {
       familyHome = await this.familyHomeRepository.findOneBy({ id: term });
 
       if (!familyHome) {
-        throw new BadRequestException(`FamilyHome was not found with this UUI`);
+        throw new NotFoundException(`FamilyHome was not found with this UUI`);
       }
 
       //* Counting and assigning the number of members (id-familyHome member table)
@@ -267,7 +267,7 @@ export class FamilyHomeService {
         .getMany();
 
       if (familyHome.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No FamilyHome was found with this code: ${term}`,
         );
       }
@@ -284,7 +284,7 @@ export class FamilyHomeService {
         .getMany();
 
       if (familyHome.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No FamilyHome was found with this zone: ${term}`,
         );
       }
@@ -301,7 +301,7 @@ export class FamilyHomeService {
         .getMany();
 
       if (familyHome.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No FamilyHome was found with this address: ${term}`,
         );
       }
@@ -316,7 +316,7 @@ export class FamilyHomeService {
         .getOne();
 
       if (!familyHome) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No FamilyHome was found with this their_preacher : ${term}`,
         );
       }
@@ -333,7 +333,7 @@ export class FamilyHomeService {
         .getMany();
 
       if (familyHome.length === 0) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `No FamilyHome was found with this their_copastor: ${term}`,
         );
       }
@@ -802,7 +802,7 @@ export class FamilyHomeService {
       }
 
       if (!familyHomeByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Family Houses with these names of '${type_of_name}': ${term.slice(
             0,
             -1,
@@ -856,7 +856,7 @@ export class FamilyHomeService {
       }
 
       if (!familyHomeByName) {
-        throw new BadRequestException(
+        throw new NotFoundException(
           `Not found Family Houses with these first_name & last_name of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))

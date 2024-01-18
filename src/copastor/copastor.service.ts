@@ -44,14 +44,14 @@ export class CoPastorService {
 
   //* CREATE COPASTOR
   async create(createCoPastorDto: CreateCoPastorDto): Promise<CoPastor> {
-    const { id_member, their_pastor } = createCoPastorDto;
+    const { member_id, their_pastor } = createCoPastorDto;
 
     const member = await this.memberRepository.findOneBy({
-      id: id_member,
+      id: member_id,
     });
 
     if (!member) {
-      throw new NotFoundException(`Not found Member with id ${id_member}`);
+      throw new NotFoundException(`Not found Member with id ${member_id}`);
     }
 
     if (!member.roles.includes('copastor')) {
@@ -117,7 +117,12 @@ export class CoPastorService {
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<CoPastor[] | CoPastor> {
-    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
+    const {
+      type,
+      limit = 20,
+      offset = 0,
+      type_of_name,
+    } = searchTypeAndPaginationDto;
     let coPastor: CoPastor | CoPastor[];
 
     //* Find ID --> One (active or inactive)
@@ -125,7 +130,7 @@ export class CoPastorService {
       coPastor = await this.coPastorRepository.findOneBy({ id: term });
 
       if (!coPastor) {
-        throw new BadRequestException(`Copastor was not found with this UUID`);
+        throw new NotFoundException(`Copastor was not found with this UUID`);
       }
 
       //* Count and assignment of Houses
@@ -157,14 +162,14 @@ export class CoPastorService {
       await this.coPastorRepository.save(coPastor);
     }
 
-    // TODO : agregar busqueda por nombre de pastor y member-copastor
     //* Find firstName --> Many
-    if (term && type === SearchType.firstName) {
+    if (term && type === SearchType.firstName && type_of_name) {
       const resultSearch = await this.searchCoPastorBy(
         term,
         SearchType.firstName,
         limit,
         offset,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -172,12 +177,13 @@ export class CoPastorService {
     }
 
     //* Find lastName --> Many
-    if (term && type === SearchType.lastName) {
+    if (term && type === SearchType.lastName && type_of_name) {
       const resultSearch = await this.searchCoPastorBy(
         term,
         SearchType.lastName,
         limit,
         offset,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -185,12 +191,13 @@ export class CoPastorService {
     }
 
     //* Find fullName --> One
-    if (term && type === SearchType.fullName) {
+    if (term && type === SearchType.fullName && type_of_name) {
       const resultSearch = await this.searchCoPastorBy(
         term,
         SearchType.fullName,
         limit,
         offset,
+        type_of_name,
         this.memberRepository,
       );
 
@@ -251,7 +258,13 @@ export class CoPastorService {
     id: string,
     updateCoPastorDto: UpdateCoPastorDto,
   ): Promise<CoPastor> {
-    const { their_pastor, is_active } = updateCoPastorDto;
+    const { their_pastor, is_active, member_id } = updateCoPastorDto;
+
+    if (!member_id) {
+      throw new BadRequestException(
+        `member_id should not be sent, member id cannot be updated`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
@@ -506,6 +519,7 @@ export class CoPastorService {
     searchType: SearchType,
     limit: number,
     offset: number,
+    type_of_name: string,
     repository: Repository<Member>,
   ): Promise<CoPastor | CoPastor[]> => {
     //* Para find by first or last name
@@ -518,38 +532,52 @@ export class CoPastorService {
         repository,
       });
 
-      const coPastorMembers = members.filter((member) =>
-        member.roles.includes('copastor'),
-      );
+      const copastores = await this.coPastorRepository.find();
 
-      if (coPastorMembers.length === 0) {
+      let copastorByName: CoPastor[][];
+
+      if (type_of_name === 'copastor-member') {
+        copastorByName = members.map((member) => {
+          const newCopastores = copastores.filter(
+            (copastor) =>
+              copastor?.member.id === member.id && copastor?.is_active === true,
+          );
+          return newCopastores;
+        });
+      }
+
+      if (type_of_name === 'pastor') {
+        copastorByName = members.map((member) => {
+          const newCopastores = copastores.filter(
+            (copastor) =>
+              copastor?.their_pastor?.member.id === member.id &&
+              copastor?.is_active === true,
+          );
+          return newCopastores;
+        });
+      }
+
+      if (!copastorByName) {
         throw new NotFoundException(
-          `Not found member with role Copastor and with this name : ${term.slice(
+          `Not found Copastor with this names of '${type_of_name}': ${term.slice(
             0,
             -1,
           )}`,
         );
       }
 
-      const coPastores = await this.coPastorRepository.find();
+      const ArrayCoPastoresFlattened = copastorByName.flat();
 
-      const newCoPastorMembers = coPastorMembers.map((member) => {
-        const newCoPastores = coPastores.filter(
-          (coPastor) =>
-            coPastor.member.id === member.id && coPastor.is_active === true,
-        );
-        return newCoPastores;
-      });
-
-      const ArrayCoPastorMembersFlattened = newCoPastorMembers.flat();
-
-      if (ArrayCoPastorMembersFlattened.length === 0) {
+      if (ArrayCoPastoresFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found Copastor with these names ${term.slice(0, -1)}`,
+          `Not found Copastor with this names of '${type_of_name}': ${term.slice(
+            0,
+            -1,
+          )}`,
         );
       }
 
-      return ArrayCoPastorMembersFlattened;
+      return ArrayCoPastoresFlattened;
     }
 
     //* Para find by full_name
@@ -561,41 +589,52 @@ export class CoPastorService {
         repository,
       });
 
-      const coPastorMembers = members.filter((member) =>
-        member.roles.includes('copastor'),
-      );
+      const copastores = await this.coPastorRepository.find();
 
-      if (coPastorMembers.length === 0) {
+      let copastorByName: CoPastor[][];
+
+      if (type_of_name === 'copastor-member') {
+        copastorByName = members.map((member) => {
+          const newCopastores = copastores.filter(
+            (copastor) =>
+              copastor?.member.id === member.id && copastor?.is_active === true,
+          );
+          return newCopastores;
+        });
+      }
+
+      if (type_of_name === 'pastor') {
+        copastorByName = members.map((member) => {
+          const newCopastores = copastores.filter(
+            (copastor) =>
+              copastor?.their_pastor?.member.id === member.id &&
+              copastor?.is_active === true,
+          );
+          return newCopastores;
+        });
+      }
+
+      if (!copastorByName) {
         throw new NotFoundException(
-          `Not found member with role Copastor and with these first_name & last_name: ${term
+          `Not found Copastor with this names of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,
         );
       }
 
-      const coPastores = await this.coPastorRepository.find();
+      const ArrayCoPastoresFlattened = copastorByName.flat();
 
-      const newCoPastorMembers = coPastorMembers.map((member) => {
-        const newCoPastores = coPastores.filter(
-          (coPastor) =>
-            coPastor.member.id === member.id && coPastor.is_active === true,
-        );
-        return newCoPastores;
-      });
-
-      const ArrayCoPastorMembersFlattened = newCoPastorMembers.flat();
-
-      if (ArrayCoPastorMembersFlattened.length === 0) {
+      if (ArrayCoPastoresFlattened.length === 0) {
         throw new NotFoundException(
-          `Not found CoPastor with these names ${term
+          `Not found CoPastor with these names of '${type_of_name}': ${term
             .split('-')
             .map((word) => word.slice(0, -1))
             .join(' ')}`,
         );
       }
 
-      return ArrayCoPastorMembersFlattened;
+      return ArrayCoPastoresFlattened;
     }
   };
 }
