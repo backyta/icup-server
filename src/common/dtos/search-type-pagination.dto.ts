@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { searchTypeByName } from '../enums/search-type-by-name';
 
 export class SearchTypeAndPaginationDto {
   @IsNotEmpty()
@@ -14,4 +15,9 @@ export class SearchTypeAndPaginationDto {
   @Min(0)
   @Type(() => Number)
   offset?: number;
+
+  @IsEnum(searchTypeByName)
+  @IsOptional()
+  @IsString()
+  type_of_name?: string;
 }

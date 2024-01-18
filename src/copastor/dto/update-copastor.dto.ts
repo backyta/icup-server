@@ -33,7 +33,7 @@ export class UpdateCoPastorDto extends PartialType(CreateCoPastorDto) {
   @IsString()
   @IsOptional()
   @IsNotEmpty()
-  date_birth: string | Date;
+  date_birth?: string | Date;
 
   @IsEmail()
   @IsOptional()
@@ -56,7 +56,6 @@ export class UpdateCoPastorDto extends PartialType(CreateCoPastorDto) {
   @IsOptional()
   marital_status?: string;
 
-  //NOTE: Transformar desde el front a string y enviarlo con - y +51 (solo peru)
   @IsString()
   @IsOptional()
   phone?: string;

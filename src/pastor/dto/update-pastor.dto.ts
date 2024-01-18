@@ -56,7 +56,6 @@ export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   @IsOptional()
   marital_status?: string;
 
-  //NOTE: Transformar desde el front a string y enviarlo con - y +51 (solo peru)
   @IsString()
   @IsOptional()
   phone?: string;

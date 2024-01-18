@@ -44,14 +44,14 @@ export class PastorService {
 
   //* CREATE PASTOR
   async create(createPastorDto: CreatePastorDto): Promise<Pastor> {
-    const { id_member } = createPastorDto;
+    const { member_id } = createPastorDto;
 
     const member = await this.memberRepository.findOneBy({
-      id: id_member,
+      id: member_id,
     });
 
     if (!member) {
-      throw new NotFoundException(`Not faound Member with id ${id_member}`);
+      throw new NotFoundException(`Not found Member with id ${member_id}`);
     }
 
     if (!member.roles.includes('pastor')) {
@@ -99,14 +99,14 @@ export class PastorService {
     const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let pastor: Pastor | Pastor[];
 
-    //* Find ID --> One
+    //* Find ID --> One (active or inactive)
     if (isUUID(term) && type === SearchType.id) {
       pastor = await this.pastorRepository.findOne({
         where: { id: term },
       });
 
       if (!pastor) {
-        throw new BadRequestException(`Pastor was not found with this UUID`);
+        throw new NotFoundException(`Pastor was not found with this UUID`);
       }
 
       //* Count and assignment of co-pastors
@@ -225,10 +225,16 @@ export class PastorService {
     return pastor;
   }
 
-  //NOTE: TODO OK AQUI: se actualiza a is_active true, y tmb setea data actualizada a Pastor y Member ✅✅
+  //NOTE: is updated to is_active true, and also sets updated data to Pastor and Member  ✅✅
   //* UPDATE FOR ID
   async update(id: string, updatePastorDto: UpdatePastorDto): Promise<Pastor> {
-    const { is_active } = updatePastorDto;
+    const { is_active, member_id } = updatePastorDto;
+
+    if (!member_id) {
+      throw new BadRequestException(
+        `member_id should not be sent, member id cannot be updated`,
+      );
+    }
 
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);

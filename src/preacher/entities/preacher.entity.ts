@@ -34,7 +34,7 @@ export class Preacher {
   @Column('text', { nullable: true })
   updated_by: string;
 
-  //* Array or single id (data)
+  //* Array ids, single id (data)
   @Column('uuid', { array: true, nullable: true })
   members: string[];
 

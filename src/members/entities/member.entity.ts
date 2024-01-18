@@ -1,7 +1,7 @@
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { FamilyHome } from 'src/family-home/entities/family-home.entity';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
+import { CoPastor } from '../../copastor/entities/copastor.entity';
+import { FamilyHome } from '../../family-home/entities/family-home.entity';
+import { Pastor } from '../../pastor/entities/pastor.entity';
+import { Preacher } from '../../preacher/entities/preacher.entity';
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -88,8 +88,6 @@ export class Member {
   updated_by: string;
 
   //* Relations
-  //NOTE: Cuidado con el eager en true, al hacer un queryBuilder en el member, busca tmb o carga el pastor de manera recursiva, y al no encontrar da error, igual con el copastor.
-
   @ManyToOne(() => FamilyHome, { nullable: true })
   @JoinColumn({ name: 'their_family_home_id' })
   their_family_home: FamilyHome;
