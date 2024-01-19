@@ -42,7 +42,7 @@ export class CoPastor {
   family_houses: string[];
 
   //* Relations Column
-  @OneToOne(() => Member, { eager: true })
+  @OneToOne(() => Member, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'member_id' })
   member: Member;
 

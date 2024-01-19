@@ -9,6 +9,7 @@ import { CopastorModule } from './copastor/copastor.module';
 import { PreacherModule } from './preacher/preacher.module';
 import { FamilyHomeModule } from './family-home/family-home.module';
 import { OfferingModule } from './offering/offering.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { OfferingModule } from './offering/offering.module';
     PreacherModule,
     FamilyHomeModule,
     OfferingModule,
+    SeedModule,
   ],
 })
 export class AppModule {}

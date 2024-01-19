@@ -59,15 +59,15 @@ export class FamilyHome {
 
   //* Relation columns
 
-  @OneToOne(() => Preacher, { eager: true })
+  @OneToOne(() => Preacher, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'their_preacher_id' })
   their_preacher: Preacher;
 
-  @ManyToOne(() => CoPastor, { eager: true })
+  @ManyToOne(() => CoPastor, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'their_copastor_id' })
   their_copastor: CoPastor;
 
-  @ManyToOne(() => Pastor, { eager: true })
+  @ManyToOne(() => Pastor, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'their_pastor_id' })
   their_pastor: Pastor;
 }

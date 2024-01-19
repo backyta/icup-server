@@ -46,7 +46,7 @@ export class Member {
   phone: string;
 
   @Column('date')
-  date_joinig: Date;
+  date_joining: Date;
 
   @Column('text')
   origin_country: string;
@@ -109,7 +109,7 @@ export class Member {
   @BeforeUpdate()
   transformToDates() {
     this.date_birth = new Date(this.date_birth);
-    this.date_joinig = new Date(this.date_joinig);
+    this.date_joining = new Date(this.date_joining);
 
     //* Generate age with date_birth
     const ageMiliSeconds = Date.now() - this.date_birth.getTime();

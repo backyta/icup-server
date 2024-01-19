@@ -45,17 +45,25 @@ export class Offering {
   //* Relations
 
   //? Ofrenda casa-familiar
-  @ManyToOne(() => FamilyHome, { nullable: true, eager: true })
+  @ManyToOne(() => FamilyHome, {
+    nullable: true,
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'family_home_id' })
   family_home: FamilyHome;
 
   //? Diezmo (personal)
-  @ManyToOne(() => Member, { nullable: true, eager: true })
+  @ManyToOne(() => Member, { nullable: true, eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'member_id' })
   member: Member;
 
   //? Ofrenda ayunoZonal (copastor_id)
-  @ManyToOne(() => CoPastor, { nullable: true, eager: true })
+  @ManyToOne(() => CoPastor, {
+    nullable: true,
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'copastor_id' })
   copastor: CoPastor;
 }

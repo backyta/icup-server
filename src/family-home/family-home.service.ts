@@ -877,4 +877,15 @@ export class FamilyHomeService {
       return ArrayFamilyHousesFlattened;
     }
   };
+
+  //* DELETE PARA SEMILLA
+  async deleteAllFamilyHouses() {
+    const query = this.familyHomeRepository.createQueryBuilder('houses');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
 }

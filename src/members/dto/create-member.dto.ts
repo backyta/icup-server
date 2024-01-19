@@ -58,7 +58,7 @@ export class CreateMemberDto {
 
   @IsString()
   @IsOptional()
-  date_joinig?: string | Date;
+  date_joining?: string | Date;
 
   @IsString()
   @IsNotEmpty()

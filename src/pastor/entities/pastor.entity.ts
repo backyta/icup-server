@@ -42,7 +42,7 @@ export class Pastor {
   preachers_id: string[];
 
   //* Relation columns
-  @OneToOne(() => Member, { eager: true })
+  @OneToOne(() => Member, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'member_id' })
   member: Member;
 }

@@ -1881,4 +1881,15 @@ export class MembersService {
       return ArrayMembersFlattened;
     }
   };
+
+  //* DELETE PARA SEMILLA
+  async deleteAllMembers() {
+    const query = this.memberRepository.createQueryBuilder('members');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
 }
