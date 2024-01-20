@@ -306,7 +306,7 @@ export class SeedService {
           house.their_preacher = preachersComasZ[2].id;
         }
       }
-
+      // TODO : corregir el error de que se repite el code.
       if (house.district === 'Carabayllo') {
         if (countCar === 0) {
           house.their_preacher = preachersCarabaylloR[0].id;

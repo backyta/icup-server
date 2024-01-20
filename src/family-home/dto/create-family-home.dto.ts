@@ -44,5 +44,5 @@ export class CreateFamilyHomeDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  their_preacher?: string;
+  their_preacher: string;
 }

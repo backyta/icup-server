@@ -38,7 +38,7 @@ interface SeedFamiilyHome {
   is_active?: boolean;
 
   //* Relations
-  their_preacher?: string;
+  their_preacher: string;
 }
 
 interface SeedDataMember {
@@ -562,7 +562,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Av. La Esperanza 234',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'A',
@@ -570,7 +570,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Jr. La Paz 567',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'A',
@@ -578,7 +578,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Av. La Gracia 890',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'A',
@@ -586,7 +586,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Jr. La Victoria 123',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'B',
@@ -594,7 +594,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Av. La Bendición 456',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'B',
@@ -602,7 +602,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Jr. El Milagro 789',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'B',
@@ -610,7 +610,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Av. La Misericordia 101',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'C',
@@ -618,7 +618,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Jr. La Devoción 202',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'C',
@@ -626,7 +626,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Av. La Gracia Divina 303',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'C',
@@ -634,7 +634,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Independencia',
       address: 'Jr. El Éxito 404',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
 
     //* House Comas
@@ -644,7 +644,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Comas',
       address: 'Av. La Paz 111',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'X',
@@ -652,7 +652,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Comas',
       address: 'Jr. La Unión 222',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'X',
@@ -660,7 +660,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Comas',
       address: 'Av. La Concordia 333',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'Z',
@@ -668,7 +668,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Comas',
       address: 'Jr. La Victoria 444',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'Z',
@@ -676,7 +676,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Comas',
       address: 'Av. La Alegría 555',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'Z',
@@ -684,7 +684,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Comas',
       address: 'Jr. El Renacimiento 666',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
 
     //* Hoses Carabayllo
@@ -694,7 +694,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Carabayllo',
       address: 'Av. La Solidaridad 111',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'R',
@@ -702,7 +702,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Carabayllo',
       address: 'Jr. La Felicidad 222',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'R',
@@ -710,7 +710,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Carabayllo',
       address: 'Av. El Progreso 333',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'Q',
@@ -718,7 +718,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Carabayllo',
       address: 'Jr. La Esperanza 444',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'Q',
@@ -726,7 +726,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Carabayllo',
       address: 'Av. La Ruta 555',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
     {
       zone: 'Q',
@@ -734,7 +734,7 @@ export const dataFamilyHouses: SeedDataHouses = {
       province: 'Lima',
       district: 'Carabayllo',
       address: 'Jr. La Aurora 666',
-      // their_preacher: 'id_test',
+      their_preacher: 'id_test',
     },
   ],
 };
