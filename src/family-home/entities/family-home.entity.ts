@@ -31,6 +31,9 @@ export class FamilyHome {
   is_active: boolean;
 
   //* Address
+  @Column('text', { default: 'Lima' })
+  province: string;
+
   @Column('text')
   district: string;
 

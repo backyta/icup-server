@@ -401,6 +401,7 @@ export class FamilyHomeService {
 
   //NOTE: it is updated to is_active true, and it also sets updated data to Family_Home and Member family-home ✅✅
   //* UPDATE FAMILY HOME ID
+  // TODO : desde el front probar si se pueda cambiar zona, osea de zona A a zona Tahua, Payet, porque la iglesia puede crecer
   async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
     const { their_preacher, is_active, zone } = updateFamilyHomeDto;
 

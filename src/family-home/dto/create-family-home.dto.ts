@@ -21,6 +21,10 @@ export class CreateFamilyHomeDto {
   name_home?: string;
 
   //* Address
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  province?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -40,5 +44,5 @@ export class CreateFamilyHomeDto {
   @IsString()
   @IsNotEmpty()
   @IsUUID()
-  their_preacher: string;
+  their_preacher?: string;
 }
