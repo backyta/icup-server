@@ -1,5 +1,5 @@
 export enum currencyType {
   sol = 'sol',
-  dolar = 'dolar',
+  dolar = 'dollar',
   euro = 'euro',
 }

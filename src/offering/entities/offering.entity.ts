@@ -21,7 +21,7 @@ export class Offering {
   sub_type: string;
 
   @Column('int')
-  amount: string;
+  amount: number;
 
   @Column('text')
   currency: string;

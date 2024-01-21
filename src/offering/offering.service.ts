@@ -44,7 +44,7 @@ export class OfferingService {
     const { copastor_id, member_id, family_home_id, type, sub_type } =
       createOfferingDto;
 
-    //TODO : hacer validacion cuando pase a autenticacion, solo podra hacer un tesosrero o superusuario (ofrenda y diezmo)
+    //TODO : hacer validacion cuando pase a autenticacion, solo podra hacer un tesorero o superusuario (ofrenda y diezmo)
 
     if (type === 'tithe' && (copastor_id || family_home_id || sub_type)) {
       throw new BadRequestException(

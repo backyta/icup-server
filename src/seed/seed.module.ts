@@ -16,6 +16,7 @@ import { PreacherModule } from 'src/preacher/preacher.module';
     PastorModule,
     CopastorModule,
     PreacherModule,
+    FamilyHomeModule,
   ],
 })
 export class SeedModule {}

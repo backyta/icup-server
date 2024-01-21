@@ -23,7 +23,7 @@ export class CreateOfferingDto {
 
   @IsNumber()
   @IsNotEmpty()
-  amount: string;
+  amount: number;
 
   @IsEnum(currencyType)
   @IsNotEmpty()

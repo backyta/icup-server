@@ -283,7 +283,9 @@ export class PreacherService {
 
     if (
       term &&
-      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
+      (type === SearchType.firstName ||
+        type === SearchType.lastName ||
+        type === SearchType.fullName) &&
       !type_of_name
     ) {
       throw new BadRequestException(

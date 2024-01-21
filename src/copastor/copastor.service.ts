@@ -246,6 +246,18 @@ export class CoPastorService {
       );
     }
 
+    if (
+      term &&
+      (type === SearchType.firstName ||
+        type === SearchType.lastName ||
+        type === SearchType.fullName) &&
+      !type_of_name
+    ) {
+      throw new BadRequestException(
+        `To search by names, the query_type is required`,
+      );
+    }
+
     if (!coPastor)
       throw new NotFoundException(`CoPastor with ${term} not found`);
 
