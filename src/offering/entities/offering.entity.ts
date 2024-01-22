@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { CoPastor } from '../../copastor/entities/copastor.entity';
 
-@Entity()
+@Entity({ name: 'offerings' })
 export class Offering {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -28,6 +28,9 @@ export class Offering {
 
   @Column('text', { nullable: true })
   comments: string;
+
+  @Column('text', { nullable: true })
+  url_file: string;
 
   //* Info register and update date
   @Column('timestamp', { nullable: true })

@@ -35,6 +35,10 @@ export class CreateOfferingDto {
   @MaxLength(100)
   comments?: string;
 
+  @IsString()
+  @IsOptional()
+  url_file?: string;
+
   //* Relations
 
   @IsString()

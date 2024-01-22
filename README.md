@@ -33,8 +33,8 @@ docker compose up -d
 ```
 npm start:dev or yarn start:dev
 ```
-<!-- 6. Rebuild database development with seed
+6. Rebuild the database in development mode with the seed
 ```
-http://localhost:3000/api/v2/seed
-``` -->
+http://localhost:3000/api/seed
+```
     
