@@ -40,7 +40,7 @@ export class FilesController {
       fileFilter: fileFiler,
       limits: { fileSize: 1000000 },
       storage: diskStorage({
-        destination: './static/offerings',
+        destination: './uploads/offering-file',
         filename: fileNamer,
       }),
     }),
