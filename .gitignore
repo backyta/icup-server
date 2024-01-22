@@ -4,6 +4,7 @@
 postgres-db/
 .husky/commit-msg
 .env
+/uploads
 
 # Logs
 logs
