@@ -15,6 +15,8 @@ import { CoPastor } from 'src/copastor/entities/copastor.entity';
 import { Preacher } from 'src/preacher/entities/preacher.entity';
 import { Repository } from 'typeorm';
 import { FamilyHome } from 'src/family-home/entities/family-home.entity';
+import { OfferingService } from 'src/offering/offering.service';
+import { Member } from 'src/members/entities/member.entity';
 
 @Injectable()
 export class SeedService {
@@ -31,9 +33,14 @@ export class SeedService {
     @InjectRepository(FamilyHome)
     private readonly familyHomeRepository: Repository<FamilyHome>,
 
+    @InjectRepository(Member)
+    private readonly memberRepository: Repository<Member>,
+
     private readonly memberService: MembersService,
 
     private readonly familyHomeService: FamilyHomeService,
+
+    private readonly offeringService: OfferingService,
   ) {}
 
   async runSeed() {
@@ -45,6 +52,7 @@ export class SeedService {
     //* Delete all data
     await this.memberService.deleteAllMembers();
     await this.familyHomeService.deleteAllFamilyHouses();
+    await this.offeringService.deleteAllOfferings();
 
     const membersPastor = dataMembersPastor.members;
     const membersCopastor = dataMembersCopastor.members;
@@ -60,14 +68,14 @@ export class SeedService {
     const insertPromisesMembers = [];
     const insertPromisesOfferings = [];
 
-    //* Create members & pastor
+    //! Create members & pastor
     membersPastor.forEach((member) => {
       insertPromisesPastor.push(this.memberService.create(member));
     });
 
     await Promise.all(insertPromisesPastor);
 
-    //* Create members & copastor
+    //! Create members & copastor
     const allPastores = await this.pastorRepository.find();
 
     const pastorIndep = allPastores.find(
@@ -98,7 +106,7 @@ export class SeedService {
 
     await Promise.all(insertPromisesCopastor);
 
-    //* Create members & preacher
+    //! Create members & preacher
     const allCopastores = await this.coPastorRepository.find();
 
     //* Copastor by Zona (Independencia)
@@ -154,40 +162,32 @@ export class SeedService {
     );
 
     membersPreacher.forEach((member, index) => {
-      let countInd: number = index;
-      let countCom: number = index;
-      let countCar: number = index;
-
-      countInd = member.district === 'Independencia' && countInd;
-      countCom = member.district === 'Comas' && countCom - 3;
-      countCar = member.district === 'Carabayllo' && countCar - 5;
-
       if (member.district === 'Independencia') {
-        if (countInd === 0) {
+        if (index === 0) {
           member.their_copastor = copastorIndepA.id;
         }
-        if (countInd === 1) {
+        if (index === 1) {
           member.their_copastor = copastorIndepB.id;
         }
-        if (countInd === 2) {
+        if (index === 2) {
           member.their_copastor = copastorIndepC.id;
         }
       }
 
       if (member.district === 'Comas') {
-        if (countCom === 0) {
+        if (index === 3) {
           member.their_copastor = copastorComasX.id;
         }
-        if (countCom === 1) {
+        if (index === 4) {
           member.their_copastor = copastorComasZ.id;
         }
       }
 
       if (member.district === 'Carabayllo') {
-        if (countCar === 0) {
+        if (index === 5) {
           member.their_copastor = copastorCarabaylloR.id;
         }
-        if (countCar === 1) {
+        if (index === 6) {
           member.their_copastor = copastorCarabaylloQ.id;
         }
       }
@@ -197,7 +197,7 @@ export class SeedService {
 
     await Promise.all(insertPromisesPreacher);
 
-    //* Create Family Home
+    //! Create Family Home
     const allPreachers = await this.preacherRepository.find();
 
     //* Preacher by Zone (Independencia)
@@ -253,44 +253,36 @@ export class SeedService {
     );
 
     familyHouses.forEach((house, index) => {
-      let countInd: number = index;
-      let countCom: number = index;
-      let countCar: number = index;
-
-      countInd = house.district === 'Independencia' && countInd;
-      countCom = house.district === 'Comas' && countCom - 3;
-      countCar = house.district === 'Carabayllo' && countCar - 5;
-
       if (house.district === 'Independencia') {
-        if (countInd === 0) {
+        if (index === 0) {
           house.their_preacher = preachersIndepA.id;
         }
 
-        if (countInd === 1) {
+        if (index === 1) {
           house.their_preacher = preachersIndepB.id;
         }
 
-        if (countInd === 2) {
+        if (index === 2) {
           house.their_preacher = preachersIndepC.id;
         }
       }
 
       if (house.district === 'Comas') {
-        if (countCom === 0) {
+        if (index === 3) {
           house.their_preacher = preachersComasX.id;
         }
 
-        if (countCom === 1) {
+        if (index === 4) {
           house.their_preacher = preachersComasZ.id;
         }
       }
 
       if (house.district === 'Carabayllo') {
-        if (countCar === 0) {
+        if (index === 5) {
           house.their_preacher = preachersCarabaylloR.id;
         }
 
-        if (countCar === 1) {
+        if (index === 6) {
           house.their_preacher = preachersCarabaylloQ.id;
         }
       }
@@ -300,7 +292,7 @@ export class SeedService {
 
     await Promise.all(insertPromisesFamilyHome);
 
-    //* Create Members
+    //! Create Members
     const allFamilyHouses = await this.familyHomeRepository.find();
 
     //* FamilyHome by Zone (Independencia)
@@ -342,44 +334,36 @@ export class SeedService {
     );
 
     members.forEach((member, index) => {
-      let countInd: number = index;
-      let countCom: number = index;
-      let countCar: number = index;
-
-      countInd = member.district === 'Independencia' && countInd;
-      countCom = member.district === 'Comas' && countCom - 10;
-      countCar = member.district === 'Carabayllo' && countCar - 17;
-
       if (member.district === 'Independencia') {
-        if (countInd >= 0 && countInd <= 3) {
+        if (index >= 0 && index <= 3) {
           member.their_family_home = familyHomeA.id;
         }
 
-        if (countInd >= 4 && countInd <= 6) {
+        if (index >= 4 && index <= 6) {
           member.their_family_home = familyHomeB.id;
         }
 
-        if (countInd >= 7 && countInd <= 9) {
+        if (index >= 7 && index <= 9) {
           member.their_family_home = familyHomeC.id;
         }
       }
 
       if (member.district === 'Comas') {
-        if (countCom >= 0 && countCom <= 3) {
+        if (index >= 10 && index <= 13) {
           member.their_family_home = familyHomeX.id;
         }
 
-        if (countCom >= 4 && countCom <= 6) {
+        if (index >= 14 && index <= 16) {
           member.their_family_home = familyHomeZ.id;
         }
       }
 
       if (member.district === 'Carabayllo') {
-        if (countCar >= 0 && countCar <= 3) {
+        if (index >= 17 && index <= 20) {
           member.their_family_home = familyHomeR.id;
         }
 
-        if (countCar >= 4 && countCar <= 6) {
+        if (index >= 20 && index <= 23) {
           member.their_family_home = familyHomeQ.id;
         }
       }
@@ -389,22 +373,9 @@ export class SeedService {
 
     await Promise.all(insertPromisesMembers);
 
-    //* Crear al member con rol pastor, esto crear automaticamente el registro en tabla Pastor.
-    //* Crear a los members con rol copastor, esto crea automaticamente los registros en tabla Copastor.
-    //* Crear a los members con rol preacher, esto crea automaticamente los registros en tabla Preacher.
-    //* Crear Casas Familiares y asignarles sus predicadores.
-    //* Crear todos los demas miembros, aletorios, tomando casa familiar con sus relaciones.
+    //! Create Offerings
+    const allMembers = await this.memberRepository.find();
 
-    //* Crear registro de ofrendas
-    //* Crear 1 registro de cada tipo con data aleatorio, de member (diezmo), member (especial ofrenda)
-    //* sundayWorship, generalFasting, zonalFasting ( copastor), familyHome (familyHome), vigil.
-
-    // const allMembers = await this.familyHomeRepository.find();
-    // const allCopastores = await this.coPastorRepository.find();
-    // const allFamilyHouses = await this.familyHomeRepository.find();
-
-    //TODO : llenar registros y crear un registro para cada 1 segun especificacion.
-    //TODO : empezar con modulo de autenticacion. (revisar notion)
     //* Select one Copastor (Zonal Fasting)
     const copastor = allCopastores.find((copastor) => copastor);
 
@@ -412,11 +383,34 @@ export class SeedService {
     const familyHome = allFamilyHouses.find((familyHome) => familyHome);
 
     //* Select otwo Member (Tithe and Offering Special)
-    const memberTithe = allFamilyHouses.find((familyHome) => familyHome);
-    const memberOffering = allFamilyHouses.find((familyHome) => familyHome);
+    const memberTithe = allMembers.find((member) => member);
+    const memberOffering = allMembers.find((member) => member);
 
-    //! Colocar nota, que se debe agregar mas predicadores, mas casa, y mas miembros, estos son de muestra no mas.
-    //* Para poder llenar levemente la DB
+    offerings.forEach((offering, index) => {
+      if (offering.type === 'tithe') {
+        if (index === 0) {
+          offering.member_id = memberTithe.id;
+        }
+      }
+
+      if (offering.type === 'offering') {
+        if (index === 1 && offering.sub_type === 'zonal_fasting') {
+          offering.copastor_id = copastor.id;
+        }
+
+        if (index === 2 && offering.sub_type === 'family_home') {
+          offering.family_home_id = familyHome.id;
+        }
+
+        if (index === 3 && offering.sub_type === 'special') {
+          offering.member_id = memberOffering.id;
+        }
+      }
+
+      insertPromisesOfferings.push(this.offeringService.create(offering));
+    });
+
+    await Promise.all(insertPromisesOfferings);
 
     return true;
   }

@@ -881,7 +881,7 @@ export class FamilyHomeService {
     }
   };
 
-  //* DELETE PARA SEMILLA
+  //! DELETE FOR SEED
   async deleteAllFamilyHouses() {
     const query = this.familyHomeRepository.createQueryBuilder('houses');
 

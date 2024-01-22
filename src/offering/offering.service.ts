@@ -745,4 +745,15 @@ export class OfferingService {
       return ArrayOfferingsFlattened;
     }
   };
+
+  //! DELETE FOR SEED
+  async deleteAllOfferings() {
+    const query = this.offeringRepository.createQueryBuilder('offerings');
+
+    try {
+      return await query.delete().where({}).execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
+  }
 }

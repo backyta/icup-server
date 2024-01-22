@@ -18,5 +18,6 @@ import { CopastorModule } from '../copastor/copastor.module';
     FamilyHomeModule,
     CopastorModule,
   ],
+  exports: [TypeOrmModule, OfferingService],
 })
 export class OfferingModule {}

@@ -795,6 +795,24 @@ export const dataOfferings: SeedDataOffering = {
     },
     {
       type: 'offering',
+      sub_type: 'zonal_fasting',
+      amount: 22,
+      currency: 'Sol',
+    },
+    {
+      type: 'offering',
+      sub_type: 'family_home',
+      amount: 15,
+      currency: 'Sol',
+    },
+    {
+      type: 'offering',
+      sub_type: 'special',
+      amount: 100,
+      currency: 'Dollar',
+    },
+    {
+      type: 'offering',
       sub_type: 'sunday_wirship',
       amount: 85,
       currency: 'Sol',
@@ -810,24 +828,6 @@ export const dataOfferings: SeedDataOffering = {
       sub_type: 'vigil',
       amount: 28,
       currency: 'Sol',
-    },
-    {
-      type: 'offering',
-      sub_type: 'zonal_fasting',
-      amount: 22,
-      currency: 'Sol',
-    },
-    {
-      type: 'offering',
-      sub_type: 'family_home',
-      amount: 15,
-      currency: 'Dolar',
-    },
-    {
-      type: 'offering',
-      sub_type: 'special',
-      amount: 100,
-      currency: 'Dollar',
     },
   ],
 };
