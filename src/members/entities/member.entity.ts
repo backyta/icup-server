@@ -12,7 +12,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'members' })
 export class Member {
   //* Info member
   @PrimaryGeneratedColumn('uuid')

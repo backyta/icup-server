@@ -10,6 +10,7 @@ import { PreacherModule } from './preacher/preacher.module';
 import { FamilyHomeModule } from './family-home/family-home.module';
 import { OfferingModule } from './offering/offering.module';
 import { SeedModule } from './seed/seed.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SeedModule } from './seed/seed.module';
     FamilyHomeModule,
     OfferingModule,
     SeedModule,
+    FilesModule,
   ],
 })
 export class AppModule {}

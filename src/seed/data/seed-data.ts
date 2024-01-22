@@ -47,6 +47,7 @@ interface SeedOffering {
   amount: number;
   currency: string;
   comments?: string;
+  url_file?: string;
 
   //* Relations
   member_id?: string;

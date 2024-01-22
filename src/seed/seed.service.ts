@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { MembersService } from '../members/members.service';
-import { FamilyHomeService } from 'src/family-home/family-home.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import {
   dataMembersPastor,
   dataMembersCopastor,
@@ -9,14 +9,16 @@ import {
   dataMembers,
   dataOfferings,
 } from './data/seed-data';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Pastor } from 'src/pastor/entities/pastor.entity';
-import { CoPastor } from 'src/copastor/entities/copastor.entity';
-import { Preacher } from 'src/preacher/entities/preacher.entity';
-import { Repository } from 'typeorm';
-import { FamilyHome } from 'src/family-home/entities/family-home.entity';
-import { OfferingService } from 'src/offering/offering.service';
-import { Member } from 'src/members/entities/member.entity';
+
+import { Member } from '../members/entities/member.entity';
+import { Pastor } from '../pastor/entities/pastor.entity';
+import { CoPastor } from '../copastor/entities/copastor.entity';
+import { Preacher } from '../preacher/entities/preacher.entity';
+import { FamilyHome } from '../family-home/entities/family-home.entity';
+
+import { MembersService } from '../members/members.service';
+import { OfferingService } from '../offering/offering.service';
+import { FamilyHomeService } from '../family-home/family-home.service';
 
 @Injectable()
 export class SeedService {
