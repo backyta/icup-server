@@ -417,7 +417,7 @@ export class PastorService {
 
   //! PRIVATE METHODS
   //* For future index errors or constrains with code.
-  private handleDBExceptions(error: any) {
+  private handleDBExceptions(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
     this.logger.error(error);
     throw new InternalServerErrorException(

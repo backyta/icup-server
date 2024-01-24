@@ -17,5 +17,7 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT);
   logger.log(`App runnign in port ${process.env.PORT}`);
+
+  //* Here function create atumatic super-user
 }
 bootstrap();
