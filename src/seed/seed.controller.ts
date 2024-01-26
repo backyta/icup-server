@@ -6,7 +6,10 @@ export class SeedController {
   constructor(private readonly seedService: SeedService) {}
 
   @Get()
+  // @Auth(ValidRoles.superUser)
   executeSeed() {
     return this.seedService.runSeed();
   }
 }
+
+//TODO : renombrar los validRoles, y separ roles(diezmos ofrendas), solo ver data, y superUser.

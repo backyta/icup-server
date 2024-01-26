@@ -21,9 +21,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<User> {
-    const { email } = payload;
+    const { id } = payload;
 
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await this.userRepository.findOneBy({ id });
 
     if (!user) {
       throw new UnauthorizedException(`Token not valid`);
@@ -43,3 +43,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
 //! El JwtStrategy, o todas las strategies en general son Provider(comparten informacion a travez de toda la app)
 //! Estos se deben declarar en el modle, como rpovider y se pueden exportar para usar en otros modules.
+
+//* La soliciutd con el jwt siempre pasa por el strategy que es el guard(), donde se extrae ys e valida.
+//* Es mejor usar el di para identificar a los usuarios en las rutas autenticadas, por el email es cambiante.
+
+//? Lo que sale de aqui se pasa a la request, osea de aniade a la request y continua el flujo, y de la request
+//? I can get out the user.

@@ -36,7 +36,7 @@ export class AuthService {
       delete user.password;
       return {
         ...user,
-        token: this.getJetToken({ email: user.email }),
+        token: this.getJetToken({ id: user.id }),
       };
     } catch (error) {
       this.handleDBErrors(error);
@@ -48,7 +48,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true },
+      select: { email: true, password: true, id: true },
     });
 
     if (!user) {
@@ -61,7 +61,7 @@ export class AuthService {
 
     return {
       ...user,
-      token: this.getJetToken({ email: user.email }),
+      token: this.getJetToken({ id: user.id }),
     };
   }
 
