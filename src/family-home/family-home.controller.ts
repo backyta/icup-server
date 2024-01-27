@@ -8,18 +8,29 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
+
 import { FamilyHomeService } from './family-home.service';
 import { CreateFamilyHomeDto } from './dto/create-family-home.dto';
 import { UpdateFamilyHomeDto } from './dto/update-family-home.dto';
+
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
+
+import { Auth, GetUser } from '../auth/decorators';
+import { ValidUserRoles } from '../auth/enums/valid-user-roles.enum';
+
+import { User } from '../users/entities/user.entity';
 
 @Controller('family-home')
 export class FamilyHomeController {
   constructor(private readonly familyHomeService: FamilyHomeService) {}
 
   @Post()
-  create(@Body() createFamilyHomeDto: CreateFamilyHomeDto) {
-    return this.familyHomeService.create(createFamilyHomeDto);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  create(
+    @Body() createFamilyHomeDto: CreateFamilyHomeDto,
+    @GetUser() user: User,
+  ) {
+    return this.familyHomeService.create(createFamilyHomeDto, user);
   }
 
   @Get()
@@ -36,15 +47,18 @@ export class FamilyHomeController {
   }
 
   @Patch(':id')
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
   update(
     @Param('id') id: string,
     @Body() updateFamilyHomeDto: UpdateFamilyHomeDto,
+    @GetUser() user: User,
   ) {
-    return this.familyHomeService.update(id, updateFamilyHomeDto);
+    return this.familyHomeService.update(id, updateFamilyHomeDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.familyHomeService.remove(id);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.familyHomeService.remove(id, user);
   }
 }

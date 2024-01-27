@@ -3,10 +3,12 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity('users')
+@Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,13 +20,31 @@ export class User {
   password: string;
 
   @Column('text')
-  fullName: string;
+  first_name: string;
+
+  @Column('text')
+  last_name: string;
 
   @Column('boolean', { default: true })
-  isActive: boolean;
+  is_active: boolean;
 
   @Column('text', { array: true, default: ['user'] })
   roles: string[];
+
+  //* Info register and update date
+  @Column('timestamp', { nullable: true })
+  created_at: string | Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  created_by: User;
+
+  @Column('timestamp', { nullable: true })
+  updated_at: string | Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  updated_by: User;
 
   @BeforeInsert()
   checkFieldsBeforeInsert() {

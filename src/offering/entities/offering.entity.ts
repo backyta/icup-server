@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CoPastor } from '../../copastor/entities/copastor.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'offerings' })
 export class Offering {
@@ -36,14 +37,16 @@ export class Offering {
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
-  @Column('text', { nullable: true })
-  created_by: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  created_by: User;
 
   @Column('timestamp', { nullable: true })
   updated_at: string | Date;
 
-  @Column('text', { nullable: true })
-  updated_by: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  updated_by: User;
 
   //* Relations
 

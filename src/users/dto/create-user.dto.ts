@@ -1,5 +1,7 @@
 import {
+  IsBoolean,
   IsEmail,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -23,4 +25,8 @@ export class CreateUserDto {
   @IsString()
   @MinLength(1)
   fullName: string;
+
+  @IsBoolean()
+  @IsOptional()
+  is_active?: boolean;
 }

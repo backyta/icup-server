@@ -8,19 +8,26 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
+
 import { PastorService } from './pastor.service';
 import { CreatePastorDto } from './dto/create-pastor.dto';
 import { UpdatePastorDto } from './dto/update-pastor.dto';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
+import { Auth, GetUser } from '../auth/decorators';
+import { ValidUserRoles } from '../auth/enums/valid-user-roles.enum';
+
+import { User } from '../users/entities/user.entity';
+
 @Controller('pastor')
 export class PastorController {
   constructor(private readonly pastorService: PastorService) {}
 
   @Post()
-  create(@Body() createPastorDto: CreatePastorDto) {
-    return this.pastorService.create(createPastorDto);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  create(@Body() createPastorDto: CreatePastorDto, @GetUser() user: User) {
+    return this.pastorService.create(createPastorDto, user);
   }
 
   @Get()
@@ -37,12 +44,18 @@ export class PastorController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePastorDto: UpdatePastorDto) {
-    return this.pastorService.update(id, updatePastorDto);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  update(
+    @Param('id') id: string,
+    @Body() updatePastorDto: UpdatePastorDto,
+    @GetUser() user: User,
+  ) {
+    return this.pastorService.update(id, updatePastorDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.pastorService.remove(id);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.pastorService.remove(id, user);
   }
 }

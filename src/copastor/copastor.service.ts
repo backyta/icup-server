@@ -17,10 +17,12 @@ import { Pastor } from '../pastor/entities/pastor.entity';
 import { Member } from '../members/entities/member.entity';
 import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { User } from '../users/entities/user.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { updateAge, searchPerson, searchFullname } from '../common/helpers';
 import { SearchType } from '../common/enums/search-types.enum';
+
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');
@@ -43,7 +45,10 @@ export class CoPastorService {
   ) {}
 
   //* CREATE COPASTOR
-  async create(createCoPastorDto: CreateCoPastorDto): Promise<CoPastor> {
+  async create(
+    createCoPastorDto: CreateCoPastorDto,
+    user: User,
+  ): Promise<CoPastor> {
     const { member_id, their_pastor } = createCoPastorDto;
 
     const member = await this.memberRepository.findOneBy({
@@ -91,7 +96,7 @@ export class CoPastorService {
         member: member,
         their_pastor: pastor,
         created_at: new Date(),
-        created_by: 'Kevin',
+        created_by: user,
       });
 
       await this.memberRepository.save(dataMember);
@@ -269,6 +274,7 @@ export class CoPastorService {
   async update(
     id: string,
     updateCoPastorDto: UpdateCoPastorDto,
+    user: User,
   ): Promise<CoPastor> {
     const { their_pastor, is_active, member_id } = updateCoPastorDto;
 
@@ -384,7 +390,7 @@ export class CoPastorService {
       their_pastor: pastor,
       is_active: is_active,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     const coPastor = await this.coPastorRepository.preload({
@@ -397,7 +403,7 @@ export class CoPastorService {
       is_active: is_active,
       their_pastor: pastor,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     try {
@@ -414,7 +420,7 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
-  async remove(id: string): Promise<void> {
+  async remove(id: string, user: User): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -431,7 +437,7 @@ export class CoPastorService {
       their_pastor: null,
       is_active: false,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //* Update and set in false is_active on coPastor
@@ -440,7 +446,7 @@ export class CoPastorService {
       their_pastor: null,
       is_active: false,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //* Update and set to null in Preacher
@@ -456,7 +462,7 @@ export class CoPastorService {
         family_home: null,
         members: null,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
     });
 
@@ -474,7 +480,7 @@ export class CoPastorService {
           their_preacher: null,
           members: null,
           updated_at: new Date(),
-          updated_by: 'Kevinxd',
+          updated_by: user,
         });
       },
     );
@@ -501,7 +507,7 @@ export class CoPastorService {
           ? null
           : member.their_family_home,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
     });
 

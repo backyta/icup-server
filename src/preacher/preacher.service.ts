@@ -17,6 +17,7 @@ import { Member } from '../members/entities/member.entity';
 import { Pastor } from '../pastor/entities/pastor.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { User } from '../users/entities/user.entity';
 
 import { SearchType } from '../common/enums/search-types.enum';
 import { searchFullname, searchPerson, updateAge } from '../common/helpers';
@@ -44,7 +45,7 @@ export class PreacherService {
   ) {}
 
   //* CREATE PREACHER
-  async create(createPreacherDto: CreatePreacherDto) {
+  async create(createPreacherDto: CreatePreacherDto, user: User) {
     const { member_id, their_copastor } = createPreacherDto;
 
     const member = await this.memberRepository.findOneBy({
@@ -106,7 +107,7 @@ export class PreacherService {
         their_pastor: pastor,
         their_copastor: copastor,
         created_at: new Date(),
-        created_by: 'Kevin',
+        created_by: user,
       });
 
       await this.memberRepository.save(dataMember);
@@ -139,7 +140,7 @@ export class PreacherService {
     } = searchTypeAndPaginationDto;
     let preacher: Preacher | Preacher[];
 
-    //* Find ID --> One (inactivo or active)
+    //* Find ID --> One (inactive or active)
     if (isUUID(term) && type === SearchType.id) {
       preacher = await this.preacherRepository.findOneBy({ id: term });
 
@@ -147,7 +148,7 @@ export class PreacherService {
         throw new NotFoundException(`Preacher was not found with this UUID`);
       }
 
-      //* Counting and assigning the number of members (id-preahcer member table)
+      //* Counting and assigning the number of members (id-preacher member table)
       const allMembers = await this.memberRepository.find({
         relations: ['their_preacher'],
       });
@@ -255,7 +256,7 @@ export class PreacherService {
 
         if (preachers.length === 0) {
           throw new NotFoundException(
-            `Not found Preachers with these names: ${term}`,
+            `Not found Preachers with this term: ${term}`,
           );
         }
         return preachers;
@@ -304,6 +305,7 @@ export class PreacherService {
   async update(
     id: string,
     updatePreacherDto: UpdatePreacherDto,
+    user: User,
   ): Promise<Preacher> {
     const { their_copastor, is_active, member_id } = updatePreacherDto;
 
@@ -430,7 +432,7 @@ export class PreacherService {
             : dataMember.their_family_home,
         is_active: is_active,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
 
       await this.memberRepository.save(member);
@@ -445,7 +447,7 @@ export class PreacherService {
         family_home: familyHomeId,
         is_active: is_active,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
 
       await this.preacherRepository.save(preacher);
@@ -460,7 +462,7 @@ export class PreacherService {
   }
 
   //* DELETE FOR ID
-  async remove(id: string): Promise<void> {
+  async remove(id: string, user: User): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -479,7 +481,7 @@ export class PreacherService {
       their_family_home: null,
       is_active: false,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //* Update and set in false is_active on Preacher
@@ -489,7 +491,7 @@ export class PreacherService {
       their_copastor: null,
       is_active: false,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //* Update and set to null in Family Home
@@ -505,7 +507,7 @@ export class PreacherService {
           their_pastor: null,
           their_copastor: null,
           updated_at: new Date(),
-          updated_by: 'Kevinxd',
+          updated_by: user,
         });
       },
     );
@@ -529,7 +531,7 @@ export class PreacherService {
         their_pastor: null,
         their_copastor: null,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
     });
 

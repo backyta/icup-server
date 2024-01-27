@@ -17,6 +17,7 @@ import { Preacher } from '../preacher/entities/preacher.entity';
 import { Member } from '../members/entities/member.entity';
 import { Pastor } from '../pastor/entities/pastor.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
+import { User } from '../users/entities/user.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { SearchType } from '../common/enums/search-types.enum';
@@ -44,7 +45,7 @@ export class FamilyHomeService {
   ) {}
 
   //* CREATE FAMILY HOME
-  async create(createFamilyHomeDto: CreateFamilyHomeDto) {
+  async create(createFamilyHomeDto: CreateFamilyHomeDto, user: User) {
     const { their_preacher, zone } = createFamilyHomeDto;
 
     //* Validation Preacher
@@ -147,7 +148,7 @@ export class FamilyHomeService {
         their_pastor: pastor,
         their_copastor: copastor,
         created_at: new Date(),
-        created_by: 'Kevin',
+        created_by: user,
       });
 
       const result = await this.familyHomeRepository.save(familyHomeInstance);
@@ -402,9 +403,14 @@ export class FamilyHomeService {
   }
 
   //NOTE: it is updated to is_active true, and it also sets updated data to Family_Home and Member family-home ✅✅
+
   //* UPDATE FAMILY HOME ID
   // TODO : desde el front probar si se pueda cambiar zona, osea de zona A a zona Tahua y cambia todas sus concidencias, Payet, porque la iglesia puede crecer
-  async update(id: string, updateFamilyHomeDto: UpdateFamilyHomeDto) {
+  async update(
+    id: string,
+    updateFamilyHomeDto: UpdateFamilyHomeDto,
+    user: User,
+  ) {
     const { their_preacher, is_active, zone } = updateFamilyHomeDto;
 
     if (!isUUID(id)) {
@@ -614,7 +620,7 @@ export class FamilyHomeService {
       members: listMembersId,
       count_members: listMembersId.length,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //! Changes to Member-Preacher
@@ -694,7 +700,7 @@ export class FamilyHomeService {
   }
 
   //* DELETE FOR ID
-  async remove(id: string) {
+  async remove(id: string, user: User) {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -711,6 +717,8 @@ export class FamilyHomeService {
       their_pastor: null,
       their_preacher: null,
       is_active: false,
+      updated_at: new Date(),
+      updated_by: user,
     });
 
     //* Update and eliminate relations with their_family_home
@@ -742,6 +750,8 @@ export class FamilyHomeService {
         their_copastor: null,
         their_pastor: null,
         their_preacher: null,
+        updated_at: new Date(),
+        updated_by: user,
       });
     });
 

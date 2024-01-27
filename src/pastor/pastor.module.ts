@@ -9,6 +9,7 @@ import { MembersModule } from '../members/members.module';
 import { CopastorModule } from '../copastor/copastor.module';
 import { PreacherModule } from '../preacher/preacher.module';
 import { FamilyHomeModule } from '../family-home/family-home.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   controllers: [PastorController],
@@ -19,6 +20,7 @@ import { FamilyHomeModule } from '../family-home/family-home.module';
     CopastorModule,
     PreacherModule,
     FamilyHomeModule,
+    AuthModule,
   ],
   exports: [TypeOrmModule, PastorService],
 })

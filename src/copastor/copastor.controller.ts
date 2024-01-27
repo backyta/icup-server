@@ -15,13 +15,20 @@ import { UpdateCoPastorDto } from './dto/update-copastor.dto';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
+import { ValidUserRoles } from '../auth/enums/valid-user-roles.enum';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { GetUser } from '../auth/decorators';
+
+import { User } from '../users/entities/user.entity';
+
 @Controller('copastor')
 export class CopastorController {
   constructor(private readonly coPastorService: CoPastorService) {}
 
   @Post()
-  create(@Body() createCopastorDto: CreateCoPastorDto) {
-    return this.coPastorService.create(createCopastorDto);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  create(@Body() createCopastorDto: CreateCoPastorDto, @GetUser() user: User) {
+    return this.coPastorService.create(createCopastorDto, user);
   }
 
   @Get()
@@ -38,15 +45,18 @@ export class CopastorController {
   }
 
   @Patch(':id')
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
   update(
     @Param('id') id: string,
     @Body() updateCoPastorDto: UpdateCoPastorDto,
+    @GetUser() user: User,
   ) {
-    return this.coPastorService.update(id, updateCoPastorDto);
+    return this.coPastorService.update(id, updateCoPastorDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.coPastorService.remove(id);
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.coPastorService.remove(id, user);
   }
 }

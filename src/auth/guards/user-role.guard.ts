@@ -7,8 +7,10 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
+
+import { User } from '../../users/entities/user.entity';
+
 import { META_ROLES } from '../decorators/role-protected.decorator';
-import { User } from '../entities/user.entity';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -39,12 +41,7 @@ export class UserRoleGuard implements CanActivate {
     }
 
     throw new ForbiddenException(
-      `User ${user.fullName} need a vaid roles ${validRoles}`,
+      `User ${user.first_name}, ${user.last_name} need a vaid roles ${validRoles}`,
     );
   }
 }
-
-//* Para que el Guard sea valido debe implementar el canActive, este rehresaun valor booleano, si es true
-//* lo deja pasar, si no no, o una promesa booleana, o un Observable que emita un valor booleano.
-
-//! El Reflecto me ayuda ver informacion de los decoradores y otra informacion de la metada donde esta puesta.

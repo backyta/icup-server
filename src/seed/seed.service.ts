@@ -8,6 +8,7 @@ import {
   dataFamilyHouses,
   dataMembers,
   dataOfferings,
+  dataUsers,
 } from './data/seed-data';
 
 import { Member } from '../members/entities/member.entity';
@@ -15,10 +16,12 @@ import { Pastor } from '../pastor/entities/pastor.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
 import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { User } from '../users/entities/user.entity';
 
 import { MembersService } from '../members/members.service';
 import { OfferingService } from '../offering/offering.service';
 import { FamilyHomeService } from '../family-home/family-home.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class SeedService {
@@ -38,24 +41,40 @@ export class SeedService {
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
 
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
     private readonly memberService: MembersService,
 
     private readonly familyHomeService: FamilyHomeService,
 
     private readonly offeringService: OfferingService,
+
+    private readonly userService: UsersService,
   ) {}
 
   async runSeed() {
-    await this.insertNewMembers();
-    return 'SEED EXECUTED';
-  }
-
-  private async insertNewMembers() {
-    //* Delete all data
     await this.memberService.deleteAllMembers();
     await this.familyHomeService.deleteAllFamilyHouses();
     await this.offeringService.deleteAllOfferings();
+    await this.userService.deleteAllUsers();
 
+    const superUser = await this.insertUsers();
+
+    await this.insertNewMembers(superUser);
+
+    return 'SEED EXECUTED';
+  }
+
+  private async insertUsers() {
+    const seedUsers = dataUsers.users;
+
+    const dbUsers = await this.userRepository.save(seedUsers);
+
+    return dbUsers[0];
+  }
+
+  private async insertNewMembers(user: User) {
     const membersPastor = dataMembersPastor.members;
     const membersCopastor = dataMembersCopastor.members;
     const membersPreacher = dataMembersPreacher.members;
@@ -72,7 +91,7 @@ export class SeedService {
 
     //! Create members & pastor
     membersPastor.forEach((member) => {
-      insertPromisesPastor.push(this.memberService.create(member));
+      insertPromisesPastor.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesPastor);
@@ -103,7 +122,7 @@ export class SeedService {
         member.their_pastor = pastorCarab.id;
       }
 
-      insertPromisesCopastor.push(this.memberService.create(member));
+      insertPromisesCopastor.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesCopastor);
@@ -194,7 +213,7 @@ export class SeedService {
         }
       }
 
-      insertPromisesPreacher.push(this.memberService.create(member));
+      insertPromisesPreacher.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesPreacher);
@@ -289,7 +308,7 @@ export class SeedService {
         }
       }
 
-      insertPromisesFamilyHome.push(this.familyHomeService.create(house));
+      insertPromisesFamilyHome.push(this.familyHomeService.create(house, user));
     });
 
     await Promise.all(insertPromisesFamilyHome);
@@ -370,7 +389,7 @@ export class SeedService {
         }
       }
 
-      insertPromisesMembers.push(this.memberService.create(member));
+      insertPromisesMembers.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesMembers);
@@ -409,7 +428,7 @@ export class SeedService {
         }
       }
 
-      insertPromisesOfferings.push(this.offeringService.create(offering));
+      insertPromisesOfferings.push(this.offeringService.create(offering, user));
     });
 
     await Promise.all(insertPromisesOfferings);

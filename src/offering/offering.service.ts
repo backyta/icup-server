@@ -16,6 +16,7 @@ import { Offering } from './entities/offering.entity';
 import { Member } from '../members/entities/member.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { User } from '../users/entities/user.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { SearchType } from '../common/enums/search-types.enum';
@@ -40,7 +41,10 @@ export class OfferingService {
   ) {}
 
   //* CREATE MEMBER
-  async create(createOfferingDto: CreateOfferingDto): Promise<Offering> {
+  async create(
+    createOfferingDto: CreateOfferingDto,
+    user: User,
+  ): Promise<Offering> {
     const { copastor_id, member_id, family_home_id, type, sub_type } =
       createOfferingDto;
 
@@ -123,7 +127,7 @@ export class OfferingService {
         member: dataMember,
         copastor: dataCopastor,
         created_at: new Date(),
-        created_by: 'Kevin',
+        created_by: user,
       });
 
       return await this.offeringRepository.save(dataOffering);
@@ -421,6 +425,7 @@ export class OfferingService {
   async update(
     id: string,
     updateOfferingDto: UpdateOfferingDto,
+    user: User,
   ): Promise<Offering> {
     const { type, sub_type, copastor_id, family_home_id, member_id, comments } =
       updateOfferingDto;
@@ -540,7 +545,7 @@ export class OfferingService {
       copastor: dataCopastor,
       family_home: dataFamilyHome,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     try {

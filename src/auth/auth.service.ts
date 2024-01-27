@@ -6,13 +6,15 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 
 import * as bcrypt from 'bcrypt';
 
-import { User } from './entities/user.entity';
-import { CreateUserDto, LoginUserDto } from './dto';
+import { LoginUserDto } from './dto/login-user.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { JwtService } from '@nestjs/jwt';
+
+import { User } from '../users/entities/user.entity';
+import { CreateUserDto } from '../users/dto';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +25,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto) {
     const { password, ...userData } = createUserDto;
 
     try {
@@ -55,10 +57,17 @@ export class AuthService {
       throw new UnauthorizedException(`Credential are not valid (email)`);
     }
 
-    if (bcrypt.compareSync(password, user.password)) {
+    if (!bcrypt.compareSync(password, user.password)) {
       throw new UnauthorizedException(`Credential are not valid (password)`);
     }
 
+    return {
+      ...user,
+      token: this.getJetToken({ id: user.id }),
+    };
+  }
+
+  async checkAuthStatus(user: User) {
     return {
       ...user,
       token: this.getJetToken({ id: user.id }),

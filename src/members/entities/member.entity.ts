@@ -1,3 +1,4 @@
+import { User } from 'src/users/entities/user.entity';
 import { CoPastor } from '../../copastor/entities/copastor.entity';
 import { FamilyHome } from '../../family-home/entities/family-home.entity';
 import { Pastor } from '../../pastor/entities/pastor.entity';
@@ -78,14 +79,16 @@ export class Member {
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
-  @Column('text', { nullable: true })
-  created_by: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  created_by: User;
 
   @Column('timestamp', { nullable: true })
   updated_at: string | Date;
 
-  @Column('text', { nullable: true })
-  updated_by: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  updated_by: User;
 
   //* Relations
   @ManyToOne(() => FamilyHome, { nullable: true })
@@ -103,6 +106,9 @@ export class Member {
   @ManyToOne(() => Preacher, { nullable: true })
   @JoinColumn({ name: 'their_preacher_id' })
   their_preacher: Preacher;
+
+  // @ManyToOne(() => User, (user) => user.member)
+  // user: User;
 
   //* Functions internas
   @BeforeInsert()
