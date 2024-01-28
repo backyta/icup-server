@@ -13,7 +13,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { MaritalStatus } from '../enums/marital-status.enum';
-import { ValidRoles } from '../enums/valid-roles.enum';
+import { ValidMemberRoles } from '../enums/valid-member-roles.enum';
 
 export class CreateMemberDto {
   //* Info member
@@ -64,12 +64,12 @@ export class CreateMemberDto {
   @IsNotEmpty()
   origin_country: string;
 
-  @IsEnum(ValidRoles, { each: true })
+  @IsEnum(ValidMemberRoles, { each: true })
   @IsArray()
   @IsNotEmpty()
   roles: string[];
 
-  //* Info adress
+  //* Info address
   @IsString()
   @IsOptional()
   @MinLength(1)
@@ -80,7 +80,7 @@ export class CreateMemberDto {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  departament?: string;
+  department?: string;
 
   @IsString()
   @IsOptional()

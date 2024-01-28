@@ -1,4 +1,4 @@
-export enum subTypesOffering {
+export enum SubTypesOffering {
   sundayWorship = 'sunday_worship',
   generalFasting = 'general_fasting',
   vigil = 'vigil',

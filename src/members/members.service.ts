@@ -23,17 +23,13 @@ import { PastorService } from '../pastor/pastor.service';
 import { CoPastorService } from '../copastor/copastor.service';
 import { PreacherService } from '../preacher/preacher.service';
 
-import { SearchType } from '../common/enums/search-types.enum';
+import { SearchType, TypeEntity, SearchTypeOfName } from '../common/enums';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { searchPerson, searchFullname, updateAge } from '../common/helpers';
+import { updateAge, searchPeopleBy } from '../common/helpers';
 
 @Injectable()
 export class MembersService {
   private readonly logger = new Logger('MembersService');
-
-  //TODO : Hacer la refactorización de la función de nombres en helpers
-  //! Corregir los helpers de nombre para que acepten genéricos y usarlo en User tmb
-  //! Terminar estos primero y luego revisamos lo demás (Notion)
 
   constructor(
     @InjectRepository(Member)
@@ -432,42 +428,48 @@ export class MembersService {
 
     //* Find firstName --> Many
     if (term && type === SearchType.firstName && type_of_name) {
-      const resultSearch = await this.searchMemberBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.firstName,
+        search_type: SearchType.firstName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.memberEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.memberRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName && type_of_name) {
-      const resultSearch = await this.searchMemberBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.lastName,
+        search_type: SearchType.lastName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.memberEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.memberRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find fullName --> Many
     if (term && type === SearchType.fullName && type_of_name) {
-      const resultSearch = await this.searchMemberBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.fullName,
+        search_type: SearchType.fullName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.memberEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.memberRepository,
+      });
 
       return resultSearch;
     }
@@ -575,6 +577,17 @@ export class MembersService {
     ) {
       throw new BadRequestException(
         `To search by names, the query_type is required`,
+      );
+    }
+
+    if (
+      type_of_name !== SearchTypeOfName.memberCopastor &&
+      type_of_name !== SearchTypeOfName.memberPastor &&
+      type_of_name !== SearchTypeOfName.memberMember &&
+      type_of_name !== SearchTypeOfName.memberPreacher
+    ) {
+      throw new BadRequestException(
+        `For this route you can only use: ${SearchTypeOfName.memberPreacher} or ${SearchTypeOfName.memberMember} or ${SearchTypeOfName.memberPastor} or ${SearchTypeOfName.memberCopastor}`,
       );
     }
 
@@ -1742,172 +1755,6 @@ export class MembersService {
     }
     return members;
   }
-
-  private searchMemberBy = async (
-    term: string,
-    searchType: SearchType,
-    limit: number,
-    offset: number,
-    type_of_name: string,
-    repository: Repository<Member>,
-  ): Promise<Member | Member[]> => {
-    //! For find by first or last name
-    if (searchType === 'first_name' || searchType === 'last_name') {
-      const members = await searchPerson({
-        term,
-        searchType,
-        limit,
-        offset,
-        repository,
-      });
-
-      const allMembers = await this.memberRepository.find({
-        relations: [
-          'their_pastor',
-          'their_copastor',
-          'their_preacher',
-          'their_family_home',
-        ],
-      });
-
-      let membersByName: Member[][];
-
-      if (type_of_name === 'preacher') {
-        const preacherMembers = members.filter((member) =>
-          member.roles.includes('preacher'),
-        );
-
-        membersByName = preacherMembers.map((memberPreacher) => {
-          const newMembersByPreacher = allMembers.filter(
-            (member) =>
-              member?.their_preacher?.member.id === memberPreacher.id &&
-              member.is_active === true,
-          );
-          return newMembersByPreacher;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        const copastorMembers = members.filter((member) =>
-          member.roles.includes('copastor'),
-        );
-
-        membersByName = copastorMembers.map((memberCopastor) => {
-          const newMembersByCopastor = allMembers.filter(
-            (member) =>
-              member?.their_copastor?.member.id === memberCopastor.id &&
-              member.is_active === true,
-          );
-
-          return newMembersByCopastor;
-        });
-      }
-
-      if (type_of_name === 'member') {
-        return members;
-      }
-
-      if (!membersByName) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      const ArrayMembersFlattened = membersByName.flat();
-
-      if (ArrayMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      return ArrayMembersFlattened;
-    }
-
-    //! For find by full_name
-    if (searchType === 'full_name') {
-      const members = await searchFullname({
-        term,
-        limit,
-        offset,
-        repository,
-      });
-
-      const allMembers = await this.memberRepository.find({
-        relations: [
-          'their_pastor',
-          'their_copastor',
-          'their_preacher',
-          'their_family_home',
-        ],
-      });
-
-      let membersByName: Member[][];
-
-      if (type_of_name === 'preacher') {
-        const preacherMembers = members.filter((member) =>
-          member.roles.includes('preacher'),
-        );
-
-        membersByName = preacherMembers.map((memberPreacher) => {
-          const newMembersByPreacher = allMembers.filter(
-            (member) =>
-              member?.their_preacher?.member.id === memberPreacher.id &&
-              member.is_active === true,
-          );
-
-          return newMembersByPreacher;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        const copastorMembers = members.filter((member) =>
-          member.roles.includes('copastor'),
-        );
-
-        membersByName = copastorMembers.map((memberCopastor) => {
-          const newMembersByCopastor = allMembers.filter(
-            (member) =>
-              member?.their_copastor?.member.id === memberCopastor.id &&
-              member.is_active === true,
-          );
-          return newMembersByCopastor;
-        });
-      }
-
-      if (type_of_name === 'member') {
-        return members;
-      }
-
-      if (!membersByName) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      const ArrayMembersFlattened = membersByName.flat();
-
-      if (ArrayMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      return ArrayMembersFlattened;
-    }
-  };
 
   //! DELETE FOR SEED
   async deleteAllMembers() {

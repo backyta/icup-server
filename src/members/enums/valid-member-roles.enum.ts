@@ -1,4 +1,4 @@
-export enum ValidRoles {
+export enum ValidMemberRoles {
   pastor = 'pastor',
   copastor = 'copastor',
   preacher = 'preacher',

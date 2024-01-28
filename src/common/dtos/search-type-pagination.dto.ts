@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
-import { searchTypeByName } from '../enums/search-type-by-name';
+import { SearchTypeOfName } from '../enums/search-type-by-name';
 
 export class SearchTypeAndPaginationDto {
   @IsNotEmpty()
@@ -8,7 +8,7 @@ export class SearchTypeAndPaginationDto {
   type: string;
 
   @IsOptional()
-  @Type(() => Number) // No use GlobalPipes with properties transform (eneableImplicitConvertions)
+  @Type(() => Number) // No use GlobalPipes with properties transform (enableImplicitConventions)
   limit?: number;
 
   @IsOptional()
@@ -16,7 +16,7 @@ export class SearchTypeAndPaginationDto {
   @Type(() => Number)
   offset?: number;
 
-  @IsEnum(searchTypeByName)
+  @IsEnum(SearchTypeOfName)
   @IsOptional()
   @IsString()
   type_of_name?: string;

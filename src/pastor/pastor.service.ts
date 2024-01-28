@@ -19,9 +19,9 @@ import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
 import { User } from '../users/entities/user.entity';
 
-import { SearchType } from '../common/enums/search-types.enum';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { searchPerson, updateAge, searchFullname } from '../common/helpers';
+import { SearchType, TypeEntity, SearchTypeOfName } from '../common/enums';
+import { updateAge, searchPeopleBy } from '../common/helpers';
 
 @Injectable()
 export class PastorService {
@@ -98,7 +98,12 @@ export class PastorService {
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<Pastor | Pastor[]> {
-    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
+    const {
+      type,
+      limit = 20,
+      offset = 0,
+      type_of_name,
+    } = searchTypeAndPaginationDto;
     let pastor: Pastor | Pastor[];
 
     //* Find ID --> One (active or inactive)
@@ -142,40 +147,49 @@ export class PastorService {
     }
 
     //* Find firstName --> Many
-    if (term && type === SearchType.firstName) {
-      const resultSearch = await this.searchPastorBy(
+    if (term && type === SearchType.firstName && type_of_name) {
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.firstName,
+        search_type: SearchType.firstName,
         limit,
         offset,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.pastorEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.pastorRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find lastName --> Many
-    if (term && type === SearchType.lastName) {
-      const resultSearch = await this.searchPastorBy(
+    if (term && type === SearchType.lastName && type_of_name) {
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.lastName,
+        search_type: SearchType.lastName,
         limit,
         offset,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.pastorEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.pastorRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find fullName --> One
-    if (term && type === SearchType.fullName) {
-      const resultSearch = await this.searchPastorBy(
+    if (term && type === SearchType.fullName && type_of_name) {
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.fullName,
+        search_type: SearchType.fullName,
         limit,
         offset,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.pastorEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.pastorRepository,
+      });
 
       return resultSearch;
     }
@@ -219,6 +233,22 @@ export class PastorService {
     if (term && !Object.values(SearchType).includes(type as SearchType)) {
       throw new BadRequestException(
         `Type not valid, should be: ${Object.values(SearchType).join(', ')}`,
+      );
+    }
+
+    if (
+      term &&
+      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
+      !type_of_name
+    ) {
+      throw new BadRequestException(
+        `To search by names, the query_type is required`,
+      );
+    }
+
+    if (type_of_name !== SearchTypeOfName.pastorMember) {
+      throw new BadRequestException(
+        `For this route you can only use: ${SearchTypeOfName.pastorMember}`,
       );
     }
 
@@ -430,102 +460,4 @@ export class PastorService {
       'Unexpected errors, check server logs',
     );
   }
-
-  private searchPastorBy = async (
-    term: string,
-    searchType: SearchType,
-    limit: number,
-    offset: number,
-    repository: Repository<Member>,
-  ): Promise<Pastor | Pastor[]> => {
-    //* Para find by first or last name
-    if (searchType === 'first_name' || searchType === 'last_name') {
-      const members = await searchPerson({
-        term,
-        searchType,
-        limit,
-        offset,
-        repository,
-      });
-
-      const pastorMembers = members.filter((member) =>
-        member.roles.includes('pastor'),
-      );
-
-      if (pastorMembers.length === 0) {
-        throw new NotFoundException(
-          `Not found member with role Pastor and with this name : ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      const pastores = await this.pastorRepository.find();
-
-      const newPastorMembers = pastorMembers.map((member) => {
-        const newPastores = pastores.filter(
-          (pastor) =>
-            pastor.member.id === member.id && pastor.is_active === true,
-        );
-        return newPastores;
-      });
-
-      const ArrayPastorMembersFlattened = newPastorMembers.flat();
-
-      if (ArrayPastorMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Pastor with these names ${term.slice(0, -1)}`,
-        );
-      }
-
-      return ArrayPastorMembersFlattened;
-    }
-
-    //* Para find by full_name
-    if (searchType === 'full_name') {
-      const members = await searchFullname({
-        term,
-        limit,
-        offset,
-        repository,
-      });
-
-      const pastorMembers = members.filter((member) =>
-        member.roles.includes('pastor'),
-      );
-
-      if (pastorMembers.length === 0) {
-        throw new NotFoundException(
-          `Not found member with role Pastor and with these first_name & last_name: ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      const pastores = await this.pastorRepository.find();
-
-      const newPastorMembers = pastorMembers.map((member) => {
-        const newPastores = pastores.filter(
-          (pastor) =>
-            pastor.member.id === member.id && pastor.is_active === true,
-        );
-        return newPastores;
-      });
-
-      const ArrayPastorMembersFlattened = newPastorMembers.flat();
-
-      if (ArrayPastorMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Pastor with these first_name & last_name: ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      return ArrayPastorMembersFlattened;
-    }
-  };
 }

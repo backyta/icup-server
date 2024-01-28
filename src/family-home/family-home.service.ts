@@ -20,8 +20,8 @@ import { CoPastor } from '../copastor/entities/copastor.entity';
 import { User } from '../users/entities/user.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { SearchType } from '../common/enums/search-types.enum';
-import { searchFullname, searchPerson } from '../common/helpers';
+import { SearchType, SearchTypeOfName, TypeEntity } from '../common/enums';
+import { searchPeopleBy } from '../common/helpers/search-people.helper';
 
 @Injectable()
 export class FamilyHomeService {
@@ -217,42 +217,48 @@ export class FamilyHomeService {
     //! Search Family House by Preacher or Copastor names
     //* Find by first-name Preacher --> Many
     if (term && type === SearchType.firstName && type_of_name) {
-      const resultSearch = await this.searchFamilyHomeBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.firstName,
+        search_type: SearchType.firstName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.familyHomeEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.familyHomeRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find by last-name Preacher --> Many
     if (term && type === SearchType.lastName && type_of_name) {
-      const resultSearch = await this.searchFamilyHomeBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.lastName,
+        search_type: SearchType.lastName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.familyHomeEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.familyHomeRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find by full-name Preacher --> Many
     if (term && type === SearchType.fullName && type_of_name) {
-      const resultSearch = await this.searchFamilyHomeBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.fullName,
+        search_type: SearchType.fullName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.familyHomeEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.familyHomeRepository,
+      });
 
       return resultSearch;
     }
@@ -391,6 +397,15 @@ export class FamilyHomeService {
     ) {
       throw new BadRequestException(
         `To search by names, the query_type is required`,
+      );
+    }
+
+    if (
+      type_of_name !== SearchTypeOfName.familyHouseCopastor &&
+      type_of_name !== SearchTypeOfName.familyHousePreacher
+    ) {
+      throw new BadRequestException(
+        `For this route you can only use: ${SearchTypeOfName.familyHouseCopastor} or ${SearchTypeOfName.familyHousePreacher}`,
       );
     }
 
@@ -773,123 +788,6 @@ export class FamilyHomeService {
       'Unexpected errors, check server logs',
     );
   }
-
-  private searchFamilyHomeBy = async (
-    term: string,
-    searchType: SearchType,
-    limit: number,
-    offset: number,
-    type_of_name: string,
-    repository: Repository<Member>,
-  ): Promise<FamilyHome | FamilyHome[]> => {
-    //! Para find by first or last name
-    if (searchType === 'first_name' || searchType === 'last_name') {
-      const members = await searchPerson({
-        term,
-        searchType,
-        limit,
-        offset,
-        repository,
-      });
-
-      const familyHouses = await this.familyHomeRepository.find();
-
-      let familyHomeByName: FamilyHome[][];
-
-      if (type_of_name === 'preacher') {
-        familyHomeByName = members.map((member) => {
-          const newFamilyHouses = familyHouses.filter(
-            (home) => home.their_preacher?.member?.id === member.id,
-          );
-          return newFamilyHouses;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        familyHomeByName = members.map((member) => {
-          const newFamilyHouses = familyHouses.filter(
-            (home) => home.their_copastor?.member?.id === member.id,
-          );
-          return newFamilyHouses;
-        });
-      }
-
-      if (!familyHomeByName) {
-        throw new NotFoundException(
-          `Not found Family Houses with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      const ArrayFamilyHousesFlattened = familyHomeByName.flat();
-
-      if (ArrayFamilyHousesFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Family Houses with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      return ArrayFamilyHousesFlattened;
-    }
-
-    //! For find by full_name
-    if (searchType === 'full_name') {
-      const members = await searchFullname({
-        term,
-        limit,
-        offset,
-        repository,
-      });
-
-      const familyHouses = await this.familyHomeRepository.find();
-
-      let familyHomeByName: FamilyHome[][];
-
-      if (type_of_name === 'preacher') {
-        familyHomeByName = members.map((member) => {
-          const newFamilyHouses = familyHouses.filter(
-            (home) => home.their_preacher?.member.id === member.id,
-          );
-          return newFamilyHouses;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        familyHomeByName = members.map((member) => {
-          const newFamilyHouses = familyHouses.filter(
-            (home) => home.their_copastor?.member.id === member.id,
-          );
-          return newFamilyHouses;
-        });
-      }
-
-      if (!familyHomeByName) {
-        throw new NotFoundException(
-          `Not found Family Houses with these first_name & last_name of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-      const ArrayFamilyHousesFlattened = familyHomeByName.flat();
-
-      if (ArrayFamilyHousesFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Family Houses with these first_name & last_name of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      return ArrayFamilyHousesFlattened;
-    }
-  };
 
   //! DELETE FOR SEED
   async deleteAllFamilyHouses() {

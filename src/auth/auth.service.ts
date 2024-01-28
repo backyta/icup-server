@@ -84,6 +84,6 @@ export class AuthService {
       throw new BadRequestException(error.detail);
     }
 
-    throw new InternalServerErrorException('Plase check server logs');
+    throw new InternalServerErrorException('Please check server logs');
   }
 }

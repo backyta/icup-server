@@ -58,13 +58,13 @@ export class Member {
   @Column('bool', { default: true })
   is_active: boolean;
 
-  //* Info adress
+  //* Info address
 
   @Column('text', { default: 'Peru' })
   residence_country: string;
 
   @Column('text', { default: 'Lima' })
-  departament: string;
+  department: string;
 
   @Column('text', { default: 'Lima' })
   province: string;

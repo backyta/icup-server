@@ -19,8 +19,8 @@ import { CoPastor } from '../copastor/entities/copastor.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
 import { User } from '../users/entities/user.entity';
 
-import { SearchType } from '../common/enums/search-types.enum';
-import { searchFullname, searchPerson, updateAge } from '../common/helpers';
+import { SearchType, TypeEntity, SearchTypeOfName } from '../common/enums';
+import { updateAge, searchPeopleBy } from '../common/helpers';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 
 @Injectable()
@@ -68,7 +68,7 @@ export class PreacherService {
 
     if (!copastor) {
       throw new NotFoundException(
-        `Not faound CoPastor with id ${their_copastor}`,
+        `Not found CoPastor with id ${their_copastor}`,
       );
     }
 
@@ -181,42 +181,48 @@ export class PreacherService {
     //! Search Preachers by Preacher or Copastor names
     //* Find firstName --> Many
     if (term && type === SearchType.firstName && type_of_name) {
-      const resultSearch = await this.searchPreacherBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.firstName,
+        search_type: SearchType.firstName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.preacherEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.preacherRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName && type_of_name) {
-      const resultSearch = await this.searchPreacherBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.lastName,
+        search_type: SearchType.lastName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.preacherEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.preacherRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find fullName --> One
     if (term && type === SearchType.fullName && type_of_name) {
-      const resultSearch = await this.searchPreacherBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.fullName,
+        search_type: SearchType.fullName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.preacherEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.preacherRepository,
+      });
 
       return resultSearch;
     }
@@ -291,6 +297,15 @@ export class PreacherService {
     ) {
       throw new BadRequestException(
         `To search by names, the query_type is required`,
+      );
+    }
+
+    if (
+      type_of_name !== SearchTypeOfName.preacherCopastor &&
+      type_of_name !== SearchTypeOfName.preacherMember
+    ) {
+      throw new BadRequestException(
+        `For this route you can only use: ${SearchTypeOfName.preacherCopastor} or ${SearchTypeOfName.preacherMember}`,
       );
     }
 
@@ -554,126 +569,4 @@ export class PreacherService {
       'Unexpected errors, check server logs',
     );
   }
-
-  private searchPreacherBy = async (
-    term: string,
-    searchType: SearchType,
-    limit: number,
-    offset: number,
-    type_of_name: string,
-    repository: Repository<Member>,
-  ): Promise<Preacher | Preacher[]> => {
-    //! For find by first or last name
-    if (searchType === 'first_name' || searchType === 'last_name') {
-      const members = await searchPerson({
-        term,
-        searchType,
-        limit,
-        offset,
-        repository,
-      });
-
-      const preachers = await this.preacherRepository.find();
-
-      let preachersByName: Preacher[][];
-      if (type_of_name === 'preacher-member') {
-        preachersByName = members.map((member) => {
-          const newPreachers = preachers.filter(
-            (preacher) =>
-              preacher?.member.id === member.id && preacher?.is_active === true,
-          );
-          return newPreachers;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        preachersByName = members.map((member) => {
-          const newPreachers = preachers.filter(
-            (preacher) =>
-              preacher?.their_copastor?.member.id === member.id &&
-              preacher?.is_active === true,
-          );
-          return newPreachers;
-        });
-      }
-
-      if (!preachersByName) {
-        throw new NotFoundException(
-          `Not found Preacher with this names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      const ArrayPreachersFlattened = preachersByName.flat();
-
-      if (ArrayPreachersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Preacher with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      return ArrayPreachersFlattened;
-    }
-
-    //! For find by full_name
-    if (searchType === 'full_name') {
-      const members = await searchFullname({
-        term,
-        limit,
-        offset,
-        repository,
-      });
-
-      const preachers = await this.preacherRepository.find();
-
-      let preachersByName: Preacher[][];
-      if (type_of_name === 'preacher-member') {
-        preachersByName = members.map((member) => {
-          const newPreachers = preachers.filter(
-            (preacher) =>
-              preacher?.member?.id === member.id && preacher.is_active === true,
-          );
-          return newPreachers;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        preachersByName = members.map((member) => {
-          const newPreachers = preachers.filter(
-            (preacher) =>
-              preacher?.their_copastor?.member.id === member.id &&
-              preacher.is_active === true,
-          );
-          return newPreachers;
-        });
-      }
-
-      if (!preachersByName) {
-        throw new NotFoundException(
-          `Not found Preachers with these first_name & last_name of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      const ArrayPreachersFlattened = preachersByName.flat();
-
-      if (ArrayPreachersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Preachers with these  first_name & last_name of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      return ArrayPreachersFlattened;
-    }
-  };
 }

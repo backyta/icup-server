@@ -2,17 +2,17 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Member } from '../../members/entities/member.entity';
 
 import { validateName } from './validate-name.helper';
-import { SearchFullnameOptions } from '../interfaces/search-fullname.interface';
+import { SearchFullNameOptions } from '../interfaces/search-fullname.interface';
 
-export const searchFullname = async ({
+export const searchByFullname = async ({
   term,
   limit,
   offset,
-  repository,
-}: SearchFullnameOptions<Member>): Promise<Member[]> => {
+  search_repository,
+}: SearchFullNameOptions<Member>): Promise<Member[]> => {
   if (!term.includes('-')) {
     throw new BadRequestException(
-      `Term not valid, use allow '-' for concat firstname and lastname`,
+      `Term not valid, use allow '-' for concat first name and last name`,
     );
   }
 
@@ -20,7 +20,7 @@ export const searchFullname = async ({
   const firstName = validateName(first);
   const lastName = validateName(second);
 
-  const queryBuilder = repository.createQueryBuilder('member');
+  const queryBuilder = search_repository.createQueryBuilder('member');
   const member = await queryBuilder
     .leftJoinAndSelect('member.their_pastor', 'rel1')
     .leftJoinAndSelect('member.their_copastor', 'rel2')
@@ -49,7 +49,7 @@ export const searchFullname = async ({
 //? /^[^+]+(?:\+[^+]+)*\+$/.
 
 //! This Regex validates:
-//* No comienze con signo +
+//* No comienza con signo +
 //* termina con signo +
 //* Puede tener múltiples secciones que consisten en un "+" seguido de uno o más caracteres que no sean un "+".
 

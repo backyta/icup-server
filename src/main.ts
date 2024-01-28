@@ -16,8 +16,10 @@ async function bootstrap() {
   );
 
   await app.listen(process.env.PORT);
-  logger.log(`App runnign in port ${process.env.PORT}`);
+  logger.log(`App running in port ${process.env.PORT}`);
 
-  //* Here function create atumatic super-user
+  //TODO : Here function create automatic super-user
+
+  //TODO : hacer en module user, la búsqueda por nombre y apellidos, en su mismo modulo
 }
 bootstrap();
