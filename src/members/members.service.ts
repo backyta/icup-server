@@ -17,18 +17,19 @@ import { Pastor } from '../pastor/entities/pastor.entity';
 import { CoPastor } from '../copastor/entities/copastor.entity';
 import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { User } from '../users/entities/user.entity';
 
 import { PastorService } from '../pastor/pastor.service';
 import { CoPastorService } from '../copastor/copastor.service';
 import { PreacherService } from '../preacher/preacher.service';
 
-import { SearchType } from '../common/enums/search-types.enum';
+import { SearchType, TypeEntity, SearchTypeOfName } from '../common/enums';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { searchPerson, searchFullname, updateAge } from '../common/helpers';
+import { updateAge, searchPeopleBy } from '../common/helpers';
 
 @Injectable()
 export class MembersService {
-  private readonly logger = new Logger('MermbersService');
+  private readonly logger = new Logger('MembersService');
 
   constructor(
     @InjectRepository(Member)
@@ -54,7 +55,7 @@ export class MembersService {
   ) {}
 
   //* CREATE MEMBER
-  async create(createMemberDto: CreateMemberDto): Promise<Member> {
+  async create(createMemberDto: CreateMemberDto, user: User): Promise<Member> {
     const {
       roles,
       their_pastor,
@@ -153,19 +154,22 @@ export class MembersService {
       try {
         const member = this.memberRepository.create({
           ...createMemberDto,
-          their_copastor: copastor,
           their_pastor: pastor,
+          their_copastor: copastor,
           their_preacher: preacher,
           their_family_home: familyHome,
+          created_by: user,
           created_at: new Date(),
-          created_by: 'Kevin',
         });
 
         await this.memberRepository.save(member);
 
-        await this.pastorService.create({
-          member_id: member.id,
-        });
+        await this.pastorService.create(
+          {
+            member_id: member.id,
+          },
+          user,
+        );
 
         return member;
       } catch (error) {
@@ -192,16 +196,19 @@ export class MembersService {
           their_pastor: pastor,
           their_preacher: preacher,
           their_family_home: familyHome,
+          created_by: user,
           created_at: new Date(),
-          created_by: 'Kevin',
         });
 
         await this.memberRepository.save(member);
 
-        await this.coPastorService.create({
-          member_id: member.id,
-          their_pastor: pastor.id,
-        });
+        await this.coPastorService.create(
+          {
+            member_id: member.id,
+            their_pastor: pastor.id,
+          },
+          user,
+        );
 
         return member;
       } catch (error) {
@@ -238,15 +245,18 @@ export class MembersService {
           their_preacher: preacher,
           their_family_home: familyHome,
           created_at: new Date(),
-          created_by: 'Kevin',
+          created_by: user,
         });
 
         await this.memberRepository.save(member);
 
-        await this.preacherService.create({
-          member_id: member.id,
-          their_copastor: copastor.id,
-        });
+        await this.preacherService.create(
+          {
+            member_id: member.id,
+            their_copastor: copastor.id,
+          },
+          user,
+        );
 
         return member;
       } catch (error) {
@@ -298,12 +308,12 @@ export class MembersService {
       try {
         const member = this.memberRepository.create({
           ...createMemberDto,
-          their_copastor: copastor,
           their_pastor: pastor,
+          their_copastor: copastor,
           their_preacher: preacher,
           their_family_home: familyHome,
           created_at: new Date(),
-          created_by: 'Kevin',
+          created_by: user,
         });
 
         await this.memberRepository.save(member);
@@ -324,7 +334,7 @@ export class MembersService {
           their_preacher: preacher,
           their_family_home: familyHome,
           created_at: new Date(),
-          created_by: 'Kevin',
+          created_by: user,
         });
 
         await this.memberRepository.save(member);
@@ -418,42 +428,48 @@ export class MembersService {
 
     //* Find firstName --> Many
     if (term && type === SearchType.firstName && type_of_name) {
-      const resultSearch = await this.searchMemberBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.firstName,
+        search_type: SearchType.firstName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.memberEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.memberRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName && type_of_name) {
-      const resultSearch = await this.searchMemberBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.lastName,
+        search_type: SearchType.lastName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.memberEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.memberRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find fullName --> Many
     if (term && type === SearchType.fullName && type_of_name) {
-      const resultSearch = await this.searchMemberBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.fullName,
+        search_type: SearchType.fullName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.memberEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.memberRepository,
+      });
 
       return resultSearch;
     }
@@ -564,13 +580,28 @@ export class MembersService {
       );
     }
 
+    if (
+      type_of_name !== SearchTypeOfName.memberCopastor &&
+      type_of_name !== SearchTypeOfName.memberPastor &&
+      type_of_name !== SearchTypeOfName.memberMember &&
+      type_of_name !== SearchTypeOfName.memberPreacher
+    ) {
+      throw new BadRequestException(
+        `For this route you can only use: ${SearchTypeOfName.memberPreacher} or ${SearchTypeOfName.memberMember} or ${SearchTypeOfName.memberPastor} or ${SearchTypeOfName.memberCopastor}`,
+      );
+    }
+
     if (!member) throw new NotFoundException(`Member with ${term} not found`);
 
     return member;
   }
 
   //* UPDATE FOR ID
-  async update(id: string, updateMemberDto: UpdateMemberDto): Promise<Member> {
+  async update(
+    id: string,
+    updateMemberDto: UpdateMemberDto,
+    user: User,
+  ): Promise<Member> {
     const {
       roles,
       their_copastor,
@@ -757,12 +788,12 @@ export class MembersService {
       member = await this.memberRepository.preload({
         id: dataMember.id,
         ...updateMemberDto,
-        updated_at: new Date(),
-        updated_by: 'Kevinxd',
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
         their_family_home: familyHome,
+        updated_at: new Date(),
+        updated_by: user,
       });
 
       const allPastores = await this.pastorRepository.find();
@@ -863,7 +894,7 @@ export class MembersService {
         id: dataMember.id,
         ...updateMemberDto,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
@@ -962,7 +993,7 @@ export class MembersService {
           id: dataMember.id,
           ...updateMemberDto,
           updated_at: new Date(),
-          updated_by: 'Kevinxd',
+          updated_by: user,
           their_pastor: pastor,
           their_copastor: copastor,
           their_preacher: null,
@@ -981,7 +1012,7 @@ export class MembersService {
             id: dataMember.id,
             ...updateMemberDto,
             updated_at: new Date(),
-            updated_by: 'Kevinxd',
+            updated_by: user,
             their_pastor: pastor,
             their_copastor: copastor,
             their_preacher: null,
@@ -1005,7 +1036,7 @@ export class MembersService {
           id: dataMember.id,
           ...updateMemberDto,
           updated_at: new Date(),
-          updated_by: 'Kevinxd',
+          updated_by: user,
           their_pastor: pastor,
           their_copastor: copastor,
           their_preacher: null,
@@ -1089,7 +1120,7 @@ export class MembersService {
         id: dataMember.id,
         ...updateMemberDto,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
@@ -1177,7 +1208,7 @@ export class MembersService {
         id: dataMember.id,
         ...updateMemberDto,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
@@ -1191,9 +1222,12 @@ export class MembersService {
         await Promise.all(promisesMembers);
         await Promise.all(promisesFamilyHouses);
         await this.coPastorRepository.delete(dataCopastor.id);
-        await this.pastorService.create({
-          member_id: dataMember.id,
-        });
+        await this.pastorService.create(
+          {
+            member_id: dataMember.id,
+          },
+          user,
+        );
         return result;
       } catch (error) {
         this.handleDBExceptions(error);
@@ -1270,7 +1304,7 @@ export class MembersService {
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
@@ -1283,10 +1317,13 @@ export class MembersService {
         await this.familyHomeRepository.save(updateFamilyHome);
         await Promise.all(promisesMembers);
         await this.preacherRepository.delete(dataPreacher.id);
-        await this.coPastorService.create({
-          member_id: dataMember.id,
-          their_pastor: pastor.id,
-        });
+        await this.coPastorService.create(
+          {
+            member_id: dataMember.id,
+            their_pastor: pastor.id,
+          },
+          user,
+        );
         return result;
       } catch (error) {
         this.handleDBExceptions(error);
@@ -1330,7 +1367,7 @@ export class MembersService {
         id: id,
         ...updateMemberDto,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
         their_pastor: pastor,
         their_copastor: copastor,
         their_preacher: preacher,
@@ -1339,10 +1376,13 @@ export class MembersService {
 
       try {
         const result = await this.memberRepository.save(member);
-        await this.preacherService.create({
-          member_id: dataMember.id,
-          their_copastor: copastor.id,
-        });
+        await this.preacherService.create(
+          {
+            member_id: dataMember.id,
+            their_copastor: copastor.id,
+          },
+          user,
+        );
         return result;
       } catch (error) {
         this.handleDBExceptions(error);
@@ -1355,7 +1395,7 @@ export class MembersService {
   }
 
   //* DELETE FOR ID
-  async remove(id: string): Promise<void> {
+  async remove(id: string, user: User): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -1369,7 +1409,7 @@ export class MembersService {
     const member = await this.memberRepository.preload({
       id: dataMember.id,
       updated_at: new Date(),
-      updated_by: 'Kevin',
+      updated_by: user,
       their_copastor: null,
       their_pastor: null,
       their_family_home: null,
@@ -1395,7 +1435,7 @@ export class MembersService {
         id: pastorMember.id,
         is_active: false,
         updated_at: new Date(),
-        updated_by: 'Kevin',
+        updated_by: user,
       });
 
       //* Update and set to null relationships in Copastor
@@ -1408,7 +1448,7 @@ export class MembersService {
         await this.coPastorRepository.update(copastor.id, {
           their_pastor: null,
           updated_at: new Date(),
-          updated_by: 'Kevin',
+          updated_by: user,
         });
       });
 
@@ -1422,7 +1462,7 @@ export class MembersService {
         await this.preacherRepository.update(preacher.id, {
           their_pastor: null,
           updated_at: new Date(),
-          updated_by: 'Kevin',
+          updated_by: user,
         });
       });
 
@@ -1438,7 +1478,7 @@ export class MembersService {
             their_pastor: null,
             their_copastor: null,
             updated_at: new Date(),
-            updated_by: 'Kevin',
+            updated_by: user,
           });
         },
       );
@@ -1456,7 +1496,7 @@ export class MembersService {
         await this.memberRepository.update(member.id, {
           their_pastor: null,
           updated_at: new Date(),
-          updated_by: 'Kevin',
+          updated_by: user,
         });
       });
 
@@ -1490,7 +1530,7 @@ export class MembersService {
       const copastor = await this.coPastorRepository.preload({
         id: coPastorMember.id,
         updated_at: new Date(),
-        updated_by: 'Kevin',
+        updated_by: user,
         their_pastor: null,
         is_active: false,
       });
@@ -1506,7 +1546,7 @@ export class MembersService {
           their_copastor: null,
           their_pastor: null,
           updated_at: new Date(),
-          updated_by: 'Kevin',
+          updated_by: user,
         });
       });
 
@@ -1523,7 +1563,7 @@ export class MembersService {
             their_pastor: null,
             their_preacher: null,
             updated_at: new Date(),
-            updated_by: 'Kevin',
+            updated_by: user,
           });
         },
       );
@@ -1542,7 +1582,7 @@ export class MembersService {
           their_pastor: null,
           their_preacher: null,
           updated_at: new Date(),
-          updated_by: 'Kevin',
+          updated_by: user,
         });
       });
 
@@ -1577,7 +1617,7 @@ export class MembersService {
         their_pastor: null,
         is_active: false,
         updated_at: new Date(),
-        updated_by: 'Kevin',
+        updated_by: user,
       });
 
       //* Update and set to null in Family Home
@@ -1593,7 +1633,7 @@ export class MembersService {
             their_pastor: null,
             their_copastor: null,
             updated_at: new Date(),
-            updated_by: 'Kevin',
+            updated_by: user,
           });
         },
       );
@@ -1612,7 +1652,7 @@ export class MembersService {
           their_pastor: null,
           their_copastor: null,
           updated_at: new Date(),
-          updated_by: 'Kevin',
+          updated_by: user,
         });
       });
 
@@ -1716,173 +1756,7 @@ export class MembersService {
     return members;
   }
 
-  private searchMemberBy = async (
-    term: string,
-    searchType: SearchType,
-    limit: number,
-    offset: number,
-    type_of_name: string,
-    repository: Repository<Member>,
-  ): Promise<Member | Member[]> => {
-    //! For find by first or last name
-    if (searchType === 'first_name' || searchType === 'last_name') {
-      const members = await searchPerson({
-        term,
-        searchType,
-        limit,
-        offset,
-        repository,
-      });
-
-      const allMembers = await this.memberRepository.find({
-        relations: [
-          'their_pastor',
-          'their_copastor',
-          'their_preacher',
-          'their_family_home',
-        ],
-      });
-
-      let membersByName: Member[][];
-
-      if (type_of_name === 'preacher') {
-        const preacherMembers = members.filter((member) =>
-          member.roles.includes('preacher'),
-        );
-
-        membersByName = preacherMembers.map((memberPreacher) => {
-          const newMembersByPreacher = allMembers.filter(
-            (member) =>
-              member?.their_preacher?.member.id === memberPreacher.id &&
-              member.is_active === true,
-          );
-          return newMembersByPreacher;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        const copastorMembers = members.filter((member) =>
-          member.roles.includes('copastor'),
-        );
-
-        membersByName = copastorMembers.map((memberCopastor) => {
-          const newMembersByCopastor = allMembers.filter(
-            (member) =>
-              member?.their_copastor?.member.id === memberCopastor.id &&
-              member.is_active === true,
-          );
-
-          return newMembersByCopastor;
-        });
-      }
-
-      if (type_of_name === 'member') {
-        return members;
-      }
-
-      if (!membersByName) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      const ArrayMembersFlattened = membersByName.flat();
-
-      if (ArrayMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      return ArrayMembersFlattened;
-    }
-
-    //! For find by full_name
-    if (searchType === 'full_name') {
-      const members = await searchFullname({
-        term,
-        limit,
-        offset,
-        repository,
-      });
-
-      const allMembers = await this.memberRepository.find({
-        relations: [
-          'their_pastor',
-          'their_copastor',
-          'their_preacher',
-          'their_family_home',
-        ],
-      });
-
-      let membersByName: Member[][];
-
-      if (type_of_name === 'preacher') {
-        const preacherMembers = members.filter((member) =>
-          member.roles.includes('preacher'),
-        );
-
-        membersByName = preacherMembers.map((memberPreacher) => {
-          const newMembersByPreacher = allMembers.filter(
-            (member) =>
-              member?.their_preacher?.member.id === memberPreacher.id &&
-              member.is_active === true,
-          );
-
-          return newMembersByPreacher;
-        });
-      }
-
-      if (type_of_name === 'copastor') {
-        const copastorMembers = members.filter((member) =>
-          member.roles.includes('copastor'),
-        );
-
-        membersByName = copastorMembers.map((memberCopastor) => {
-          const newMembersByCopastor = allMembers.filter(
-            (member) =>
-              member?.their_copastor?.member.id === memberCopastor.id &&
-              member.is_active === true,
-          );
-          return newMembersByCopastor;
-        });
-      }
-
-      if (type_of_name === 'member') {
-        return members;
-      }
-
-      if (!membersByName) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      const ArrayMembersFlattened = membersByName.flat();
-
-      if (ArrayMembersFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Members with these names of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      return ArrayMembersFlattened;
-    }
-  };
-
-  //* DELETE PARA SEMILLA
+  //! DELETE FOR SEED
   async deleteAllMembers() {
     const query = this.memberRepository.createQueryBuilder('members');
 

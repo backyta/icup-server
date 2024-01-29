@@ -8,6 +8,7 @@ import { Offering } from './entities/offering.entity';
 import { MembersModule } from '../members/members.module';
 import { FamilyHomeModule } from '../family-home/family-home.module';
 import { CopastorModule } from '../copastor/copastor.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   controllers: [OfferingController],
@@ -17,6 +18,7 @@ import { CopastorModule } from '../copastor/copastor.module';
     MembersModule,
     FamilyHomeModule,
     CopastorModule,
+    AuthModule,
   ],
   exports: [TypeOrmModule, OfferingService],
 })

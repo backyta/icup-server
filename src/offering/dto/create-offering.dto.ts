@@ -9,14 +9,14 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { subTypesOffering } from '../enums/sub-type-offering.enum';
-import { currencyType } from '../enums/currency-type.enum';
+import { SubTypesOffering } from '../enums/sub-type-offering.enum';
+import { CurrencyType } from '../enums/currency-type.enum';
 
 export class CreateOfferingDto {
   @IsIn(['offering', 'tithe'])
   type: string;
 
-  @IsEnum(subTypesOffering)
+  @IsEnum(SubTypesOffering)
   @IsNotEmpty()
   @IsOptional()
   sub_type?: string;
@@ -25,7 +25,7 @@ export class CreateOfferingDto {
   @IsNotEmpty()
   amount: number;
 
-  @IsEnum(currencyType)
+  @IsEnum(CurrencyType)
   @IsNotEmpty()
   currency: string;
 

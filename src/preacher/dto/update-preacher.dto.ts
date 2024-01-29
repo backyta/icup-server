@@ -62,14 +62,14 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
 
   @IsString()
   @IsOptional()
-  date_joinig?: string | Date;
+  date_joining?: string | Date;
 
   @IsString()
   @IsNotEmpty()
   @IsOptional()
   origin_country?: string;
 
-  //* Info adress
+  //* Info address
   @IsString()
   @IsOptional()
   @MinLength(1)
@@ -80,7 +80,7 @@ export class UpdatePreacherDto extends PartialType(CreatePreacherDto) {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  departament?: string;
+  department?: string;
 
   @IsString()
   @IsOptional()

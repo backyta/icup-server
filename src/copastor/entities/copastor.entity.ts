@@ -1,3 +1,4 @@
+import { User } from 'src/users/entities/user.entity';
 import { Member } from '../../members/entities/member.entity';
 import { Pastor } from '../../pastor/entities/pastor.entity';
 import {
@@ -23,23 +24,26 @@ export class CoPastor {
   @Column('bool', { default: true })
   is_active: boolean;
 
-  @Column('timestamp', { nullable: true })
-  created_at: string | Date;
-
-  @Column('text', { nullable: true })
-  created_by: string;
-
-  @Column('timestamp', { nullable: true })
-  updated_at: string | Date;
-
-  @Column('text', { nullable: true })
-  updated_by: string;
-
   @Column('uuid', { array: true, nullable: true })
   preachers: string[];
 
   @Column('uuid', { array: true, nullable: true })
   family_houses: string[];
+
+  //* Info register and update date
+  @Column('timestamp', { nullable: true })
+  created_at: string | Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  created_by: User;
+
+  @Column('timestamp', { nullable: true })
+  updated_at: string | Date;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  updated_by: User;
 
   //* Relations Column
   @OneToOne(() => Member, { eager: true, onDelete: 'CASCADE' })

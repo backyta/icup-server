@@ -11,6 +11,10 @@ import { FamilyHomeModule } from './family-home/family-home.module';
 import { OfferingModule } from './offering/offering.module';
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+
+import { SuperUserService } from './utils/create-super-user';
 
 @Module({
   imports: [
@@ -34,6 +38,9 @@ import { FilesModule } from './files/files.module';
     OfferingModule,
     SeedModule,
     FilesModule,
+    AuthModule,
+    UsersModule,
   ],
+  providers: [SuperUserService],
 })
 export class AppModule {}

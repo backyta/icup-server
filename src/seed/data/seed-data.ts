@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 interface SeedMember {
   //* General Info
   first_name: string;
@@ -13,9 +14,9 @@ interface SeedMember {
   origin_country: string;
   roles: string[];
 
-  //* Info Member adress
+  //* Info Member address
   residence_country?: string;
-  departament?: string;
+  department?: string;
   province?: string;
   district: string;
   address: string;
@@ -26,12 +27,12 @@ interface SeedMember {
   their_copastor?: string;
   their_preacher?: string;
 }
-interface SeedFamiilyHome {
+interface SeedFamilyHome {
   //* General Info
   zone: string;
   name_home?: string;
 
-  //* Info Home adress
+  //* Info Home address
   province?: string;
   district: string;
   address: string;
@@ -55,16 +56,54 @@ interface SeedOffering {
   copastor_id?: string;
 }
 
+interface SeedUser {
+  email: string;
+  first_name: string;
+  last_name: string;
+  password: string;
+  roles: string[];
+}
+
+interface SeedDataUser {
+  users: SeedUser[];
+}
 interface SeedDataMember {
   members: SeedMember[];
 }
 
 interface SeedDataHouses {
-  houses: SeedFamiilyHome[];
+  houses: SeedFamilyHome[];
 }
 interface SeedDataOffering {
   offerings: SeedOffering[];
 }
+
+//! Data Users
+export const dataUsers: SeedDataUser = {
+  users: [
+    {
+      email: 'luisa@google.com',
+      first_name: 'Luisa Maria',
+      last_name: 'Torres Zapata',
+      password: bcrypt.hashSync('Abc1234', 10),
+      roles: ['admin-user'],
+    },
+    {
+      email: 'eva@google.com',
+      first_name: 'Eva Daniela',
+      last_name: 'Carranza Valle',
+      password: bcrypt.hashSync('Abc1234', 10),
+      roles: ['treasurer-user'],
+    },
+    {
+      email: 'luz@google.com',
+      first_name: 'Luz Estrella',
+      last_name: 'Vallejo Zambrano',
+      password: bcrypt.hashSync('Abc1234', 10),
+      roles: ['user'],
+    },
+  ],
+};
 
 //! Data Member-Pastor
 export const dataMembersPastor: SeedDataMember = {

@@ -1,3 +1,4 @@
+import { User } from 'src/users/entities/user.entity';
 import { CoPastor } from '../../copastor/entities/copastor.entity';
 import { Pastor } from '../../pastor/entities/pastor.entity';
 import { Preacher } from '../../preacher/entities/preacher.entity';
@@ -43,18 +44,20 @@ export class FamilyHome {
   @Column('int', { default: 0 })
   count_members: number;
 
-  //* User create and update
+  //* Info register and update date
   @Column('timestamp', { nullable: true })
   created_at: string | Date;
 
-  @Column('text', { nullable: true })
-  created_by: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  created_by: User;
 
   @Column('timestamp', { nullable: true })
   updated_at: string | Date;
 
-  @Column('text', { nullable: true })
-  updated_by: string;
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn()
+  updated_by: User;
 
   //* Array id (data)
   @Column('uuid', { array: true, nullable: true })

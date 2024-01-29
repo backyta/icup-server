@@ -2,15 +2,15 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 
 import { Member } from '../../members/entities/member.entity';
 
-import { SearchPersonOptions } from '../../common/interfaces/search-person.interface';
+import { SearchNamesOptions } from '../interfaces/search-names.interface';
 
-export const searchPerson = async ({
+export const searchByNames = async ({
   term,
-  searchType,
+  search_type,
   limit,
   offset,
-  repository,
-}: SearchPersonOptions<Member>): Promise<Member[]> => {
+  search_repository,
+}: SearchNamesOptions<Member>): Promise<Member[]> => {
   let dataPerson: string | string[];
 
   if (/^[A-Za-z]+(?:\+[A-Za-z]+)*\+$/.test(term)) {
@@ -30,13 +30,13 @@ export const searchPerson = async ({
     );
   }
 
-  const queryBuilder = repository.createQueryBuilder('member');
-  const member = await queryBuilder
+  const queryBuilder = search_repository.createQueryBuilder('member');
+  const members = await queryBuilder
     .leftJoinAndSelect('member.their_pastor', 'rel1')
     .leftJoinAndSelect('member.their_copastor', 'rel2')
     .leftJoinAndSelect('member.their_preacher', 'rel3')
     .leftJoinAndSelect('member.their_family_home', 'rel4')
-    .where(`member.${searchType} ILIKE :searchTerm`, {
+    .where(`member.${search_type} ILIKE :searchTerm`, {
       searchTerm: `%${dataPerson}%`,
     })
     .andWhere(`member.is_active =:isActive`, { isActive: true })
@@ -44,12 +44,12 @@ export const searchPerson = async ({
     .limit(limit)
     .getMany();
 
-  if (member.length === 0) {
+  if (members.length === 0) {
     throw new NotFoundException(
-      `No member was found with these ${searchType}: ${dataPerson}`,
+      `No members was found with these ${search_type}: ${dataPerson}`,
     );
   }
-  return member;
+  return members;
 };
 
 //? What does this?

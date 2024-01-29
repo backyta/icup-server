@@ -3,7 +3,7 @@ import { IsOptional, Min } from 'class-validator';
 
 export class PaginationDto {
   @IsOptional()
-  @Type(() => Number) // No use GlobalPipes with properties transform (eneableImplicitConvertions)
+  @Type(() => Number) // No use GlobalPipes with properties transform (enableImplicitConventions)
   limit?: number;
 
   @IsOptional()

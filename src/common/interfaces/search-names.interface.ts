@@ -1,10 +1,10 @@
 import { Repository } from 'typeorm';
 import { SearchType } from '../enums/search-types.enum';
 
-export interface SearchPersonOptions<T> {
+export interface SearchNamesOptions<T> {
   term: string;
-  searchType: SearchType;
+  search_type: SearchType;
   limit: number;
   offset: number;
-  repository: Repository<T>;
+  search_repository: Repository<T>;
 }

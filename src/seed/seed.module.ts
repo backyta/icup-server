@@ -8,6 +8,8 @@ import { CopastorModule } from '../copastor/copastor.module';
 import { PreacherModule } from '../preacher/preacher.module';
 import { OfferingModule } from '../offering/offering.module';
 import { FamilyHomeModule } from '../family-home/family-home.module';
+import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   controllers: [SeedController],
@@ -20,6 +22,8 @@ import { FamilyHomeModule } from '../family-home/family-home.module';
     PreacherModule,
     FamilyHomeModule,
     OfferingModule,
+    AuthModule,
+    UsersModule,
   ],
 })
 export class SeedModule {}

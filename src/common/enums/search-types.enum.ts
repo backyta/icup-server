@@ -18,7 +18,7 @@ export enum SearchType {
   address = 'address',
   zone = 'zone',
 
-  //* Offering and Thite
+  //* Offering and Tithe
   type = 'type',
   type_sub_type = 'type_sub_type',
   type_sub_type_date = 'type_sub_type_date',

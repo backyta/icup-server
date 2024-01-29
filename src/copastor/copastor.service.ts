@@ -17,10 +17,13 @@ import { Pastor } from '../pastor/entities/pastor.entity';
 import { Member } from '../members/entities/member.entity';
 import { Preacher } from '../preacher/entities/preacher.entity';
 import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { User } from '../users/entities/user.entity';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
-import { updateAge, searchPerson, searchFullname } from '../common/helpers';
-import { SearchType } from '../common/enums/search-types.enum';
+import { updateAge, searchPeopleBy } from '../common/helpers';
+
+import { SearchType, TypeEntity, SearchTypeOfName } from '../common/enums';
+
 @Injectable()
 export class CoPastorService {
   private readonly logger = new Logger('CoPastorService');
@@ -43,7 +46,10 @@ export class CoPastorService {
   ) {}
 
   //* CREATE COPASTOR
-  async create(createCoPastorDto: CreateCoPastorDto): Promise<CoPastor> {
+  async create(
+    createCoPastorDto: CreateCoPastorDto,
+    user: User,
+  ): Promise<CoPastor> {
     const { member_id, their_pastor } = createCoPastorDto;
 
     const member = await this.memberRepository.findOneBy({
@@ -91,7 +97,7 @@ export class CoPastorService {
         member: member,
         their_pastor: pastor,
         created_at: new Date(),
-        created_by: 'Kevin',
+        created_by: user,
       });
 
       await this.memberRepository.save(dataMember);
@@ -164,42 +170,48 @@ export class CoPastorService {
 
     //* Find firstName --> Many
     if (term && type === SearchType.firstName && type_of_name) {
-      const resultSearch = await this.searchCoPastorBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.firstName,
+        search_type: SearchType.firstName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.copastorEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.coPastorRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find lastName --> Many
     if (term && type === SearchType.lastName && type_of_name) {
-      const resultSearch = await this.searchCoPastorBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.lastName,
+        search_type: SearchType.lastName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.copastorEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.coPastorRepository,
+      });
 
       return resultSearch;
     }
 
     //* Find fullName --> One
     if (term && type === SearchType.fullName && type_of_name) {
-      const resultSearch = await this.searchCoPastorBy(
+      const resultSearch = await searchPeopleBy({
         term,
-        SearchType.fullName,
+        search_type: SearchType.fullName,
         limit,
         offset,
-        type_of_name,
-        this.memberRepository,
-      );
+        type_entity: TypeEntity.copastorEntity,
+        type_of_name: type_of_name as SearchTypeOfName,
+        search_repository: this.memberRepository,
+        entity_repository: this.coPastorRepository,
+      });
 
       return resultSearch;
     }
@@ -258,6 +270,15 @@ export class CoPastorService {
       );
     }
 
+    if (
+      type_of_name !== SearchTypeOfName.copastorMember &&
+      type_of_name !== SearchTypeOfName.copastorPastor
+    ) {
+      throw new BadRequestException(
+        `For this route you can only use: ${SearchTypeOfName.copastorMember} and ${SearchTypeOfName.copastorPastor}`,
+      );
+    }
+
     if (!coPastor)
       throw new NotFoundException(`CoPastor with ${term} not found`);
 
@@ -269,6 +290,7 @@ export class CoPastorService {
   async update(
     id: string,
     updateCoPastorDto: UpdateCoPastorDto,
+    user: User,
   ): Promise<CoPastor> {
     const { their_pastor, is_active, member_id } = updateCoPastorDto;
 
@@ -384,7 +406,7 @@ export class CoPastorService {
       their_pastor: pastor,
       is_active: is_active,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     const coPastor = await this.coPastorRepository.preload({
@@ -397,7 +419,7 @@ export class CoPastorService {
       is_active: is_active,
       their_pastor: pastor,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     try {
@@ -414,7 +436,7 @@ export class CoPastorService {
   }
 
   //* DELETE FOR ID
-  async remove(id: string): Promise<void> {
+  async remove(id: string, user: User): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -431,7 +453,7 @@ export class CoPastorService {
       their_pastor: null,
       is_active: false,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //* Update and set in false is_active on coPastor
@@ -440,7 +462,7 @@ export class CoPastorService {
       their_pastor: null,
       is_active: false,
       updated_at: new Date(),
-      updated_by: 'Kevinxd',
+      updated_by: user,
     });
 
     //* Update and set to null in Preacher
@@ -456,7 +478,7 @@ export class CoPastorService {
         family_home: null,
         members: null,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
     });
 
@@ -474,7 +496,7 @@ export class CoPastorService {
           their_preacher: null,
           members: null,
           updated_at: new Date(),
-          updated_by: 'Kevinxd',
+          updated_by: user,
         });
       },
     );
@@ -501,7 +523,7 @@ export class CoPastorService {
           ? null
           : member.their_family_home,
         updated_at: new Date(),
-        updated_by: 'Kevinxd',
+        updated_by: user,
       });
     });
 
@@ -525,128 +547,4 @@ export class CoPastorService {
       'Unexpected errors, check server logs',
     );
   }
-
-  private searchCoPastorBy = async (
-    term: string,
-    searchType: SearchType,
-    limit: number,
-    offset: number,
-    type_of_name: string,
-    repository: Repository<Member>,
-  ): Promise<CoPastor | CoPastor[]> => {
-    //* Para find by first or last name
-    if (searchType === 'first_name' || searchType === 'last_name') {
-      const members = await searchPerson({
-        term,
-        searchType,
-        limit,
-        offset,
-        repository,
-      });
-
-      const copastores = await this.coPastorRepository.find();
-
-      let copastorByName: CoPastor[][];
-
-      if (type_of_name === 'copastor-member') {
-        copastorByName = members.map((member) => {
-          const newCopastores = copastores.filter(
-            (copastor) =>
-              copastor?.member.id === member.id && copastor?.is_active === true,
-          );
-          return newCopastores;
-        });
-      }
-
-      if (type_of_name === 'pastor') {
-        copastorByName = members.map((member) => {
-          const newCopastores = copastores.filter(
-            (copastor) =>
-              copastor?.their_pastor?.member.id === member.id &&
-              copastor?.is_active === true,
-          );
-          return newCopastores;
-        });
-      }
-
-      if (!copastorByName) {
-        throw new NotFoundException(
-          `Not found Copastor with this names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      const ArrayCoPastoresFlattened = copastorByName.flat();
-
-      if (ArrayCoPastoresFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found Copastor with this names of '${type_of_name}': ${term.slice(
-            0,
-            -1,
-          )}`,
-        );
-      }
-
-      return ArrayCoPastoresFlattened;
-    }
-
-    //* Para find by full_name
-    if (searchType === 'full_name') {
-      const members = await searchFullname({
-        term,
-        limit,
-        offset,
-        repository,
-      });
-
-      const copastores = await this.coPastorRepository.find();
-
-      let copastorByName: CoPastor[][];
-
-      if (type_of_name === 'copastor-member') {
-        copastorByName = members.map((member) => {
-          const newCopastores = copastores.filter(
-            (copastor) =>
-              copastor?.member.id === member.id && copastor?.is_active === true,
-          );
-          return newCopastores;
-        });
-      }
-
-      if (type_of_name === 'pastor') {
-        copastorByName = members.map((member) => {
-          const newCopastores = copastores.filter(
-            (copastor) =>
-              copastor?.their_pastor?.member.id === member.id &&
-              copastor?.is_active === true,
-          );
-          return newCopastores;
-        });
-      }
-
-      if (!copastorByName) {
-        throw new NotFoundException(
-          `Not found Copastor with this names of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      const ArrayCoPastoresFlattened = copastorByName.flat();
-
-      if (ArrayCoPastoresFlattened.length === 0) {
-        throw new NotFoundException(
-          `Not found CoPastor with these names of '${type_of_name}': ${term
-            .split('-')
-            .map((word) => word.slice(0, -1))
-            .join(' ')}`,
-        );
-      }
-
-      return ArrayCoPastoresFlattened;
-    }
-  };
 }
