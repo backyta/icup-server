@@ -14,9 +14,9 @@ interface SeedMember {
   origin_country: string;
   roles: string[];
 
-  //* Info Member adress
+  //* Info Member address
   residence_country?: string;
-  departament?: string;
+  department?: string;
   province?: string;
   district: string;
   address: string;
@@ -27,12 +27,12 @@ interface SeedMember {
   their_copastor?: string;
   their_preacher?: string;
 }
-interface SeedFamiilyHome {
+interface SeedFamilyHome {
   //* General Info
   zone: string;
   name_home?: string;
 
-  //* Info Home adress
+  //* Info Home address
   province?: string;
   district: string;
   address: string;
@@ -72,7 +72,7 @@ interface SeedDataMember {
 }
 
 interface SeedDataHouses {
-  houses: SeedFamiilyHome[];
+  houses: SeedFamilyHome[];
 }
 interface SeedDataOffering {
   offerings: SeedOffering[];
@@ -81,13 +81,6 @@ interface SeedDataOffering {
 //! Data Users
 export const dataUsers: SeedDataUser = {
   users: [
-    {
-      email: 'kevin@google.com',
-      first_name: 'Kevin Mario',
-      last_name: 'Ramirez Castro',
-      password: bcrypt.hashSync('Abc1234', 10),
-      roles: ['super-user'],
-    },
     {
       email: 'luisa@google.com',
       first_name: 'Luisa Maria',

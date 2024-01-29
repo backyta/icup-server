@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PreacherService } from './preacher.service';
 import { CreatePreacherDto } from './dto/create-preacher.dto';
@@ -19,7 +20,7 @@ import { Auth, GetUser } from '../auth/decorators';
 
 import { User } from '../users/entities/user.entity';
 
-@Controller('preacher')
+@Controller('preachers')
 export class PreacherController {
   constructor(private readonly preacherService: PreacherService) {}
 
@@ -45,7 +46,7 @@ export class PreacherController {
   @Patch(':id')
   @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updatePreacherDto: UpdatePreacherDto,
     @GetUser() user: User,
   ) {

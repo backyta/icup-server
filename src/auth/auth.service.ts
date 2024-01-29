@@ -25,20 +25,22 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto, user: User) {
     const { password, ...userData } = createUserDto;
 
     try {
-      const user = this.userRepository.create({
+      const newUser = this.userRepository.create({
         ...userData,
         password: bcrypt.hashSync(password, 10),
+        created_by: user,
+        created_at: new Date(),
       });
 
-      await this.userRepository.save(user);
-      delete user.password;
+      await this.userRepository.save(newUser);
+      delete newUser.password;
       return {
-        ...user,
-        token: this.getJetToken({ id: user.id }),
+        ...newUser,
+        token: this.getJetToken({ id: newUser.id }),
       };
     } catch (error) {
       this.handleDBErrors(error);

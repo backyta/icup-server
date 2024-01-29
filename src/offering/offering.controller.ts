@@ -20,7 +20,7 @@ import { Auth, GetUser } from '../auth/decorators';
 
 import { User } from '../users/entities/user.entity';
 
-@Controller('offering')
+@Controller('offerings')
 export class OfferingController {
   constructor(private readonly offeringService: OfferingService) {}
 

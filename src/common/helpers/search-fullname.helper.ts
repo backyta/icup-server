@@ -21,7 +21,7 @@ export const searchByFullname = async ({
   const lastName = validateName(second);
 
   const queryBuilder = search_repository.createQueryBuilder('member');
-  const member = await queryBuilder
+  const members = await queryBuilder
     .leftJoinAndSelect('member.their_pastor', 'rel1')
     .leftJoinAndSelect('member.their_copastor', 'rel2')
     .leftJoinAndSelect('member.their_preacher', 'rel3')
@@ -37,12 +37,12 @@ export const searchByFullname = async ({
     .limit(limit)
     .getMany();
 
-  if (member.length === 0) {
+  if (members.length === 0) {
     throw new NotFoundException(
-      `No member was found with these names: ${firstName} ${lastName}`,
+      `No members was found with these names: ${firstName} ${lastName}`,
     );
   }
-  return member;
+  return members;
 };
 
 //? What does this?

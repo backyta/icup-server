@@ -8,14 +8,16 @@ import { GetUser } from './decorators/get-user.decorator';
 
 import { User } from '../users/entities/user.entity';
 import { CreateUserDto } from '../users/dto';
+import { ValidUserRoles } from './enums/valid-user-roles.enum';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  registerUser(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  @Auth(ValidUserRoles.superUser)
+  registerUser(@Body() createUserDto: CreateUserDto, @GetUser() user: User) {
+    return this.authService.register(createUserDto, user);
   }
 
   @Post('login')

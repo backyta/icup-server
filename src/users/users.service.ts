@@ -15,10 +15,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
 import { SearchType } from '../common/enums/search-types.enum';
+import { searchUserByNames } from './helpers/search-user-names.helper';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger('AuthService');
+  private readonly logger = new Logger('UserService');
 
   constructor(
     @InjectRepository(User)
@@ -41,12 +42,7 @@ export class UsersService {
     term: string,
     searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<User[] | User> {
-    const {
-      type,
-      limit = 20,
-      offset = 0,
-      type_of_name,
-    } = searchTypeAndPaginationDto;
+    const { type, limit = 20, offset = 0 } = searchTypeAndPaginationDto;
     let member: User | User[];
 
     //* Find UUID --> One (inactive or active)
@@ -88,6 +84,45 @@ export class UsersService {
       }
     }
 
+    //* Find firstName --> Many
+    if (term && type === SearchType.firstName) {
+      const resultSearch = await searchUserByNames({
+        term,
+        search_type: SearchType.firstName,
+        limit,
+        offset,
+        search_repository: this.userRepository,
+      });
+
+      return resultSearch;
+    }
+
+    //* Find lastName --> Many
+    if (term && type === SearchType.lastName) {
+      const resultSearch = await searchUserByNames({
+        term,
+        search_type: SearchType.lastName,
+        limit,
+        offset,
+        search_repository: this.userRepository,
+      });
+
+      return resultSearch;
+    }
+
+    //* Find fullName --> One
+    if (term && type === SearchType.fullName) {
+      const resultSearch = await searchUserByNames({
+        term,
+        search_type: SearchType.fullName,
+        limit,
+        offset,
+        search_repository: this.userRepository,
+      });
+
+      return resultSearch;
+    }
+
     //! General Exceptions
     if (!isUUID(term) && type === SearchType.id) {
       throw new BadRequestException(`Not valid UUID`);
@@ -96,16 +131,6 @@ export class UsersService {
     if (term && !Object.values(SearchType).includes(type as SearchType)) {
       throw new BadRequestException(
         `Type not valid, should be: ${Object.values(SearchType).join(', ')}`,
-      );
-    }
-
-    if (
-      term &&
-      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
-      !type_of_name
-    ) {
-      throw new BadRequestException(
-        `To search by names, the query_type is required`,
       );
     }
 
@@ -144,7 +169,7 @@ export class UsersService {
     }
   }
 
-  async remove(id: string, user: User): Promise<void> {
+  async delete(id: string, user: User): Promise<void> {
     if (!isUUID(id)) {
       throw new BadRequestException(`Not valid UUID`);
     }
@@ -156,14 +181,14 @@ export class UsersService {
     }
 
     try {
-      const deteteUser = await this.userRepository.preload({
+      const deleteUser = await this.userRepository.preload({
         id: dataUser.id,
         is_active: false,
         updated_at: new Date(),
         updated_by: user,
       });
 
-      await this.userRepository.save(deteteUser);
+      await this.userRepository.save(deleteUser);
     } catch (error) {
       this.handleDBExceptions(error);
     }
@@ -184,8 +209,13 @@ export class UsersService {
     const query = this.userRepository.createQueryBuilder('users');
 
     try {
-      return await query.delete().where({}).execute();
+      return await query
+        .delete()
+        .where('NOT :role = ANY(roles)', { role: 'super-user' })
+        .execute();
     } catch (error) {
+      console.log(error);
+
       this.handleDBExceptions(error);
     }
   }

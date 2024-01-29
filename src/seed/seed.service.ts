@@ -22,6 +22,7 @@ import { MembersService } from '../members/members.service';
 import { OfferingService } from '../offering/offering.service';
 import { FamilyHomeService } from '../family-home/family-home.service';
 import { UsersService } from '../users/users.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class SeedService {
@@ -51,6 +52,8 @@ export class SeedService {
     private readonly offeringService: OfferingService,
 
     private readonly userService: UsersService,
+
+    private readonly authService: AuthService,
   ) {}
 
   async runSeed() {
@@ -68,10 +71,19 @@ export class SeedService {
 
   private async insertUsers() {
     const seedUsers = dataUsers.users;
+    const users = [];
 
-    const dbUsers = await this.userRepository.save(seedUsers);
+    const superUser = await this.userRepository
+      .createQueryBuilder('user')
+      .where('ARRAY[:role]::text[] @> user.roles', { role: 'super-user' })
+      .getOne();
 
-    return dbUsers[0];
+    seedUsers.forEach((user) => {
+      users.push(this.authService.register(user, superUser));
+    });
+
+    await Promise.all(users);
+    return superUser;
   }
 
   private async insertNewMembers(user: User) {

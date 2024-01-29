@@ -14,6 +14,8 @@ import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 
+import { SuperUserService } from './utils/create-super-user';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -39,5 +41,6 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
   ],
+  providers: [SuperUserService],
 })
 export class AppModule {}

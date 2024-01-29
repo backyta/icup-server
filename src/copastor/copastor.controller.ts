@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CoPastorService } from './copastor.service';
 
@@ -47,7 +48,7 @@ export class CopastorController {
   @Patch(':id')
   @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
   update(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateCoPastorDto: UpdateCoPastorDto,
     @GetUser() user: User,
   ) {

@@ -23,11 +23,13 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @Auth(ValidUserRoles.superUser)
   findAll(@Query() paginationDto: PaginationDto) {
     return this.usersService.findAll(paginationDto);
   }
 
   @Get(':term')
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
   findOne(
     @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
@@ -36,7 +38,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(ValidUserRoles.superUser)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -46,8 +48,8 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(ValidUserRoles.superUser)
   remove(@Param('id', ParseUUIDPipe) id: string, @GetUser() user: User) {
-    return this.usersService.remove(id, user);
+    return this.usersService.delete(id, user);
   }
 }

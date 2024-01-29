@@ -80,6 +80,12 @@ export class OfferingService {
       );
     }
 
+    if (type === 'offering' && sub_type === 'church_ground' && !member_id) {
+      throw new BadRequestException(
+        `To register offerings with sub_type 'church_ground' the member_id is required`,
+      );
+    }
+
     let dataCopastor: CoPastor;
     let dataFamilyHome: FamilyHome;
     let dataMember: Member;
@@ -503,6 +509,12 @@ export class OfferingService {
     if (type === 'offering' && sub_type === 'special' && !member_id) {
       throw new BadRequestException(
         `To update offerings with sub_type 'special' the member_id is required`,
+      );
+    }
+
+    if (type === 'offering' && sub_type === 'church_ground' && !member_id) {
+      throw new BadRequestException(
+        `To update offerings with sub_type 'church_ground' the member_id is required`,
       );
     }
 

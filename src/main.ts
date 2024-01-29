@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import { SuperUserService } from './utils/create-super-user';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,12 +15,10 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
+  const superUserService = app.get(SuperUserService);
+  await superUserService.createSuperUser();
 
   await app.listen(process.env.PORT);
   logger.log(`App running in port ${process.env.PORT}`);
-
-  //TODO : Here function create automatic super-user
-
-  //TODO : hacer en module user, la búsqueda por nombre y apellidos, en su mismo modulo
 }
 bootstrap();
