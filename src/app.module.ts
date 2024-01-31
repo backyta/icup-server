@@ -4,11 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { MembersModule } from './members/members.module';
 import { CommonModule } from './common/common.module';
-import { PastorModule } from './pastor/pastor.module';
-import { CopastorModule } from './copastor/copastor.module';
-import { PreacherModule } from './preacher/preacher.module';
-import { FamilyHomeModule } from './family-home/family-home.module';
-import { OfferingModule } from './offering/offering.module';
+import { PastorModule } from './pastors/pastors.module';
+import { CopastorModule } from './copastors/copastors.module';
+import { PreacherModule } from './preachers/preachers.module';
+import { FamilyHouseModule } from './family-houses/family-houses.module';
+import { OfferingModule } from './offerings/offerings.module';
 import { SeedModule } from './seed/seed.module';
 import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
@@ -34,7 +34,7 @@ import { SuperUserService } from './utils/create-super-user';
     PastorModule,
     CopastorModule,
     PreacherModule,
-    FamilyHomeModule,
+    FamilyHouseModule,
     OfferingModule,
     SeedModule,
     FilesModule,

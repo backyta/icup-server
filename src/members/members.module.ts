@@ -5,10 +5,10 @@ import { MembersController } from './members.controller';
 import { MembersService } from './members.service';
 import { Member } from './entities/member.entity';
 
-import { PastorModule } from '../pastor/pastor.module';
-import { CopastorModule } from '../copastor/copastor.module';
-import { PreacherModule } from '../preacher/preacher.module';
-import { FamilyHomeModule } from '../family-home/family-home.module';
+import { PastorModule } from '../pastors/pastors.module';
+import { CopastorModule } from '../copastors/copastors.module';
+import { PreacherModule } from '../preachers/preachers.module';
+import { FamilyHouseModule } from '../family-houses/family-houses.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -19,7 +19,7 @@ import { AuthModule } from '../auth/auth.module';
     PastorModule,
     CopastorModule,
     PreacherModule,
-    FamilyHomeModule,
+    FamilyHouseModule,
     AuthModule,
   ],
   exports: [TypeOrmModule, MembersService],

@@ -9,11 +9,11 @@ import { SearchType } from '../enums/search-types.enum';
 import { TypeEntity } from '../enums/type-entity.enum';
 
 import { Member } from '../../members/entities/member.entity';
-import { FamilyHome } from '../../family-home/entities/family-home.entity';
-import { CoPastor } from '../../copastor/entities/copastor.entity';
-import { Preacher } from '../../preacher/entities/preacher.entity';
-import { Pastor } from '../../pastor/entities/pastor.entity';
-import { Offering } from '../../offering/entities/offering.entity';
+import { FamilyHouse } from '../../family-houses/entities/family-house.entity';
+import { CoPastor } from '../../copastors/entities/copastor.entity';
+import { Preacher } from '../../preachers/entities/preacher.entity';
+import { Pastor } from '../../pastors/entities/pastor.entity';
+import { Offering } from '../../offerings/entities/offering.entity';
 
 export const searchPeopleBy = async ({
   term,
@@ -120,7 +120,7 @@ export const searchPeopleBy = async ({
     //! Search in Module Family Home
     if (type_entity === TypeEntity.familyHomeEntity) {
       const familyHouses = await entity_repository.find();
-      let familyHomeByName: FamilyHome[][];
+      let familyHomeByName: FamilyHouse[][];
 
       if (type_of_name === SearchTypeOfName.familyHousePreacher) {
         familyHomeByName = members.map((member) => {
@@ -475,7 +475,7 @@ export const searchPeopleBy = async ({
     //! Search in Module Family Home
     if (type_entity === TypeEntity.familyHomeEntity) {
       const familyHouses = await entity_repository.find();
-      let familyHomeByName: FamilyHome[][];
+      let familyHomeByName: FamilyHouse[][];
 
       if (type_of_name === SearchTypeOfName.familyHousePreacher) {
         familyHomeByName = members.map((member) => {

@@ -19,7 +19,7 @@ import { searchUserByNames } from './helpers/search-user-names.helper';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger('UserService');
+  private readonly logger = new Logger('UsersService');
 
   constructor(
     @InjectRepository(User)

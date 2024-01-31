@@ -15,7 +15,7 @@ export class SuperUserService {
     private readonly configService: ConfigService,
   ) {}
 
-  async createSuperUser() {
+  async createSuperUser(): Promise<User> {
     const existingSuperUser = await this.userRepository
       .createQueryBuilder('user')
       .where('ARRAY[:role]::text[] @> user.roles', { role: 'super-user' })

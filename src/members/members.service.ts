@@ -13,15 +13,15 @@ import { Member } from './entities/member.entity';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 
-import { Pastor } from '../pastor/entities/pastor.entity';
-import { CoPastor } from '../copastor/entities/copastor.entity';
-import { Preacher } from '../preacher/entities/preacher.entity';
-import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { Pastor } from '../pastors/entities/pastor.entity';
+import { CoPastor } from '../copastors/entities/copastor.entity';
+import { Preacher } from '../preachers/entities/preacher.entity';
+import { FamilyHouse } from '../family-houses/entities/family-house.entity';
 import { User } from '../users/entities/user.entity';
 
-import { PastorService } from '../pastor/pastor.service';
-import { CoPastorService } from '../copastor/copastor.service';
-import { PreacherService } from '../preacher/preacher.service';
+import { PastorsService } from '../pastors/pastors.service';
+import { CoPastorsService } from '../copastors/copastors.service';
+import { PreachersService } from '../preachers/preachers.service';
 
 import { SearchType, TypeEntity, SearchTypeOfName } from '../common/enums';
 import { PaginationDto, SearchTypeAndPaginationDto } from '../common/dtos';
@@ -44,14 +44,14 @@ export class MembersService {
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
 
-    @InjectRepository(FamilyHome)
-    private readonly familyHomeRepository: Repository<FamilyHome>,
+    @InjectRepository(FamilyHouse)
+    private readonly familyHouseRepository: Repository<FamilyHouse>,
 
-    private readonly pastorService: PastorService,
+    private readonly pastorsService: PastorsService,
 
-    private readonly coPastorService: CoPastorService,
+    private readonly coPastorsService: CoPastorsService,
 
-    private readonly preacherService: PreacherService,
+    private readonly preachersService: PreachersService,
   ) {}
 
   //* CREATE MEMBER
@@ -147,7 +147,7 @@ export class MembersService {
     let pastor: Pastor;
     let copastor: CoPastor;
     let preacher: Preacher;
-    let familyHome: FamilyHome;
+    let familyHome: FamilyHouse;
 
     //! If no relationship is sent and the role is 'pastor', create member and pastor.
     if (roles.includes('pastor')) {
@@ -164,7 +164,7 @@ export class MembersService {
 
         await this.memberRepository.save(member);
 
-        await this.pastorService.create(
+        await this.pastorsService.create(
           {
             member_id: member.id,
           },
@@ -202,7 +202,7 @@ export class MembersService {
 
         await this.memberRepository.save(member);
 
-        await this.coPastorService.create(
+        await this.coPastorsService.create(
           {
             member_id: member.id,
             their_pastor: pastor.id,
@@ -250,7 +250,7 @@ export class MembersService {
 
         await this.memberRepository.save(member);
 
-        await this.preacherService.create(
+        await this.preachersService.create(
           {
             member_id: member.id,
             their_copastor: copastor.id,
@@ -266,7 +266,7 @@ export class MembersService {
 
     //! If their_familyHome exists and their role is just 'member', create just member.
     if (their_family_home && roles.includes('member')) {
-      familyHome = await this.familyHomeRepository.findOneBy({
+      familyHome = await this.familyHouseRepository.findOneBy({
         id: their_family_home,
       });
 
@@ -572,8 +572,9 @@ export class MembersService {
 
     if (
       term &&
-      (SearchType.firstName || SearchType.lastName || SearchType.fullName) &&
-      !type_of_name
+      (type === SearchType.firstName ||
+        type === SearchType.lastName ||
+        type === SearchType.fullName)
     ) {
       throw new BadRequestException(
         `To search by names, the query_type is required`,
@@ -581,6 +582,7 @@ export class MembersService {
     }
 
     if (
+      type_of_name &&
       type_of_name !== SearchTypeOfName.memberCopastor &&
       type_of_name !== SearchTypeOfName.memberPastor &&
       type_of_name !== SearchTypeOfName.memberMember &&
@@ -762,7 +764,7 @@ export class MembersService {
     let pastor: Pastor;
     let copastor: CoPastor;
     let preacher: Preacher;
-    let familyHome: FamilyHome;
+    let familyHome: FamilyHouse;
     let member: Member;
 
     //NOTE: it is updated to is_active true, and it also sets updated data to Member and Pastor ✅✅
@@ -878,14 +880,14 @@ export class MembersService {
       });
 
       //* Search the table for family home according to copastor and set the new pastor.
-      const allFamilyHouses = await this.familyHomeRepository.find();
+      const allFamilyHouses = await this.familyHouseRepository.find();
 
       const arrayHousesByCopastor = allFamilyHouses.filter(
         (home) => home.their_copastor?.id === dataCopastor.id,
       );
 
       const promisesFamilyHouses = arrayHousesByCopastor.map(async (home) => {
-        await this.familyHomeRepository.update(home.id, {
+        await this.familyHouseRepository.update(home.id, {
           their_pastor: pastor,
         });
       });
@@ -955,7 +957,7 @@ export class MembersService {
         id: copastor.their_pastor.id,
       });
 
-      familyHome = await this.familyHomeRepository.findOneBy({
+      familyHome = await this.familyHouseRepository.findOneBy({
         id: their_family_home,
       });
 
@@ -1078,7 +1080,7 @@ export class MembersService {
       !roles.includes('copastor') &&
       !roles.includes('preacher')
     ) {
-      familyHome = await this.familyHomeRepository.findOneBy({
+      familyHome = await this.familyHouseRepository.findOneBy({
         id: their_family_home,
       });
 
@@ -1191,13 +1193,13 @@ export class MembersService {
       });
 
       //* Search the familyHome table and delete the relationship.
-      const allFamilyHouses = await this.familyHomeRepository.find();
+      const allFamilyHouses = await this.familyHouseRepository.find();
       const arrayHousesByCopastor = allFamilyHouses.filter(
         (home) => home.their_copastor?.id === dataCopastor.id,
       );
 
       const promisesFamilyHouses = arrayHousesByCopastor.map(async (home) => {
-        await this.familyHomeRepository.update(home.id, {
+        await this.familyHouseRepository.update(home.id, {
           their_copastor: null,
           their_pastor: null,
         });
@@ -1222,7 +1224,7 @@ export class MembersService {
         await Promise.all(promisesMembers);
         await Promise.all(promisesFamilyHouses);
         await this.coPastorRepository.delete(dataCopastor.id);
-        await this.pastorService.create(
+        await this.pastorsService.create(
           {
             member_id: dataMember.id,
           },
@@ -1271,12 +1273,12 @@ export class MembersService {
       });
 
       //* Search the familyHome table and delete the relationship.
-      const allFamilyHouses = await this.familyHomeRepository.find();
+      const allFamilyHouses = await this.familyHouseRepository.find();
       const familyHomePreacher = allFamilyHouses.find(
         (home) => home.their_preacher?.member.id === dataMember.id,
       );
 
-      const updateFamilyHome = await this.familyHomeRepository.preload({
+      const updateFamilyHome = await this.familyHouseRepository.preload({
         id: familyHomePreacher.id,
         their_preacher: null,
         their_copastor: null,
@@ -1314,10 +1316,10 @@ export class MembersService {
       try {
         const result = await this.memberRepository.save(member);
         await this.preacherRepository.save(updatePreacher);
-        await this.familyHomeRepository.save(updateFamilyHome);
+        await this.familyHouseRepository.save(updateFamilyHome);
         await Promise.all(promisesMembers);
         await this.preacherRepository.delete(dataPreacher.id);
-        await this.coPastorService.create(
+        await this.coPastorsService.create(
           {
             member_id: dataMember.id,
             their_pastor: pastor.id,
@@ -1376,7 +1378,7 @@ export class MembersService {
 
       try {
         const result = await this.memberRepository.save(member);
-        await this.preacherService.create(
+        await this.preachersService.create(
           {
             member_id: dataMember.id,
             their_copastor: copastor.id,
@@ -1467,14 +1469,14 @@ export class MembersService {
       });
 
       //* Update and set to null relationships in Family Home
-      const allFamilyHouses = await this.familyHomeRepository.find();
+      const allFamilyHouses = await this.familyHouseRepository.find();
       const familyHousesByPastor = allFamilyHouses.filter(
         (familyHome) => familyHome.their_pastor?.id === pastorMember.id,
       );
 
       const promisesFamilyHouses = familyHousesByPastor.map(
         async (familyHome) => {
-          await this.familyHomeRepository.update(familyHome.id, {
+          await this.familyHouseRepository.update(familyHome.id, {
             their_pastor: null,
             their_copastor: null,
             updated_at: new Date(),
@@ -1551,14 +1553,14 @@ export class MembersService {
       });
 
       //* Update and set to null in Family Home
-      const allFamilyHouses = await this.familyHomeRepository.find();
+      const allFamilyHouses = await this.familyHouseRepository.find();
       const familyHousesByPastor = allFamilyHouses.filter(
         (familyHome) => familyHome.their_copastor?.id === coPastorMember.id,
       );
 
       const promisesFamilyHouses = familyHousesByPastor.map(
         async (familyHome) => {
-          await this.familyHomeRepository.update(familyHome.id, {
+          await this.familyHouseRepository.update(familyHome.id, {
             their_copastor: null,
             their_pastor: null,
             their_preacher: null,
@@ -1621,14 +1623,14 @@ export class MembersService {
       });
 
       //* Update and set to null in Family Home
-      const allFamilyHouses = await this.familyHomeRepository.find();
+      const allFamilyHouses = await this.familyHouseRepository.find();
       const familyHousesByPastor = allFamilyHouses.filter(
         (familyHome) => familyHome.their_preacher?.id === preacherMember.id,
       );
 
       const promisesFamilyHouses = familyHousesByPastor.map(
         async (familyHome) => {
-          await this.familyHomeRepository.update(familyHome.id, {
+          await this.familyHouseRepository.update(familyHome.id, {
             their_preacher: null,
             their_pastor: null,
             their_copastor: null,

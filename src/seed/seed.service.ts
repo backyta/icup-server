@@ -12,15 +12,15 @@ import {
 } from './data/seed-data';
 
 import { Member } from '../members/entities/member.entity';
-import { Pastor } from '../pastor/entities/pastor.entity';
-import { CoPastor } from '../copastor/entities/copastor.entity';
-import { Preacher } from '../preacher/entities/preacher.entity';
-import { FamilyHome } from '../family-home/entities/family-home.entity';
+import { Pastor } from '../pastors/entities/pastor.entity';
+import { CoPastor } from '../copastors/entities/copastor.entity';
+import { Preacher } from '../preachers/entities/preacher.entity';
+import { FamilyHouse } from '../family-houses/entities/family-house.entity';
 import { User } from '../users/entities/user.entity';
 
 import { MembersService } from '../members/members.service';
-import { OfferingService } from '../offering/offering.service';
-import { FamilyHomeService } from '../family-home/family-home.service';
+import { OfferingsService } from '../offerings/offerings.service';
+import { FamilyHousesService } from '../family-houses/family-houses.service';
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 
@@ -36,8 +36,8 @@ export class SeedService {
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
 
-    @InjectRepository(FamilyHome)
-    private readonly familyHomeRepository: Repository<FamilyHome>,
+    @InjectRepository(FamilyHouse)
+    private readonly familyHouseRepository: Repository<FamilyHouse>,
 
     @InjectRepository(Member)
     private readonly memberRepository: Repository<Member>,
@@ -45,22 +45,22 @@ export class SeedService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
-    private readonly memberService: MembersService,
+    private readonly membersService: MembersService,
 
-    private readonly familyHomeService: FamilyHomeService,
+    private readonly familyHousesService: FamilyHousesService,
 
-    private readonly offeringService: OfferingService,
+    private readonly offeringsService: OfferingsService,
 
-    private readonly userService: UsersService,
+    private readonly usersService: UsersService,
 
     private readonly authService: AuthService,
   ) {}
 
-  async runSeed() {
-    await this.memberService.deleteAllMembers();
-    await this.familyHomeService.deleteAllFamilyHouses();
-    await this.offeringService.deleteAllOfferings();
-    await this.userService.deleteAllUsers();
+  async runSeed(): Promise<string> {
+    await this.membersService.deleteAllMembers();
+    await this.familyHousesService.deleteAllFamilyHouses();
+    await this.offeringsService.deleteAllOfferings();
+    await this.usersService.deleteAllUsers();
 
     const superUser = await this.insertUsers();
 
@@ -103,7 +103,7 @@ export class SeedService {
 
     //! Create members & pastor
     membersPastor.forEach((member) => {
-      insertPromisesPastor.push(this.memberService.create(member, user));
+      insertPromisesPastor.push(this.membersService.create(member, user));
     });
 
     await Promise.all(insertPromisesPastor);
@@ -134,7 +134,7 @@ export class SeedService {
         member.their_pastor = pastorCarab.id;
       }
 
-      insertPromisesCopastor.push(this.memberService.create(member, user));
+      insertPromisesCopastor.push(this.membersService.create(member, user));
     });
 
     await Promise.all(insertPromisesCopastor);
@@ -225,7 +225,7 @@ export class SeedService {
         }
       }
 
-      insertPromisesPreacher.push(this.memberService.create(member, user));
+      insertPromisesPreacher.push(this.membersService.create(member, user));
     });
 
     await Promise.all(insertPromisesPreacher);
@@ -320,13 +320,15 @@ export class SeedService {
         }
       }
 
-      insertPromisesFamilyHome.push(this.familyHomeService.create(house, user));
+      insertPromisesFamilyHome.push(
+        this.familyHousesService.create(house, user),
+      );
     });
 
     await Promise.all(insertPromisesFamilyHome);
 
     //! Create Members
-    const allFamilyHouses = await this.familyHomeRepository.find();
+    const allFamilyHouses = await this.familyHouseRepository.find();
 
     //* FamilyHome by Zone (Independencia)
     const familyHomeA = allFamilyHouses.find(
@@ -401,7 +403,7 @@ export class SeedService {
         }
       }
 
-      insertPromisesMembers.push(this.memberService.create(member, user));
+      insertPromisesMembers.push(this.membersService.create(member, user));
     });
 
     await Promise.all(insertPromisesMembers);
@@ -415,7 +417,7 @@ export class SeedService {
     //* Select one FamilyHome (Offering Home)
     const familyHome = allFamilyHouses.find((familyHome) => familyHome);
 
-    //* Select otwo Member (Tithe and Offering Special)
+    //* Select another Member (Tithe and Offering Special)
     const memberTithe = allMembers.find((member) => member);
     const memberOffering = allMembers.find((member) => member);
 
@@ -440,7 +442,9 @@ export class SeedService {
         }
       }
 
-      insertPromisesOfferings.push(this.offeringService.create(offering, user));
+      insertPromisesOfferings.push(
+        this.offeringsService.create(offering, user),
+      );
     });
 
     await Promise.all(insertPromisesOfferings);

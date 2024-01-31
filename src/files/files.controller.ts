@@ -16,7 +16,11 @@ import { ConfigService } from '@nestjs/config';
 import { diskStorage } from 'multer';
 
 import { fileFiler, fileNamer } from './helpers';
-
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Auth } from '../auth/decorators/auth.decorator';
+import { ValidUserRoles } from '../auth/enums/valid-user-roles.enum';
+@ApiTags('Upload-Files')
+@ApiBearerAuth()
 @Controller('files')
 export class FilesController {
   constructor(
@@ -25,16 +29,26 @@ export class FilesController {
   ) {}
 
   @Get('offering/:offeringName')
+  @Auth(
+    ValidUserRoles.superUser,
+    ValidUserRoles.adminUser,
+    ValidUserRoles.treasurerUser,
+  )
   findOfferingFile(
     @Res() res: Response,
     @Param('offeringName') offeringName: string,
-  ) {
+  ): void {
     const path = this.filesService.getStaticOfferingFile(offeringName);
 
     res.sendFile(path);
   }
 
   @Post('offering')
+  @Auth(
+    ValidUserRoles.superUser,
+    ValidUserRoles.adminUser,
+    ValidUserRoles.treasurerUser,
+  )
   @UseInterceptors(
     FileInterceptor('file', {
       fileFilter: fileFiler,
