@@ -10,9 +10,14 @@ import {
   Query,
 } from '@nestjs/common';
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -29,24 +34,29 @@ import { ValidUserRoles } from '../auth/enums/valid-user-roles.enum';
 import { User } from '../users/entities/user.entity';
 import { Member } from './entities/member.entity';
 
-//TODO : finish document for every endpoint and DTO
-
 @ApiTags('Members')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({
+  description: 'Unauthorized Bearer Auth.',
+})
+@ApiInternalServerErrorResponse({
+  description: 'Internal server error, check logs.',
+})
+@ApiBadRequestResponse({
+  description: 'Bad request.',
+})
 @Controller('members')
 export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 
-  @ApiBearerAuth()
+  //* Create
   @Post()
-  @Auth(ValidUserRoles.superUser)
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
   @ApiCreatedResponse({
     description: 'Member has been successfully created.',
   })
   @ApiForbiddenResponse({
     description: 'Forbidden.',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Unauthorized Bearer Auth.',
   })
   create(
     @Body() createMemberDto: CreateMemberDto,
@@ -55,22 +65,49 @@ export class MembersController {
     return this.membersService.create(createMemberDto, user);
   }
 
+  //* Find All
   @Get()
+  @Auth()
+  @ApiOkResponse({
+    description: 'Successful operation.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Not found resource.',
+  })
   findAll(@Query() paginationDto: PaginationDto): Promise<Member[]> {
     return this.membersService.findAll(paginationDto);
   }
 
+  //* Find By Term
   @Get(':term')
-  findOne(
+  @Auth()
+  @ApiParam({
+    name: 'term',
+    description: 'Could be id, names, code, roles, etc.',
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
+  })
+  @ApiOkResponse({
+    description: 'Successful operation.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Not found resource.',
+  })
+  findTerm(
     @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<Member | Member[]> {
     return this.membersService.findTerm(term, searchTypeAndPaginationDto);
   }
 
-  @ApiBearerAuth()
+  //* Update
   @Patch(':id')
   @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @ApiOkResponse({
+    description: 'Successful operation',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden.',
+  })
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateMemberDto: UpdateMemberDto,
@@ -79,9 +116,15 @@ export class MembersController {
     return this.membersService.update(id, updateMemberDto, user);
   }
 
-  @ApiBearerAuth()
+  //* Delete
   @Delete(':id')
   @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @ApiOkResponse({
+    description: 'Successful operation.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden.',
+  })
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @GetUser() user: User,

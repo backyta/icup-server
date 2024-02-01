@@ -7,6 +7,8 @@ export const fileFiler = (
   if (!file) return callback(new Error('File is empty'), false);
 
   const fileExtension = file.mimetype.split('/')[1];
+  console.log(fileExtension);
+
   const validExtension = ['jpeg', 'jpg', 'png'];
 
   if (validExtension.includes(fileExtension)) {

@@ -8,7 +8,18 @@ import {
   Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
 import { OfferingsService } from './offerings.service';
 import { CreateOfferingDto } from './dto/create-offering.dto';
@@ -23,17 +34,33 @@ import { User } from '../users/entities/user.entity';
 import { Offering } from './entities/offering.entity';
 
 @ApiTags('Offerings')
+@ApiBearerAuth()
+@ApiUnauthorizedResponse({
+  description: 'Unauthorized Bearer Auth.',
+})
+@ApiInternalServerErrorResponse({
+  description: 'Internal server error, check logs.',
+})
+@ApiBadRequestResponse({
+  description: 'Bad request.',
+})
 @Controller('offerings')
 export class OfferingsController {
   constructor(private readonly offeringsService: OfferingsService) {}
 
-  @ApiBearerAuth()
+  //* Create
   @Post()
   @Auth(
     ValidUserRoles.superUser,
     ValidUserRoles.adminUser,
     ValidUserRoles.treasurerUser,
   )
+  @ApiCreatedResponse({
+    description: 'Offering record has been successfully created.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden.',
+  })
   create(
     @Body() createOfferingDto: CreateOfferingDto,
     @GetUser() user: User,
@@ -41,21 +68,49 @@ export class OfferingsController {
     return this.offeringsService.create(createOfferingDto, user);
   }
 
+  //* Fin All
   @Get()
+  @Auth()
+  @ApiOkResponse({
+    description: 'Successful operation.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Not found resource.',
+  })
   findAll(@Query() paginationDto: PaginationDto): Promise<Offering[]> {
     return this.offeringsService.findAll(paginationDto);
   }
 
+  //* Find By Term
   @Get(':term')
-  findOne(
+  @Auth()
+  @ApiParam({
+    name: 'term',
+    description: 'Could be id, names, code, roles, etc.',
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
+  })
+  @ApiOkResponse({
+    description: 'Successful operation.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Not found resource.',
+  })
+  findTerm(
     @Param('term') term: string,
     @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
   ): Promise<Offering | Offering[]> {
     return this.offeringsService.findTerm(term, searchTypeAndPaginationDto);
   }
 
-  @ApiBearerAuth()
+  //* Update
   @Patch(':id')
+  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @ApiOkResponse({
+    description: 'Successful operation',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden.',
+  })
   @Auth(
     ValidUserRoles.superUser,
     ValidUserRoles.adminUser,

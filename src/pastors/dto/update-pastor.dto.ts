@@ -1,4 +1,3 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { CreatePastorDto } from './create-pastor.dto';
 import {
   IsBoolean,
@@ -13,93 +12,133 @@ import {
   MinLength,
 } from 'class-validator';
 import { MaritalStatus } from '../../members/enums/marital-status.enum';
+import { ApiProperty, PartialType } from '@nestjs/swagger';
 
 export class UpdatePastorDto extends PartialType(CreatePastorDto) {
   //* Info member
+  @ApiProperty({
+    example: 'John Martin',
+  })
   @IsString()
-  @IsOptional()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(40)
-  first_name?: string;
+  first_name: string;
 
+  @ApiProperty({
+    example: 'Rojas Castro',
+  })
   @IsString()
-  @IsOptional()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(40)
-  last_name?: string;
+  last_name: string;
 
+  @ApiProperty({
+    example: '1990/12/23',
+  })
   @IsString()
-  @IsOptional()
   @IsNotEmpty()
-  date_birth?: string | Date;
+  date_birth: string | Date;
 
+  @ApiProperty({
+    example: 'example@example.com',
+  })
   @IsEmail()
   @IsOptional()
   email?: string;
 
+  @ApiProperty({
+    example: true,
+  })
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
 
+  @ApiProperty({
+    example: 'male',
+  })
   @IsIn(['male', 'female'])
-  @IsOptional()
-  gender?: string;
+  gender: string;
 
+  @ApiProperty({
+    example: 'single',
+  })
+  @IsEnum(MaritalStatus)
+  @IsNotEmpty()
+  marital_status: string;
+
+  @ApiProperty({
+    example: '2',
+  })
   @IsNumber()
   @IsOptional()
   number_children?: number;
 
-  @IsNotEmpty()
-  @IsEnum(MaritalStatus)
-  @IsOptional()
-  marital_status?: string;
-
+  @ApiProperty({
+    example: '999333555',
+  })
   @IsString()
   @IsOptional()
   phone?: string;
 
+  @ApiProperty({
+    example: '2001/12/23',
+  })
   @IsString()
   @IsOptional()
-  date_joinig?: string | Date;
+  date_joining?: string | Date;
 
+  @ApiProperty({
+    example: 'Colombia',
+  })
   @IsString()
   @IsNotEmpty()
-  @IsOptional()
   origin_country: string;
 
-  //* Info adress
+  //* Info address
+  @ApiProperty({
+    example: 'Peru',
+  })
   @IsString()
   @IsOptional()
   @MinLength(1)
   @MaxLength(10)
   residence_country?: string;
 
+  @ApiProperty({
+    example: 'Lima',
+  })
   @IsString()
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  departament?: string;
+  department?: string;
 
+  @ApiProperty({
+    example: 'Lima',
+  })
   @IsString()
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  @IsOptional()
   province?: string;
 
+  @ApiProperty({
+    example: 'Comas',
+  })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(20)
-  @IsOptional()
-  district?: string;
+  district: string;
 
+  @ApiProperty({
+    example: 'Av.example 1234',
+  })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(50)
-  @IsOptional()
-  address?: string;
+  address: string;
 }

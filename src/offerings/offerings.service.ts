@@ -310,8 +310,8 @@ export class OfferingsService {
       }
     }
 
-    //* Find by type(offering or thite) --> Many
-    if (term && type === SearchType.type) {
+    //* Find by type(offering or tithe) --> Many
+    if (term && type === SearchType.type_offering) {
       offering = await this.offeringRepository
         .createQueryBuilder('records')
         .leftJoinAndSelect('records.copastor', 'rel1')
@@ -330,7 +330,7 @@ export class OfferingsService {
     }
 
     //* Find by type & sub-type(offering) --> Many
-    if (term && type === SearchType.type_sub_type) {
+    if (term && type === SearchType.offering_sub_type) {
       const parts = term.split('+');
 
       offering = await this.offeringRepository
@@ -354,7 +354,7 @@ export class OfferingsService {
     }
 
     //* Find by type & sub-type & date (offering) --> Many
-    if (term && type === SearchType.type_sub_type_date) {
+    if (term && type === SearchType.offering_sub_type_date) {
       const parts = term.split('+');
       const parsedDate = new Date(parts[2]).toISOString().split('T')[0];
 
@@ -380,7 +380,7 @@ export class OfferingsService {
     }
 
     //* Find by type & date (thite & offering) --> Many
-    if (term && type === SearchType.type_date) {
+    if (term && type === SearchType.type_offering_date) {
       const parts = term.split('+');
       const parsedDate = new Date(parts[1]).toISOString().split('T')[0];
 

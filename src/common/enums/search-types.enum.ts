@@ -19,10 +19,10 @@ export enum SearchType {
   zone = 'zone',
 
   //* Offering and Tithe
-  type = 'type',
-  type_sub_type = 'type_sub_type',
-  type_sub_type_date = 'type_sub_type_date',
-  type_date = 'type_date',
+  type_offering = 'type_offering',
+  offering_sub_type = 'offering_sub_type',
+  offering_sub_type_date = 'offering_sub_type_date',
+  type_offering_date = 'type_offering_date',
 
   date = 'date',
   copastor_id = 'copastor_id',
