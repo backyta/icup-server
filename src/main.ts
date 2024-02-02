@@ -17,9 +17,11 @@ async function bootstrap() {
     }),
   );
 
+  //* Config SuperUser
   const superUserService = app.get(SuperUserService);
   await superUserService.createSuperUser();
 
+  //* Config Documentation
   const config = new DocumentBuilder()
     .setTitle('ICUP Restful API')
     .setDescription('Icup sever endpoints')

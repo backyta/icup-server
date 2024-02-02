@@ -79,7 +79,8 @@ export class FilesController {
     res.sendFile(path);
   }
 
-  // TODO : Ver video de producción de Fernando
+  // TODO : Corregir el README siguiendo ejemplo de otro repositorios.
+  // TODO : Ver video de producción de Fernando y configurar
   // TODO : Probar producción y evitar que impacte la DB
   // TODO : solucionar la carga de archivos (then)
 
