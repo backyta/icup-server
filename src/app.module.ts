@@ -32,7 +32,7 @@ import { SuperUserService } from './utils/create-super-user';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true, // to automatically load the entities we define.
-      synchronize: true, // automatic synchronization with DB (no production, do migrations)
+      synchronize: process.env.STAGE === 'prod' ? false : true, // automatic synchronization with DB (no production, do migrations)
     }),
     CommonModule,
     MembersModule,
