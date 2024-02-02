@@ -39,6 +39,7 @@ http://localhost:3000/api/seed
 ```
     
 ## Documentation
+Authenticate as a super user to be able to test the endpoints.
 ```
 http://localhost:300/api
 ```

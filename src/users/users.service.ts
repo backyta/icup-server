@@ -214,8 +214,6 @@ export class UsersService {
         .where('NOT :role = ANY(roles)', { role: 'super-user' })
         .execute();
     } catch (error) {
-      console.log(error);
-
       this.handleDBExceptions(error);
     }
   }
