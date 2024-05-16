@@ -1,19 +1,15 @@
 import { NotFoundException } from '@nestjs/common';
-import { searchByFullname } from './search-fullname.helper';
-import { searchByNames } from './search-names.helper';
-import { SearchPeopleOptions } from '../interfaces/search-people.interface';
 
-import { SearchTypeOfName } from '../enums/search-type-by-name';
+import { SearchPeopleOptions } from '@/common/interfaces';
+import { searchByFullname, searchByNames } from '@/common/helpers';
+import { SearchTypeOfName, TypeEntity, SearchType } from '@/common/enums';
 
-import { SearchType } from '../enums/search-types.enum';
-import { TypeEntity } from '../enums/type-entity.enum';
-
-import { Member } from '../../members/entities/member.entity';
-import { FamilyHouse } from '../../family-houses/entities/family-house.entity';
-import { CoPastor } from '../../copastors/entities/copastor.entity';
-import { Preacher } from '../../preachers/entities/preacher.entity';
-import { Pastor } from '../../pastors/entities/pastor.entity';
-import { Offering } from '../../offerings/entities/offering.entity';
+import { Pastor } from '@/pastor/entities';
+import { Disciple } from '@/disciple/entities';
+import { CoPastor } from '@/copastor/entities';
+import { Preacher } from '@/preacher/entities';
+import { Offering } from '@/offering/entities';
+import { FamilyHouse } from '@/family-house/entities';
 
 export const searchPeopleBy = async ({
   term,
@@ -307,7 +303,7 @@ export const searchPeopleBy = async ({
         ],
       });
 
-      let membersByName: Member[][];
+      let membersByName: Disciple[][];
 
       if (type_of_name === SearchTypeOfName.memberPreacher) {
         const preacherMembers = members.filter((member) =>
@@ -340,6 +336,7 @@ export const searchPeopleBy = async ({
         });
       }
 
+      //TODO : esquemetizar mejor agregar by, renombrar el type-of name esta HORRIBLE
       if (type_of_name === SearchTypeOfName.memberPastor) {
         const copastorMembers = members.filter((member) =>
           member.roles.includes('pastor'),
@@ -667,7 +664,7 @@ export const searchPeopleBy = async ({
         ],
       });
 
-      let membersByName: Member[][];
+      let membersByName: Disciple[][];
 
       if (type_of_name === SearchTypeOfName.memberPreacher) {
         const preacherMembers = members.filter((member) =>

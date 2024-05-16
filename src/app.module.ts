@@ -2,19 +2,21 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { MembersModule } from './members/members.module';
-import { CommonModule } from './common/common.module';
-import { PastorModule } from './pastors/pastors.module';
-import { CopastorModule } from './copastors/copastors.module';
-import { PreacherModule } from './preachers/preachers.module';
-import { FamilyHouseModule } from './family-houses/family-houses.module';
-import { OfferingModule } from './offerings/offerings.module';
-import { SeedModule } from './seed/seed.module';
-import { FilesModule } from './files/files.module';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { CommonModule } from '@/common/common.module';
 
-import { SuperUserService } from './utils/create-super-user';
+import { SuperUserService } from '@/utils';
+
+import { AuthModule } from '@/auth/auth.module';
+import { SeedModule } from '@/seed/seed.module';
+import { FilesModule } from '@/files/files.module';
+
+import { UserModule } from '@/user/user.module';
+import { PastorModule } from '@/pastor/pastor.module';
+import { DiscipleModule } from '@/disciple/disciple.module';
+import { CopastorModule } from '@/copastor/copastor.module';
+import { PreacherModule } from '@/preacher/preacher.module';
+import { OfferingModule } from '@/offering/offering.module';
+import { FamilyHouseModule } from '@/family-house/family-house.module';
 
 @Module({
   imports: [
@@ -35,7 +37,7 @@ import { SuperUserService } from './utils/create-super-user';
       synchronize: process.env.STAGE === 'prod' ? false : true, // automatic synchronization with DB (no production, do migrations)
     }),
     CommonModule,
-    MembersModule,
+    DiscipleModule,
     PastorModule,
     CopastorModule,
     PreacherModule,
@@ -44,7 +46,7 @@ import { SuperUserService } from './utils/create-super-user';
     SeedModule,
     FilesModule,
     AuthModule,
-    UsersModule,
+    UserModule,
   ],
   providers: [SuperUserService],
 })

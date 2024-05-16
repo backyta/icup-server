@@ -4,17 +4,17 @@ import {
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 
 import * as bcrypt from 'bcrypt';
 
-import { LoginUserDto } from './dto/login-user.dto';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { LoginUserDto } from '@/auth/dto';
+import { JwtPayload } from '@/auth/interfaces';
 
-import { User } from '../users/entities/user.entity';
-import { CreateUserDto } from '../users/dto';
+import { CreateUserDto } from '@/user/dto';
+import { User } from '@/user/entities';
 
 @Injectable()
 export class AuthService {

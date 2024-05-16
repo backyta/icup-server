@@ -1,23 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { SeedService } from './seed.service';
-import { SeedController } from './seed.controller';
+import { SeedService } from '@/seed/seed.service';
+import { SeedController } from '@/seed/seed.controller';
 
-import { MembersModule } from '../members/members.module';
-import { PastorModule } from '../pastors/pastors.module';
-import { CopastorModule } from '../copastors/copastors.module';
-import { PreacherModule } from '../preachers/preachers.module';
-import { OfferingModule } from '../offerings/offerings.module';
-import { FamilyHouseModule } from '../family-houses/family-houses.module';
-import { AuthModule } from '../auth/auth.module';
-import { UsersModule } from '../users/users.module';
+import { AuthModule } from '@/auth/auth.module';
+import { UserModule } from '@/user/user.module';
+import { PastorModule } from '@/pastor/pastor.module';
+import { DiscipleModule } from '@/disciple/disciple.module';
+import { CopastorModule } from '@/copastor/copastor.module';
+import { PreacherModule } from '@/preacher/preacher.module';
+import { OfferingModule } from '@/offering/offering.module';
+import { FamilyHouseModule } from '@/family-house/family-house.module';
 
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
   imports: [
-    MembersModule,
+    DiscipleModule,
     FamilyHouseModule,
     PastorModule,
     CopastorModule,
@@ -25,7 +25,7 @@ import { UsersModule } from '../users/users.module';
     FamilyHouseModule,
     OfferingModule,
     AuthModule,
-    UsersModule,
+    UserModule,
     ConfigModule,
   ],
 })

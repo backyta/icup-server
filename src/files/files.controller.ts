@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import {
   BadRequestException,
   Controller,
@@ -8,14 +9,9 @@ import {
   Param,
   Res,
 } from '@nestjs/common';
-import { FilesService } from './files.service';
-import { Response } from 'express';
-
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
-import { diskStorage } from 'multer';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-import { fileFiler, fileNamer } from './helpers';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -30,9 +26,16 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { Auth } from '../auth/decorators/auth.decorator';
-import { ValidUserRoles } from '../auth/enums/valid-user-roles.enum';
-import { FileUploadDto } from './dtos/file-upload.dto';
+
+import { diskStorage } from 'multer';
+
+import { FileUploadDto } from '@/files/dtos';
+import { FilesService } from '@/files/files.service';
+import { fileFiler, fileNamer } from '@/files/helpers';
+
+import { Auth } from '@/auth/decorators';
+import { ValidUserRoles } from '@/auth/enums';
+
 @ApiTags('Upload-Files')
 @ApiBearerAuth()
 @ApiBearerAuth()
@@ -119,3 +122,5 @@ export class FilesController {
     return { secureUrl };
   }
 }
+
+// TODO : hacer para cloudinary y guardar el url seguro en la entity de Upload, ver video de fernando y Yt

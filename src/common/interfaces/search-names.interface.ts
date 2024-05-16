@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { SearchType } from '../enums/search-types.enum';
+import { SearchType } from '@/common/enums';
 
 export interface SearchNamesOptions<T> {
   term: string;

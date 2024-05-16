@@ -1,8 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 
-import { Member } from '../../members/entities/member.entity';
-
-import { SearchNamesOptions } from '../interfaces/search-names.interface';
+import { Disciple } from '@/disciple/entities';
+import { SearchNamesOptions } from '@/common/interfaces';
 
 export const searchByNames = async ({
   term,
@@ -10,7 +9,7 @@ export const searchByNames = async ({
   limit,
   offset,
   search_repository,
-}: SearchNamesOptions<Member>): Promise<Member[]> => {
+}: SearchNamesOptions<Disciple>): Promise<Disciple[]> => {
   let dataPerson: string | string[];
 
   if (/^[A-Za-z]+(?:\+[A-Za-z]+)*\+$/.test(term)) {

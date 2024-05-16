@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import {
   dataMembersPastor,
   dataMembersCopastor,
@@ -9,20 +10,20 @@ import {
   dataMembers,
   dataOfferings,
   dataUsers,
-} from './data/seed-data';
+} from '@/seed/data';
 
-import { Member } from '../members/entities/member.entity';
-import { Pastor } from '../pastors/entities/pastor.entity';
-import { CoPastor } from '../copastors/entities/copastor.entity';
-import { Preacher } from '../preachers/entities/preacher.entity';
-import { FamilyHouse } from '../family-houses/entities/family-house.entity';
-import { User } from '../users/entities/user.entity';
+import { User } from '@/user/entities';
+import { Disciple } from '@/disciple/entities';
+import { Pastor } from '@/pastor/entities';
+import { CoPastor } from '@/copastor/entities';
+import { Preacher } from '@/preacher/entities';
+import { FamilyHouse } from '@/family-house/entities';
 
-import { MembersService } from '../members/members.service';
-import { OfferingsService } from '../offerings/offerings.service';
-import { FamilyHousesService } from '../family-houses/family-houses.service';
-import { UsersService } from '../users/users.service';
-import { AuthService } from '../auth/auth.service';
+import { AuthService } from '@/auth/auth.service';
+import { UserService } from '@/user/user.service';
+import { DiscipleService } from '@/disciple/disciple.service';
+import { OfferingService } from '@/offering/offering.service';
+import { FamilyHouseService } from '@/family-house/family-house.service';
 
 @Injectable()
 export class SeedService {
@@ -39,28 +40,24 @@ export class SeedService {
     @InjectRepository(FamilyHouse)
     private readonly familyHouseRepository: Repository<FamilyHouse>,
 
-    @InjectRepository(Member)
-    private readonly memberRepository: Repository<Member>,
+    @InjectRepository(Disciple)
+    private readonly memberRepository: Repository<Disciple>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
-    private readonly membersService: MembersService,
-
-    private readonly familyHousesService: FamilyHousesService,
-
-    private readonly offeringsService: OfferingsService,
-
-    private readonly usersService: UsersService,
-
+    private readonly memberService: DiscipleService,
+    private readonly familyHousesService: FamilyHouseService,
+    private readonly offeringsService: OfferingService,
+    private readonly userService: UserService,
     private readonly authService: AuthService,
   ) {}
 
   async runSeed(): Promise<string> {
-    await this.membersService.deleteAllMembers();
+    await this.memberService.deleteAllMembers();
     await this.familyHousesService.deleteAllFamilyHouses();
     await this.offeringsService.deleteAllOfferings();
-    await this.usersService.deleteAllUsers();
+    await this.userService.deleteAllUsers();
 
     const superUser = await this.insertUsers();
 
@@ -103,7 +100,7 @@ export class SeedService {
 
     //! Create members & pastor
     membersPastor.forEach((member) => {
-      insertPromisesPastor.push(this.membersService.create(member, user));
+      insertPromisesPastor.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesPastor);
@@ -112,29 +109,29 @@ export class SeedService {
     const allPastores = await this.pastorRepository.find();
 
     const pastorIndep = allPastores.find(
-      (pastor) => pastor.member.district === 'Independencia',
+      (pastor) => pastor.member.districtResidence === 'Independencia',
     );
 
     const pastorComas = allPastores.find(
-      (pastor) => pastor.member.district === 'Comas',
+      (pastor) => pastor.member.districtResidence === 'Comas',
     );
 
     const pastorCarab = allPastores.find(
-      (pastor) => pastor.member.district === 'Carabayllo',
+      (pastor) => pastor.member.districtResidence === 'Carabayllo',
     );
 
     membersCopastor.forEach((member) => {
-      if (member.district === 'Independencia') {
-        member.their_pastor = pastorIndep.id;
+      if (member.districtResidence === 'Independencia') {
+        member.theirPastor = pastorIndep.id;
       }
-      if (member.district === 'Comas') {
-        member.their_pastor = pastorComas.id;
+      if (member.districtResidence === 'Comas') {
+        member.theirPastor = pastorComas.id;
       }
-      if (member.district === 'Carabayllo') {
-        member.their_pastor = pastorCarab.id;
+      if (member.districtResidence === 'Carabayllo') {
+        member.theirPastor = pastorCarab.id;
       }
 
-      insertPromisesCopastor.push(this.membersService.create(member, user));
+      insertPromisesCopastor.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesCopastor);
@@ -145,87 +142,87 @@ export class SeedService {
     //* Copastor by Zona (Independencia)
     const copastorIndepA = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Independencia' &&
-        copastor.member.first_name === 'Luz Mariella' &&
-        copastor.member.last_name === 'Salgado Huaman',
+        copastor.member.districtResidence === 'Independencia' &&
+        copastor.member.firstName === 'Luz Mariella' &&
+        copastor.member.lastName === 'Salgado Huaman',
     );
 
     const copastorIndepB = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Independencia' &&
-        copastor.member.first_name === 'Maria Mercedes' &&
-        copastor.member.last_name === 'Quispe Ramirez',
+        copastor.member.districtResidence === 'Independencia' &&
+        copastor.member.firstName === 'Maria Mercedes' &&
+        copastor.member.lastName === 'Quispe Ramirez',
     );
 
     const copastorIndepC = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Independencia' &&
-        copastor.member.first_name === 'Liliana Rosario' &&
-        copastor.member.last_name === 'Rivera Geranio',
+        copastor.member.districtResidence === 'Independencia' &&
+        copastor.member.firstName === 'Liliana Rosario' &&
+        copastor.member.lastName === 'Rivera Geranio',
     );
 
     //* Copastor by Zona (Comas)
     const copastorComasX = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Comas' &&
-        copastor.member.first_name === 'Melisa Eva' &&
-        copastor.member.last_name === 'Camarena Ventura',
+        copastor.member.districtResidence === 'Comas' &&
+        copastor.member.firstName === 'Melisa Eva' &&
+        copastor.member.lastName === 'Camarena Ventura',
     );
 
     const copastorComasZ = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Comas' &&
-        copastor.member.first_name === 'Dylan Caleb' &&
-        copastor.member.last_name === 'Gonzales Quispe',
+        copastor.member.districtResidence === 'Comas' &&
+        copastor.member.firstName === 'Dylan Caleb' &&
+        copastor.member.lastName === 'Gonzales Quispe',
     );
 
     //* Copastor by Zona (Carabayllo)
     const copastorCarabaylloR = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Carabayllo' &&
-        copastor.member.first_name === 'Alberto Julian' &&
-        copastor.member.last_name === 'Fuentes Fiestas',
+        copastor.member.districtResidence === 'Carabayllo' &&
+        copastor.member.firstName === 'Alberto Julian' &&
+        copastor.member.lastName === 'Fuentes Fiestas',
     );
 
     const copastorCarabaylloQ = allCopastores.find(
       (copastor) =>
-        copastor.member.district === 'Carabayllo' &&
-        copastor.member.first_name === 'Marcelo Benito' &&
-        copastor.member.last_name === 'Palomares Garcia',
+        copastor.member.districtResidence === 'Carabayllo' &&
+        copastor.member.firstName === 'Marcelo Benito' &&
+        copastor.member.lastName === 'Palomares Garcia',
     );
 
     membersPreacher.forEach((member, index) => {
-      if (member.district === 'Independencia') {
+      if (member.districtResidence === 'Independencia') {
         if (index === 0) {
-          member.their_copastor = copastorIndepA.id;
+          member.theirCopastor = copastorIndepA.id;
         }
         if (index === 1) {
-          member.their_copastor = copastorIndepB.id;
+          member.theirCopastor = copastorIndepB.id;
         }
         if (index === 2) {
-          member.their_copastor = copastorIndepC.id;
+          member.theirCopastor = copastorIndepC.id;
         }
       }
 
-      if (member.district === 'Comas') {
+      if (member.districtResidence === 'Comas') {
         if (index === 3) {
-          member.their_copastor = copastorComasX.id;
+          member.theirCopastor = copastorComasX.id;
         }
         if (index === 4) {
-          member.their_copastor = copastorComasZ.id;
+          member.theirCopastor = copastorComasZ.id;
         }
       }
 
-      if (member.district === 'Carabayllo') {
+      if (member.districtResidence === 'Carabayllo') {
         if (index === 5) {
-          member.their_copastor = copastorCarabaylloR.id;
+          member.theirCopastor = copastorCarabaylloR.id;
         }
         if (index === 6) {
-          member.their_copastor = copastorCarabaylloQ.id;
+          member.theirCopastor = copastorCarabaylloQ.id;
         }
       }
 
-      insertPromisesPreacher.push(this.membersService.create(member, user));
+      insertPromisesPreacher.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesPreacher);
@@ -236,53 +233,53 @@ export class SeedService {
     //* Preacher by Zone (Independencia)
     const preachersIndepA = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Independencia' &&
-        preacher.their_copastor.member.first_name === 'Luz Mariella' &&
-        preacher.their_copastor.member.last_name === 'Salgado Huaman',
+        preacher.member.districtResidence === 'Independencia' &&
+        preacher.their_copastor.member.firstName === 'Luz Mariella' &&
+        preacher.their_copastor.member.lastName === 'Salgado Huaman',
     );
 
     const preachersIndepB = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Independencia' &&
-        preacher.their_copastor.member.first_name === 'Maria Mercedes' &&
-        preacher.their_copastor.member.last_name === 'Quispe Ramirez',
+        preacher.member.districtResidence === 'Independencia' &&
+        preacher.their_copastor.member.firstName === 'Maria Mercedes' &&
+        preacher.their_copastor.member.lastName === 'Quispe Ramirez',
     );
 
     const preachersIndepC = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Independencia' &&
-        preacher.their_copastor.member.first_name === 'Liliana Rosario' &&
-        preacher.their_copastor.member.last_name === 'Rivera Geranio',
+        preacher.member.districtResidence === 'Independencia' &&
+        preacher.their_copastor.member.firstName === 'Liliana Rosario' &&
+        preacher.their_copastor.member.lastName === 'Rivera Geranio',
     );
 
     //* Preacher by Zone (Comas)
     const preachersComasX = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Comas' &&
-        preacher.their_copastor.member.first_name === 'Melisa Eva' &&
-        preacher.their_copastor.member.last_name === 'Camarena Ventura',
+        preacher.member.districtResidence === 'Comas' &&
+        preacher.their_copastor.member.firstName === 'Melisa Eva' &&
+        preacher.their_copastor.member.lastName === 'Camarena Ventura',
     );
 
     const preachersComasZ = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Comas' &&
-        preacher.their_copastor.member.first_name === 'Dylan Caleb' &&
-        preacher.their_copastor.member.last_name === 'Gonzales Quispe',
+        preacher.member.districtResidence === 'Comas' &&
+        preacher.their_copastor.member.firstName === 'Dylan Caleb' &&
+        preacher.their_copastor.member.lastName === 'Gonzales Quispe',
     );
 
     //* Preacher by Zone (Carabayllo)
     const preachersCarabaylloR = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Carabayllo' &&
-        preacher.their_copastor.member.first_name === 'Alberto Julian' &&
-        preacher.their_copastor.member.last_name === 'Fuentes Fiestas',
+        preacher.member.districtResidence === 'Carabayllo' &&
+        preacher.their_copastor.member.firstName === 'Alberto Julian' &&
+        preacher.their_copastor.member.lastName === 'Fuentes Fiestas',
     );
 
     const preachersCarabaylloQ = allPreachers.find(
       (preacher) =>
-        preacher.member.district === 'Carabayllo' &&
-        preacher.their_copastor.member.first_name === 'Marcelo Benito' &&
-        preacher.their_copastor.member.last_name === 'Palomares Garcia',
+        preacher.member.districtResidence === 'Carabayllo' &&
+        preacher.their_copastor.member.firstName === 'Marcelo Benito' &&
+        preacher.their_copastor.member.lastName === 'Palomares Garcia',
     );
 
     familyHouses.forEach((house, index) => {
@@ -332,78 +329,81 @@ export class SeedService {
 
     //* FamilyHome by Zone (Independencia)
     const familyHomeA = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Independencia' && familyhome.zone === 'A',
+      (familyHouse) =>
+        familyHouse.district === 'Independencia' &&
+        familyHouse.zone_house === 'A',
     );
 
     const familyHomeB = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Independencia' && familyhome.zone === 'B',
+      (familyHouse) =>
+        familyHouse.district === 'Independencia' &&
+        familyHouse.zone_house === 'B',
     );
 
     const familyHomeC = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Independencia' && familyhome.zone === 'C',
+      (familyHouse) =>
+        familyHouse.district === 'Independencia' &&
+        familyHouse.zone_house === 'C',
     );
 
     //* FamilyHome by Zone (Comas)
     const familyHomeX = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Comas' && familyhome.zone === 'X',
+      (familyHouse) =>
+        familyHouse.district === 'Comas' && familyHouse.zone_house === 'X',
     );
 
     const familyHomeZ = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Comas' && familyhome.zone === 'Z',
+      (familyHouse) =>
+        familyHouse.district === 'Comas' && familyHouse.zone_house === 'Z',
     );
 
     //* FamilyHome by Zone (Carabayllo)
     const familyHomeR = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Carabayllo' && familyhome.zone === 'R',
+      (familyHouse) =>
+        familyHouse.district === 'Carabayllo' && familyHouse.zone_house === 'R',
     );
 
     const familyHomeQ = allFamilyHouses.find(
-      (familyhome) =>
-        familyhome.district === 'Carabayllo' && familyhome.zone === 'Q',
+      (familyHouse) =>
+        familyHouse.district === 'Carabayllo' && familyHouse.zone_house === 'Q',
     );
 
     members.forEach((member, index) => {
-      if (member.district === 'Independencia') {
+      if (member.districtResidence === 'Independencia') {
         if (index >= 0 && index <= 3) {
-          member.their_family_home = familyHomeA.id;
+          member.theirFamilyHouse = familyHomeA.id;
         }
 
         if (index >= 4 && index <= 6) {
-          member.their_family_home = familyHomeB.id;
+          member.theirFamilyHouse = familyHomeB.id;
         }
 
         if (index >= 7 && index <= 9) {
-          member.their_family_home = familyHomeC.id;
+          member.theirFamilyHouse = familyHomeC.id;
         }
       }
 
-      if (member.district === 'Comas') {
+      if (member.districtResidence === 'Comas') {
         if (index >= 10 && index <= 13) {
-          member.their_family_home = familyHomeX.id;
+          member.theirFamilyHouse = familyHomeX.id;
         }
 
         if (index >= 14 && index <= 16) {
-          member.their_family_home = familyHomeZ.id;
+          member.theirFamilyHouse = familyHomeZ.id;
         }
       }
 
-      if (member.district === 'Carabayllo') {
+      if (member.districtResidence === 'Carabayllo') {
         if (index >= 17 && index <= 20) {
-          member.their_family_home = familyHomeR.id;
+          member.theirFamilyHouse = familyHomeR.id;
         }
 
         if (index >= 20 && index <= 23) {
-          member.their_family_home = familyHomeQ.id;
+          member.theirFamilyHouse = familyHomeQ.id;
         }
       }
 
-      insertPromisesMembers.push(this.membersService.create(member, user));
+      insertPromisesMembers.push(this.memberService.create(member, user));
     });
 
     await Promise.all(insertPromisesMembers);

@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { FilesService } from './files.service';
-import { FilesController } from './files.controller';
-import { AuthModule } from '../auth/auth.module';
+import { AuthModule } from '@/auth/auth.module';
+
+import { FilesService } from '@/files/files.service';
+import { FilesController } from '@/files/files.controller';
 
 @Module({
   controllers: [FilesController],

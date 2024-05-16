@@ -10,15 +10,13 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 
-import { AuthService } from './auth.service';
-import { LoginUserDto } from './dto/login-user.dto';
+import { LoginUserDto } from '@/auth/dto';
+import { ValidUserRoles } from '@/auth/enums';
+import { AuthService } from '@/auth/auth.service';
+import { Auth, GetUser } from '@/auth/decorators';
 
-import { Auth } from './decorators';
-import { GetUser } from './decorators/get-user.decorator';
-
-import { User } from '../users/entities/user.entity';
-import { CreateUserDto } from '../users/dto';
-import { ValidUserRoles } from './enums/valid-user-roles.enum';
+import { User } from '@/user/entities';
+import { CreateUserDto } from '@/user/dto';
 @ApiTags('Auth')
 @ApiUnauthorizedResponse({
   description: 'Unauthorized Bearer Auth.',
@@ -57,9 +55,9 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
-  //* Check Status
+  //* Check is_active
   @ApiBearerAuth()
-  @Get('check-status')
+  @Get('check-is_active')
   @Auth()
   @ApiOkResponse({
     description: 'Successful operation',

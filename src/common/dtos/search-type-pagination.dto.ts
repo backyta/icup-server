@@ -1,8 +1,9 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 import { Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
-import { SearchTypeOfName } from '../enums/search-type-by-name';
-import { ApiProperty } from '@nestjs/swagger';
-import { SearchType } from '../enums';
+
+import { SearchType, SearchTypeOfName } from '@/common/enums';
 
 export class SearchTypeAndPaginationDto {
   @ApiProperty({

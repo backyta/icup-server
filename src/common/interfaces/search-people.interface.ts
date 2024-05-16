@@ -1,7 +1,6 @@
 import { Repository } from 'typeorm';
-import { SearchType } from '../enums/search-types.enum';
-import { SearchTypeOfName } from '../enums/search-type-by-name';
-import { TypeEntity } from '../enums/type-entity.enum';
+
+import { SearchType, SearchTypeOfName, TypeEntity } from '@/common/enums';
 
 export interface SearchPeopleOptions {
   term: string;

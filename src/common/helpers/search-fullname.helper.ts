@@ -1,15 +1,15 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Member } from '../../members/entities/member.entity';
+import { Disciple } from '@/disciple/entities';
 
-import { validateName } from './validate-name.helper';
-import { SearchFullNameOptions } from '../interfaces/search-fullname.interface';
+import { validateName } from '@/common/helpers';
+import { SearchFullNameOptions } from '@/common/interfaces';
 
 export const searchByFullname = async ({
   term,
   limit,
   offset,
   search_repository,
-}: SearchFullNameOptions<Member>): Promise<Member[]> => {
+}: SearchFullNameOptions<Disciple>): Promise<Disciple[]> => {
   if (!term.includes('-')) {
     throw new BadRequestException(
       `Term not valid, use allow '-' for concat first name and last name`,

@@ -1,10 +1,10 @@
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-
 import { Injectable, Logger } from '@nestjs/common';
-import { User } from '../users/entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+
+import { User } from '@/user/entities';
 
 @Injectable()
 export class SuperUserService {

@@ -1,6 +1,6 @@
-import { Member } from '../../members/entities/member.entity';
+import { Disciple } from '@/disciple/entities';
 
-export const updateAge = (member: Member) => {
+export const updateAge = (member: Disciple) => {
   const ageMiliSeconds =
     Date.now() - new Date(`${member}.date_birth`).getTime();
   const ageDate = new Date(ageMiliSeconds);

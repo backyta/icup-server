@@ -1,4 +1,3 @@
-import { BadRequestException, Controller, Get } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -7,11 +6,14 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { BadRequestException, Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { SeedService } from './seed.service';
-import { Auth } from 'src/auth/decorators';
-import { ValidUserRoles } from 'src/auth/enums/valid-user-roles.enum';
+import { SeedService } from '@/seed/seed.service';
+
+import { Auth } from '@/auth/decorators';
+import { ValidUserRoles } from '@/auth/enums';
+
 @ApiTags('Seed')
 @ApiBearerAuth()
 @ApiOkResponse({

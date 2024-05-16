@@ -1,12 +1,14 @@
+// TODO : cambiar a sub_type de busqueda para que tenga ams coherencia
 export enum SearchTypeOfName {
   //* Module Offering
   offeringMember = 'offering-member',
-  titheMember = 'tithe-member',
+  titheMember = 'tithe-member', // buscar el tithe por nombre o apellido
   offeringHousePreacher = 'offering-house-preacher',
   offeringHouseCopastor = 'offering-house-copastor',
   offeringFastingCopastor = 'offering-fasting-copastor',
 
   //* Module Family Home
+  familyHouseName = 'family-house-name',
   familyHousePreacher = 'family-house-preacher',
   familyHouseCopastor = 'family-house-copastor',
 
@@ -23,7 +25,7 @@ export enum SearchTypeOfName {
 
   //* Module Member
   memberPastor = 'member-pastor',
-  memberCopastor = 'pastor-copastor',
-  memberPreacher = 'pastor-preacher',
+  memberCopastor = 'member-copastor',
+  memberPreacher = 'member-preacher',
   memberMember = 'member-member',
 }
