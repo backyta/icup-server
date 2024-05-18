@@ -4,12 +4,12 @@ import { SearchPeopleOptions } from '@/common/interfaces';
 import { searchByFullname, searchByNames } from '@/common/helpers';
 import { SearchTypeOfName, TypeEntity, SearchType } from '@/common/enums';
 
-import { Pastor } from '@/pastor/entities';
-import { Disciple } from '@/disciple/entities';
-import { CoPastor } from '@/copastor/entities';
-import { Preacher } from '@/preacher/entities';
-import { Offering } from '@/offering/entities';
-import { FamilyHouse } from '@/family-house/entities';
+import { Pastor } from '@/modules/pastor/entities';
+import { Disciple } from '@/modules/disciple/entities';
+import { Copastor } from '@/modules/copastor/entities';
+import { Preacher } from '@/modules/preacher/entities';
+import { Offering } from '@/modules/offering/entities';
+import { FamilyHouse } from '@/modules/family-house/entities';
 
 export const searchPeopleBy = async ({
   term,
@@ -213,7 +213,7 @@ export const searchPeopleBy = async ({
     if (type_entity === TypeEntity.copastorEntity) {
       const copastores = await entity_repository.find();
 
-      let copastorByName: CoPastor[][];
+      let copastorByName: Copastor[][];
 
       if (type_of_name === SearchTypeOfName.copastorMember) {
         copastorByName = members.map((member) => {
@@ -568,7 +568,7 @@ export const searchPeopleBy = async ({
     if (type_entity === TypeEntity.copastorEntity) {
       const copastores = await entity_repository.find();
 
-      let copastorByName: CoPastor[][];
+      let copastorByName: Copastor[][];
 
       if (type_of_name === SearchTypeOfName.copastorMember) {
         copastorByName = members.map((member) => {

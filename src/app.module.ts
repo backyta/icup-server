@@ -6,17 +6,20 @@ import { CommonModule } from '@/common/common.module';
 
 import { SuperUserService } from '@/utils';
 
-import { AuthModule } from '@/auth/auth.module';
-import { SeedModule } from '@/seed/seed.module';
-import { FilesModule } from '@/files/files.module';
+import { AuthModule } from '@/modules/auth/auth.module';
+import { SeedModule } from '@/modules/seed/seed.module';
+import { FilesModule } from '@/modules/files/files.module';
 
-import { UserModule } from '@/user/user.module';
-import { PastorModule } from '@/pastor/pastor.module';
-import { DiscipleModule } from '@/disciple/disciple.module';
-import { CopastorModule } from '@/copastor/copastor.module';
-import { PreacherModule } from '@/preacher/preacher.module';
-import { OfferingModule } from '@/offering/offering.module';
-import { FamilyHouseModule } from '@/family-house/family-house.module';
+import { UserModule } from '@/modules/user/user.module';
+import { PastorModule } from '@/modules/pastor/pastor.module';
+import { DiscipleModule } from '@/modules/disciple/disciple.module';
+import { CopastorModule } from '@/modules/copastor/copastor.module';
+import { PreacherModule } from '@/modules/preacher/preacher.module';
+import { OfferingModule } from '@/modules/offering/offering.module';
+import { FamilyHouseModule } from '@/modules/family-house/family-house.module';
+import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
+import { ZoneModule } from './zone/zone.module';
+import { AnexxeModule } from './anexxe/anexxe.module';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { FamilyHouseModule } from '@/family-house/family-house.module';
     FilesModule,
     AuthModule,
     UserModule,
+    SupervisorModule,
+    ZoneModule,
+    AnexxeModule,
   ],
   providers: [SuperUserService],
 })

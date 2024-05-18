@@ -1,4 +1,4 @@
-import { Disciple } from '@/disciple/entities';
+import { Disciple } from '@/modules/disciple/entities';
 
 export const updateAge = (member: Disciple) => {
   const ageMiliSeconds =

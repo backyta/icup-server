@@ -1,15 +1,16 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Disciple } from '@/modules/disciple/entities';
 
 import { validateName } from '@/common/helpers';
 import { SearchFullNameOptions } from '@/common/interfaces';
 
-export const searchByFullname = async ({
+import { User } from '@/modules/user/entities';
+
+export const searchUserByFullname = async ({
   term,
   limit,
   offset,
   search_repository,
-}: SearchFullNameOptions<Disciple>): Promise<Disciple[]> => {
+}: SearchFullNameOptions<User>): Promise<User[]> => {
   if (!term.includes('-')) {
     throw new BadRequestException(
       `Term not valid, use allow '-' for concat first name and last name`,
@@ -20,29 +21,25 @@ export const searchByFullname = async ({
   const firstName = validateName(first);
   const lastName = validateName(second);
 
-  const queryBuilder = search_repository.createQueryBuilder('member');
-  const members = await queryBuilder
-    .leftJoinAndSelect('member.their_pastor', 'rel1')
-    .leftJoinAndSelect('member.their_copastor', 'rel2')
-    .leftJoinAndSelect('member.their_preacher', 'rel3')
-    .leftJoinAndSelect('member.their_family_home', 'rel4')
-    .where(`member.first_name ILIKE :searchTerm1`, {
+  const queryBuilder = search_repository.createQueryBuilder('user');
+  const users = await queryBuilder
+    .where(`user.first_name ILIKE :searchTerm1`, {
       searchTerm1: `%${firstName}%`,
     })
-    .andWhere(`member.last_name ILIKE :searchTerm2`, {
+    .andWhere(`user.last_name ILIKE :searchTerm2`, {
       searchTerm2: `%${lastName}%`,
     })
     .skip(offset)
-    .andWhere(`member.is_active =:isActive`, { isActive: true })
+    .andWhere(`user.is_active =:isActive`, { isActive: true })
     .limit(limit)
     .getMany();
 
-  if (members.length === 0) {
+  if (users.length === 0) {
     throw new NotFoundException(
-      `No members was found with these names: ${firstName} ${lastName}`,
+      `No users was found with these names: ${firstName} ${lastName}`,
     );
   }
-  return members;
+  return users;
 };
 
 //? What does this?
