@@ -1,9 +1,8 @@
-
 version: '3.8'
 
 services:
   postgres-db:
-    image: postgres:15.5
+    image: postgres:15.10
     restart: always
     environment:
       POSTGRES_USER: ${DB_USERNAME}
@@ -17,11 +16,9 @@ services:
   pgAdmin:
     depends_on:
       - postgres-db
-    image: dpage/pgadmin4:7.6
+    image: dpage/pgadmin4:8.14.0
     ports:
       - 8080:80
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
-
-

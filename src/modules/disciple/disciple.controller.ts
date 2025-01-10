@@ -1,37 +1,43 @@
 import {
-  Controller,
   Get,
-  Post,
   Body,
+  Post,
+  Query,
   Patch,
   Param,
   Delete,
+  Controller,
   ParseUUIDPipe,
-  Query,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiParam,
   ApiTags,
+  ApiParam,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiForbiddenResponse,
+  ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 
-import { PaginationDto, SearchTypeAndPaginationDto } from '@/common/dtos';
+import { PaginationDto } from '@/common/dtos/pagination.dto';
+import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
+import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
-import { Disciple } from '@/modules/disciple/entities';
+import { UserRole } from '@/modules/auth/enums/user-role.enum';
+import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
+
+import { User } from '@/modules/user/entities/user.entity';
+import { Preacher } from '@/modules/preacher/entities/preacher.entity';
+
+import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { DiscipleService } from '@/modules/disciple/disciple.service';
-import { CreateDiscipleDto, UpdateDiscipleDto } from '@/modules/disciple/dto';
-
-import { ValidUserRoles } from '@/modules/auth/enums';
-import { Auth, GetUser } from '@/modules/auth/decorators';
-
-import { User } from '@/modules/user/entities';
+import { CreateDiscipleDto } from '@/modules/disciple/dto/create-disciple.dto';
+import { UpdateDiscipleDto } from '@/modules/disciple/dto/update-disciple.dto';
 
 @ApiTags('Disciples')
 @ApiBearerAuth()
@@ -44,13 +50,14 @@ import { User } from '@/modules/user/entities';
 @ApiBadRequestResponse({
   description: 'Bad request.',
 })
-@Controller('members')
+@SkipThrottle()
+@Controller('disciples')
 export class DiscipleController {
   constructor(private readonly discipleService: DiscipleService) {}
 
-  //* Create
+  //* CREATE
   @Post()
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiCreatedResponse({
     description: 'Disciple has been successfully created.',
   })
@@ -64,7 +71,7 @@ export class DiscipleController {
     return this.discipleService.create(createDiscipleDto, user);
   }
 
-  //* Find All
+  //* FIND ALL
   @Get()
   @Auth()
   @ApiOkResponse({
@@ -77,12 +84,12 @@ export class DiscipleController {
     return this.discipleService.findAll(paginationDto);
   }
 
-  //* Find By Term
+  //* FIND BY TERM
   @Get(':term')
   @Auth()
   @ApiParam({
     name: 'term',
-    description: 'Could be id, names, code, roles, etc.',
+    description: 'Could be names, dates, districts, address, etc.',
     example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
   })
   @ApiOkResponse({
@@ -91,16 +98,16 @@ export class DiscipleController {
   @ApiNotFoundResponse({
     description: 'Not found resource.',
   })
-  findTerm(
+  findByTerm(
     @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
-  ): Promise<Disciple | Disciple[]> {
-    return this.discipleService.findTerm(term, searchTypeAndPaginationDto);
+    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+  ): Promise<Disciple[]> {
+    return this.discipleService.findByTerm(term, searchTypeAndPaginationDto);
   }
 
-  //* Update
+  //* UPDATE
   @Patch(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description: 'Successful operation',
   })
@@ -111,13 +118,14 @@ export class DiscipleController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateDiscipleDto: UpdateDiscipleDto,
     @GetUser() user: User,
-  ): Promise<Disciple> {
+  ): Promise<Disciple | Preacher> {
     return this.discipleService.update(id, updateDiscipleDto, user);
   }
 
-  //* Delete
+  //! INACTIVATE
   @Delete(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser)
+  // @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description: 'Successful operation.',
   })
@@ -126,8 +134,9 @@ export class DiscipleController {
   })
   remove(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() inactivateMemberDto: InactivateMemberDto,
     @GetUser() user: User,
   ): Promise<void> {
-    return this.discipleService.remove(id, user);
+    return this.discipleService.remove(id, inactivateMemberDto, user);
   }
 }

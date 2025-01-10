@@ -1,57 +1,63 @@
 import {
-  Controller,
   Get,
   Post,
   Body,
+  Query,
   Patch,
   Param,
   Delete,
-  Query,
+  Controller,
   ParseUUIDPipe,
 } from '@nestjs/common';
-
 import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiParam,
   ApiTags,
+  ApiParam,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiForbiddenResponse,
+  ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 
-import { PaginationDto, SearchTypeAndPaginationDto } from '@/common/dtos';
+import { PaginationDto } from '@/common/dtos/pagination.dto';
+import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
+import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
-import { Copastor } from '@/modules/copastor/entities';
-import { CoPastorService } from '@/modules/copastor/copastor.service';
-import { CreateCopastorDto, UpdateCopastorDto } from '@/modules/copastor/dto';
+import { UserRole } from '@/modules/auth/enums/user-role.enum';
+import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 
-import { ValidUserRoles } from '@/modules/auth/enums';
-import { Auth, GetUser } from '@/modules/auth/decorators';
+import { User } from '@/modules/user/entities/user.entity';
+import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 
-import { User } from '@/modules/user/entities';
+import { Copastor } from '@/modules/copastor/entities/copastor.entity';
+import { CopastorService } from '@/modules/copastor/copastor.service';
+import { CreateCopastorDto } from '@/modules/copastor/dto/create-copastor.dto';
+import { UpdateCopastorDto } from '@/modules/copastor/dto/update-copastor.dto';
 
-@ApiTags('Co-Pastors')
+@ApiTags('Copastors')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
   description: 'Unauthorized Bearer Auth.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description: 'Internal server error, check logs',
 })
 @ApiBadRequestResponse({
   description: 'Bad request.',
 })
+@SkipThrottle()
 @Controller('copastors')
 export class CopastorController {
-  constructor(private readonly coPastorService: CoPastorService) {}
+  constructor(private readonly copastorService: CopastorService) {}
 
-  //* Create
+  //* CREATE
   @Post()
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiCreatedResponse({
     description: 'Copastor has been successfully created.',
   })
@@ -62,10 +68,10 @@ export class CopastorController {
     @Body() createCopastorDto: CreateCopastorDto,
     @GetUser() user: User,
   ): Promise<Copastor> {
-    return this.coPastorService.create(createCopastorDto, user);
+    return this.copastorService.create(createCopastorDto, user);
   }
 
-  //* Find All
+  //* FIND ALL
   @Get()
   @Auth()
   @ApiOkResponse({
@@ -75,15 +81,15 @@ export class CopastorController {
     description: 'Not found resource.',
   })
   findAll(@Query() paginationDto: PaginationDto): Promise<Copastor[]> {
-    return this.coPastorService.findAll(paginationDto);
+    return this.copastorService.findAll(paginationDto);
   }
 
-  //* Find By Term
+  //* FIND BY TERM
   @Get(':term')
   @Auth()
   @ApiParam({
     name: 'term',
-    description: 'Could be id, names, code, roles, etc.',
+    description: 'Could be names, dates, districts, address, etc.',
     example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
   })
   @ApiOkResponse({
@@ -92,16 +98,16 @@ export class CopastorController {
   @ApiNotFoundResponse({
     description: 'Not found resource.',
   })
-  findTerm(
+  findByTerm(
     @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
-  ): Promise<Copastor | Copastor[]> {
-    return this.coPastorService.findTerm(term, searchTypeAndPaginationDto);
+    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+  ): Promise<Copastor[]> {
+    return this.copastorService.findByTerm(term, searchTypeAndPaginationDto);
   }
 
-  //* Update
+  //* UPDATE
   @Patch(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description: 'Successful operation',
   })
@@ -110,22 +116,27 @@ export class CopastorController {
   })
   update(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateCoPastorDto: UpdateCopastorDto,
+    @Body() updateCopastorDto: UpdateCopastorDto,
     @GetUser() user: User,
-  ): Promise<Copastor> {
-    return this.coPastorService.update(id, updateCoPastorDto, user);
+  ): Promise<Copastor | Pastor> {
+    return this.copastorService.update(id, updateCopastorDto, user);
   }
 
-  //* Delete
+  //! INACTIVATE
   @Delete(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser)
+  // @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description: 'Successful operation.',
   })
   @ApiForbiddenResponse({
     description: 'Forbidden.',
   })
-  remove(@Param('id') id: string, @GetUser() user: User): Promise<void> {
-    return this.coPastorService.remove(id, user);
+  remove(
+    @Param('id') id: string,
+    @Query() inactivateMemberDto: InactivateMemberDto,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.copastorService.remove(id, inactivateMemberDto, user);
   }
 }

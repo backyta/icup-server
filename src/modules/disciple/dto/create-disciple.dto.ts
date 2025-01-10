@@ -1,55 +1,63 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
   IsEmail,
   IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
+  IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
-import { MaritalStatus, MemberRoles } from '@/modules/disciple/enums';
+import { Gender } from '@/common/enums/gender.enum';
+import { MemberRole } from '@/common/enums/member-role.enum';
+import { RecordStatus } from '@/common/enums/record-status.enum';
+import { MaritalStatus } from '@/common/enums/marital-status.enum';
+import { MemberInactivationReason } from '@/common/enums/member-inactivation-reason.enum';
+import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
 
 export class CreateDiscipleDto {
-  // General and Personal info
+  //* General and Personal info
   @ApiProperty({
-    example: 'John Martin',
+    example: 'Maria Luisa',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(40)
-  firstName: string;
+  firstNames: string;
 
   @ApiProperty({
-    example: 'Rojas Castro',
+    example: 'Paredes Villa',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(40)
-  lastName: string;
+  lastNames: string;
 
   @ApiProperty({
-    example: 'male',
+    example: Gender.Female,
   })
-  @IsIn(['male', 'female'])
+  @IsEnum(Gender, {
+    message:
+      'El genero debe ser uno de los siguientes valores: Masculino o Femenino',
+  })
   gender: string;
 
   @ApiProperty({
-    example: 'single',
+    example: MaritalStatus.Married,
   })
-  @IsEnum(MaritalStatus)
+  @IsEnum(MaritalStatus, {
+    message:
+      'El estado civil debe ser uno de los siguientes valores: Soltero(a), Casado(a), Divorciado(a), Viudo(a), Otro.',
+  })
   @IsNotEmpty()
   maritalStatus: string;
 
   @ApiProperty({
-    example: 'Colombia',
+    example: 'Ecuador',
   })
   @IsString()
   @IsNotEmpty()
@@ -60,23 +68,22 @@ export class CreateDiscipleDto {
   })
   @IsString()
   @IsNotEmpty()
-  dateBirth: string | Date;
+  birthDate: Date;
 
   @ApiProperty({
     example: '2',
   })
-  @IsNumber()
   @IsOptional()
-  numberChildren?: number;
+  numberChildren?: number | string;
 
   @ApiProperty({
     example: '2001/12/23',
   })
   @IsString()
   @IsOptional()
-  conversionDate?: string | Date;
+  conversionDate?: Date;
 
-  // Contact Info
+  //* Contact Info
   @ApiProperty({
     example: 'example@example.com',
   })
@@ -85,20 +92,20 @@ export class CreateDiscipleDto {
   email?: string;
 
   @ApiProperty({
-    example: '999333555',
+    example: '+51 999333555',
   })
   @IsString()
   @IsOptional()
   phoneNumber?: string;
 
   @ApiProperty({
-    example: 'Peru',
+    example: 'Perú',
   })
   @IsString()
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  countryResidence?: string;
+  residenceCountry?: string;
 
   @ApiProperty({
     example: 'Lima',
@@ -107,7 +114,7 @@ export class CreateDiscipleDto {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  departmentResidence?: string;
+  residenceDepartment?: string;
 
   @ApiProperty({
     example: 'Lima',
@@ -116,7 +123,7 @@ export class CreateDiscipleDto {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  provinceResidence?: string;
+  residenceProvince?: string;
 
   @ApiProperty({
     example: 'Comas',
@@ -125,90 +132,88 @@ export class CreateDiscipleDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(20)
-  districtResidence: string;
+  residenceDistrict: string;
 
   @ApiProperty({
-    example: 'Av.example 1234',
+    example: 'La Merced',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(30)
-  urbanSectorResidence: string;
+  residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Av.example 1234',
+    example: 'Av. Central 123',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  @MaxLength(50)
-  addressResidence: string;
+  @MaxLength(80)
+  residenceAddress: string;
 
   @ApiProperty({
-    example: 'Av.example 1234',
+    example: 'A una cuadra del hospital central',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  @MaxLength(100)
-  addressResidenceReference: string;
+  @MaxLength(150)
+  referenceAddress: string;
 
-  // Roles and Status
+  //* Roles and Status
   @ApiProperty({
-    example: ['disciple'],
+    example: [MemberRole.Disciple],
   })
-  @IsEnum(MemberRoles, { each: true })
+  @IsEnum(MemberRole, {
+    each: true,
+    message:
+      'El valor debe ser un rol válido. Solo se permite el rol "Discípulo"',
+  })
   @IsArray()
   @IsNotEmpty()
   roles: string[];
 
   @ApiProperty({
-    example: 'Active',
+    example: RecordStatus.Active,
   })
   @IsString()
+  @IsEnum(RecordStatus, {
+    message:
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+  })
   @IsOptional()
-  status?: string;
+  recordStatus?: string;
 
-  // Relations
-  // TODO : cambiar a require el their y modificar en la semilla
+  //* Relations
   @ApiProperty({
     example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
   })
   @IsString()
   @IsOptional()
-  @IsUUID()
-  theirFamilyHouseId?: string;
+  theirFamilyGroup?: string;
 
   @ApiProperty({
     example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
   })
   @IsString()
-  @IsUUID()
   @IsOptional()
-  theirSupervisorId?: string;
+  theirSupervisor?: string;
 
-  // @ApiProperty({
-  //   example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
-  // })
-  // @IsString()
-  // @IsUUID()
-  // @IsOptional()
-  // theirPastorId?: string;
+  //! Properties record inactivation (optional)
+  @ApiProperty({
+    example: MemberInactivationCategory.PersonalChallenges,
+    description: 'Member inactivation category.',
+  })
+  @IsOptional()
+  @IsEnum(MemberInactivationCategory)
+  memberInactivationCategory?: string;
 
-  // @ApiProperty({
-  //   example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
-  // })
-  // @IsString()
-  // @IsUUID()
-  // @IsOptional()
-  // theirCopastorId?: string;
-
-  // @ApiProperty({
-  //   example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
-  // })
-  // @IsString()
-  // @IsUUID()
-  // @IsOptional()
-  // theirPreacherId?: string;
+  @ApiProperty({
+    example: MemberInactivationReason.HealthIssues,
+    description: 'Reason for member removal.',
+  })
+  @IsOptional()
+  @IsEnum(MemberInactivationReason)
+  memberInactivationReason?: string;
 }

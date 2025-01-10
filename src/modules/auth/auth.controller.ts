@@ -1,22 +1,23 @@
 import { Controller, Post, Body, Get, HttpCode } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
-  ApiOkResponse,
   ApiTags,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiForbiddenResponse,
+  ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
-import { LoginUserDto } from '@/modules/auth/dto';
-import { ValidUserRoles } from '@/modules/auth/enums';
+import { User } from '@/modules/user/entities/user.entity';
+
+import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
+
 import { AuthService } from '@/modules/auth/auth.service';
-import { Auth, GetUser } from '@/modules/auth/decorators';
+import { LoginUserDto } from '@/modules/auth/dto/login-user.dto';
 
-import { User } from '@/modules/user/entities';
-import { CreateUserDto } from '@/modules/user/dto';
 @ApiTags('Auth')
 @ApiUnauthorizedResponse({
   description: 'Unauthorized Bearer Auth.',
@@ -31,33 +32,20 @@ import { CreateUserDto } from '@/modules/user/dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  //* Create
-  @ApiBearerAuth()
-  @Post('register')
-  @Auth(ValidUserRoles.superUser)
-  @ApiCreatedResponse({
-    description: 'User has been successfully created.',
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
-  })
-  registerUser(@Body() createUserDto: CreateUserDto, @GetUser() user: User) {
-    return this.authService.register(createUserDto, user);
-  }
-
   //* Login
   @Post('login')
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @HttpCode(200)
   @ApiOkResponse({
     description: 'Successful operation',
   })
-  @HttpCode(200)
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
 
-  //* Check is_active
-  @ApiBearerAuth()
-  @Get('check-is_active')
+  //* Check auth status (regenerate new token)
+  @ApiBearerAuth('check-auth-status')
+  @Get('check-auth-status')
   @Auth()
   @ApiOkResponse({
     description: 'Successful operation',
@@ -65,6 +53,7 @@ export class AuthController {
   @ApiForbiddenResponse({
     description: 'Forbidden.',
   })
+  @SkipThrottle()
   checkAuthStatus(@GetUser() user: User) {
     return this.authService.checkAuthStatus(user);
   }

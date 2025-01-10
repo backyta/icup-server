@@ -1,18 +1,19 @@
+import { BadRequestException, Controller, Get } from '@nestjs/common';
 import {
+  ApiTags,
+  ApiOkResponse,
   ApiBearerAuth,
   ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
-  ApiOkResponse,
-  ApiTags,
   ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
-import { BadRequestException, Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SkipThrottle } from '@nestjs/throttler';
+
+import { UserRole } from '@/modules/auth/enums/user-role.enum';
+import { Auth } from '@/modules/auth/decorators/auth.decorator';
 
 import { SeedService } from '@/modules/seed/seed.service';
-
-import { Auth } from '@/modules/auth/decorators';
-import { ValidUserRoles } from '@/modules/auth/enums';
 
 @ApiTags('Seed')
 @ApiBearerAuth()
@@ -28,6 +29,7 @@ import { ValidUserRoles } from '@/modules/auth/enums';
 @ApiInternalServerErrorResponse({
   description: 'Internal server error, check logs.',
 })
+@SkipThrottle()
 @Controller('seed')
 export class SeedController {
   constructor(
@@ -36,11 +38,12 @@ export class SeedController {
   ) {}
 
   @Get()
-  @Auth(ValidUserRoles.superUser)
+  @Auth(UserRole.SuperUser)
   executeSeed(): Promise<string> {
     if (this.configService.get('STAGE') === 'prod') {
       throw new BadRequestException('Cannot run seed in production.');
     }
+
     return this.seedService.runSeed();
   }
 }

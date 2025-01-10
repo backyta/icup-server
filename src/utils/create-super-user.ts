@@ -1,14 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 
-import { User } from '@/modules/user/entities';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+
+import { User } from '@/modules/user/entities/user.entity';
 
 @Injectable()
 export class SuperUserService {
-  private readonly logger = new Logger('SuperUSerService');
+  private readonly logger = new Logger('SuperUserService');
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -28,13 +29,14 @@ export class SuperUserService {
           this.configService.get('SUPER_USER_PASSWORD'),
           10,
         ),
-        first_name: this.configService.get('SUPER_USER_FIRST_NAME'),
-        last_name: this.configService.get('SUPER_USER_LAST_NAME'),
+        firstNames: this.configService.get('SUPER_USER_FIRST_NAME'),
+        lastNames: this.configService.get('SUPER_USER_LAST_NAME'),
+        gender: 'male',
         roles: ['super-user'],
-        created_at: new Date(),
+        createdAt: new Date(),
       });
 
-      superUser.created_by = superUser;
+      superUser.createdBy = superUser;
 
       this.logger.log('Super user created successfully.');
       return await this.userRepository.save(superUser);

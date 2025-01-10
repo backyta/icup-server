@@ -1,62 +1,63 @@
-import { MaritalStatus, MemberRoles } from '@/modules/disciple/enums';
-import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsEnum,
   IsArray,
   IsEmail,
-  IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
   IsString,
-  IsUUID,
   MaxLength,
   MinLength,
+  IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+import { Gender } from '@/common/enums/gender.enum';
+import { MemberRole } from '@/common/enums/member-role.enum';
+import { RecordStatus } from '@/common/enums/record-status.enum';
+import { MaritalStatus } from '@/common/enums/marital-status.enum';
+import { MemberInactivationReason } from '@/common/enums/member-inactivation-reason.enum';
+import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
 
 export class CreateCopastorDto {
-  // @ApiProperty({
-  //   example: '47d03b60-3c8b-4a24-8802-1917e5b49be3',
-  // })
-  // @IsString()
-  // @IsNotEmpty()
-  // @IsUUID()
-  // member_id: string;
-
-  // General and Personal info
+  //* General and Personal info
   @ApiProperty({
-    example: 'John Martin',
+    example: 'Marcos Arturo',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(40)
-  firstName: string;
+  firstNames: string;
 
   @ApiProperty({
-    example: 'Rojas Castro',
+    example: 'Valdivia Fuerte',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(40)
-  lastName: string;
+  lastNames: string;
 
   @ApiProperty({
-    example: 'male',
+    example: Gender.Male,
   })
-  @IsIn(['male', 'female'])
+  @IsEnum(Gender, {
+    message:
+      'El género debe ser uno de los siguientes valores: Masculino o Femenino',
+  })
   gender: string;
 
   @ApiProperty({
-    example: 'single',
+    example: MaritalStatus.Single,
   })
-  @IsEnum(MaritalStatus)
+  @IsEnum(MaritalStatus, {
+    message:
+      'El estado civil debe ser uno de los siguientes valores: Soltero(a), Casado(a), Divorciado(a), Viudo(a), Otro.',
+  })
   @IsNotEmpty()
   maritalStatus: string;
 
   @ApiProperty({
-    example: 'Colombia',
+    example: 'Perú',
   })
   @IsString()
   @IsNotEmpty()
@@ -67,23 +68,22 @@ export class CreateCopastorDto {
   })
   @IsString()
   @IsNotEmpty()
-  dateBirth: string | Date;
+  birthDate: Date;
 
   @ApiProperty({
     example: '2',
   })
-  @IsNumber()
   @IsOptional()
-  numberChildren?: number;
+  numberChildren?: number | string;
 
   @ApiProperty({
     example: '2001/12/23',
   })
   @IsString()
   @IsOptional()
-  conversionDate?: string | Date;
+  conversionDate?: Date;
 
-  // Contact Info
+  //* Contact Info
   @ApiProperty({
     example: 'example@example.com',
   })
@@ -92,20 +92,20 @@ export class CreateCopastorDto {
   email?: string;
 
   @ApiProperty({
-    example: '999333555',
+    example: '+51 999333555',
   })
   @IsString()
   @IsOptional()
   phoneNumber?: string;
 
   @ApiProperty({
-    example: 'Peru',
+    example: 'Perú',
   })
   @IsString()
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  countryResidence?: string;
+  residenceCountry?: string;
 
   @ApiProperty({
     example: 'Lima',
@@ -114,7 +114,7 @@ export class CreateCopastorDto {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  departmentResidence?: string;
+  residenceDepartment?: string;
 
   @ApiProperty({
     example: 'Lima',
@@ -123,7 +123,7 @@ export class CreateCopastorDto {
   @IsOptional()
   @MinLength(1)
   @MaxLength(15)
-  provinceResidence?: string;
+  residenceProvince?: string;
 
   @ApiProperty({
     example: 'Comas',
@@ -132,57 +132,88 @@ export class CreateCopastorDto {
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(20)
-  districtResidence: string;
+  residenceDistrict: string;
 
   @ApiProperty({
-    example: 'Av.example 1234',
+    example: 'La Merced',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
   @MaxLength(30)
-  urbanSectorResidence: string;
+  residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Av.example 1234',
+    example: 'Jr Pascana 123',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  @MaxLength(50)
-  addressResidence: string;
+  @MaxLength(80)
+  residenceAddress: string;
 
   @ApiProperty({
-    example: 'Av.example 1234',
+    example: 'A una cuadra del hospital central.',
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
-  @MaxLength(100)
-  addressResidenceReference: string;
+  @MaxLength(150)
+  referenceAddress: string;
 
-  // Roles and Status
+  //* Roles and Status
   @ApiProperty({
-    example: ['disciple', 'preacher'],
+    example: [MemberRole.Copastor],
   })
-  @IsEnum(MemberRoles, { each: true })
+  @IsEnum(MemberRole, {
+    each: true,
+    message:
+      'El valor debe ser un rol válido. Solo se permite el rol "Co-Pastor"',
+  })
   @IsArray()
   @IsNotEmpty()
   roles: string[];
 
   @ApiProperty({
-    example: 'Active',
+    example: RecordStatus.Active,
   })
   @IsString()
+  @IsEnum(RecordStatus, {
+    message:
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+  })
   @IsOptional()
-  status?: string;
+  recordStatus?: string;
 
-  // Relations
+  //* Relations
   @ApiProperty({
-    example: '47d03b60-3c8b-4a24-8802-1917e5b49be3',
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
   })
   @IsString()
   @IsOptional()
-  @IsUUID()
-  theirPastorId?: string;
+  theirPastor?: string;
+
+  @ApiProperty({
+    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
+  })
+  @IsString()
+  @IsOptional()
+  theirChurch?: string;
+
+  //! Properties record inactivation (optional)
+  @ApiProperty({
+    example: MemberInactivationCategory.PersonalChallenges,
+    description: 'Member inactivation category.',
+  })
+  @IsOptional()
+  @IsEnum(MemberInactivationCategory)
+  memberInactivationCategory?: string;
+
+  @ApiProperty({
+    example: MemberInactivationReason.HealthIssues,
+    description: 'Reason for member removal.',
+  })
+  @IsOptional()
+  @IsEnum(MemberInactivationReason)
+  memberInactivationReason?: string;
 }

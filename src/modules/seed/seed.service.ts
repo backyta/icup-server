@@ -1,63 +1,124 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-
 import {
-  dataMembersPastor,
-  dataMembersCopastor,
-  dataMembersPreacher,
-  dataFamilyHouses,
-  dataMembers,
-  dataOfferings,
-  dataUsers,
-} from '@/modules/seed/data';
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
-import { User } from '@/modules/user/entities';
-import { Disciple } from '@/modules/disciple/entities';
-import { Pastor } from '@/modules/pastor/entities';
-import { Copastor } from '@/modules/copastor/entities';
-import { Preacher } from '@/modules/preacher/entities';
-import { FamilyHouse } from '@/modules/family-house/entities';
-
-import { AuthService } from '@/modules/auth/auth.service';
 import { UserService } from '@/modules/user/user.service';
+import { ZoneService } from '@/modules/zone/zone.service';
+import { ChurchService } from '@/modules/church/church.service';
+import { PastorService } from '@/modules/pastor/pastor.service';
+import { PreacherService } from '@/modules/preacher/preacher.service';
 import { DiscipleService } from '@/modules/disciple/disciple.service';
-import { OfferingService } from '@/modules/offering/offering.service';
-import { FamilyHouseService } from '@/modules/family-house/family-house.service';
+import { CopastorService } from '@/modules/copastor/copastor.service';
+import { SupervisorService } from '@/modules/supervisor/supervisor.service';
+import { FamilyGroupService } from '@/modules/family-group/family-group.service';
+
+import { Zone } from '@/modules/zone/entities/zone.entity';
+import { User } from '@/modules/user/entities/user.entity';
+import { Pastor } from '@/modules/pastor/entities/pastor.entity';
+import { Member } from '@/modules/member/entities/member.entity';
+import { Church } from '@/modules/church/entities/church.entity';
+import { Copastor } from '@/modules/copastor/entities/copastor.entity';
+import { Preacher } from '@/modules/preacher/entities/preacher.entity';
+import { Disciple } from '@/modules/disciple/entities/disciple.entity';
+import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
+import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
+
+import { dataUsers } from '@/modules/seed/data/seed-users';
+import { dataZones } from '@/modules/seed/data/seed-zone';
+import { dataPastors } from '@/modules/seed/data/seed-pastors';
+import { dataChurches } from '@/modules/seed/data/seed-churches';
+import { dataDisciples } from '@/modules/seed/data/seed-disciples';
+import { dataCopastors } from '@/modules/seed/data/seed-copastors';
+import { dataPreachers } from '@/modules/seed/data/seed-preachers';
+import { dataSupervisors } from '@/modules/seed/data/seed-supervisor';
+import { dataFamilyGroups } from '@/modules/seed/data/seed-family-group';
 
 @Injectable()
 export class SeedService {
+  private readonly logger = new Logger('SeedService');
+
   constructor(
+    @InjectRepository(Church)
+    private readonly churchRepository: Repository<Church>,
+
     @InjectRepository(Pastor)
     private readonly pastorRepository: Repository<Pastor>,
 
     @InjectRepository(Copastor)
-    private readonly coPastorRepository: Repository<Copastor>,
+    private readonly copastorRepository: Repository<Copastor>,
+
+    @InjectRepository(Supervisor)
+    private readonly supervisorRepository: Repository<Supervisor>,
+
+    @InjectRepository(Zone)
+    private readonly zoneRepository: Repository<Zone>,
 
     @InjectRepository(Preacher)
     private readonly preacherRepository: Repository<Preacher>,
 
-    @InjectRepository(FamilyHouse)
-    private readonly familyHouseRepository: Repository<FamilyHouse>,
+    @InjectRepository(FamilyGroup)
+    private readonly familyGroupRepository: Repository<FamilyGroup>,
 
     @InjectRepository(Disciple)
-    private readonly memberRepository: Repository<Disciple>,
+    private readonly discipleRepository: Repository<Disciple>,
+
+    @InjectRepository(Member)
+    private readonly memberRepository: Repository<Member>,
 
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
-    private readonly memberService: DiscipleService,
-    private readonly familyHousesService: FamilyHouseService,
-    private readonly offeringsService: OfferingService,
+    private readonly churchService: ChurchService,
+    private readonly pastorService: PastorService,
+    private readonly copastorService: CopastorService,
+    private readonly supervisorService: SupervisorService,
+    private readonly zoneService: ZoneService,
+    private readonly preacherService: PreacherService,
+    private readonly familyGroupService: FamilyGroupService,
+    private readonly discipleService: DiscipleService,
+
     private readonly userService: UserService,
-    private readonly authService: AuthService,
   ) {}
 
   async runSeed(): Promise<string> {
-    await this.memberService.deleteAllMembers();
-    await this.familyHousesService.deleteAllFamilyHouses();
-    await this.offeringsService.deleteAllOfferings();
-    await this.userService.deleteAllUsers();
+    const queryChurches = this.churchRepository.createQueryBuilder('churches');
+    const queryMembers = this.memberRepository.createQueryBuilder('members');
+    const queryPastors = this.pastorRepository.createQueryBuilder('pastors');
+    const queryCopastor =
+      this.copastorRepository.createQueryBuilder('copastors');
+    const querySupervisors =
+      this.supervisorRepository.createQueryBuilder('supervisors');
+    const queryZones = this.zoneRepository.createQueryBuilder('zones');
+    const queryPreachers =
+      this.preacherRepository.createQueryBuilder('preachers');
+    const queryFamilyGroups =
+      this.familyGroupRepository.createQueryBuilder('family-houses');
+    const queryDisciples =
+      this.discipleRepository.createQueryBuilder('disciples');
+    const queryUsers = this.userRepository.createQueryBuilder('users');
+
+    try {
+      await queryDisciples.delete().where({}).execute();
+      await queryFamilyGroups.delete().where({}).execute();
+      await queryPreachers.delete().where({}).execute();
+      await querySupervisors.delete().where({}).execute();
+      await queryZones.delete().where({}).execute();
+      await queryCopastor.delete().where({}).execute();
+      await queryPastors.delete().where({}).execute();
+      await queryChurches.delete().where({}).execute();
+      await queryMembers.delete().where({}).execute();
+      await queryUsers
+        .delete()
+        .where('NOT (:role = ANY(roles))', { role: 'super-user' }) // delete user without super user role
+        .execute();
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
 
     const superUser = await this.insertUsers();
 
@@ -66,6 +127,7 @@ export class SeedService {
     return 'SEED EXECUTED';
   }
 
+  //* Insertar Usuarios
   private async insertUsers() {
     const seedUsers = dataUsers.users;
     const users = [];
@@ -76,379 +138,226 @@ export class SeedService {
       .getOne();
 
     seedUsers.forEach((user) => {
-      users.push(this.authService.register(user, superUser));
+      users.push(this.userService.create(user, superUser));
     });
 
     await Promise.all(users);
     return superUser;
   }
 
+  //* Insertar Churches
   private async insertNewMembers(user: User) {
-    const membersPastor = dataMembersPastor.members;
-    const membersCopastor = dataMembersCopastor.members;
-    const membersPreacher = dataMembersPreacher.members;
-    const familyHouses = dataFamilyHouses.houses;
-    const members = dataMembers.members;
-    const offerings = dataOfferings.offerings;
+    const church = dataChurches.mainChurch;
+    const anexes = dataChurches.anexes;
+    const pastors = dataPastors.pastors;
+    const copastors = dataCopastors.copastors;
+    const supervisors = dataSupervisors.supervisors;
+    const zones = dataZones.zones;
+    const preachers = dataPreachers.preachers;
+    const familyGroups = dataFamilyGroups.houses;
+    const disciples = dataDisciples.disciples;
 
-    const insertPromisesPastor = [];
-    const insertPromisesCopastor = [];
-    const insertPromisesPreacher = [];
-    const insertPromisesFamilyHome = [];
-    const insertPromisesMembers = [];
-    const insertPromisesOfferings = [];
+    const promisesAnexes = [];
+    const promisesPastor = [];
+    const promisesCopastor = [];
+    const promisesSupervisor = [];
+    const promisesZone = [];
+    const promisesPreacher = [];
 
-    //! Create members & pastor
-    membersPastor.forEach((member) => {
-      insertPromisesPastor.push(this.memberService.create(member, user));
+    //* Create Main Church
+    await this.churchService.create(church[0], user);
+
+    const mainChurch = await this.churchRepository.findOne({
+      where: { isAnexe: false },
+      relations: ['anexes', 'theirMainChurch'],
     });
 
-    await Promise.all(insertPromisesPastor);
+    //* Create Anexes
+    anexes.forEach((anexe) => {
+      anexe.theirMainChurch = mainChurch?.id;
 
-    //! Create members & copastor
-    const allPastores = await this.pastorRepository.find();
-
-    const pastorIndep = allPastores.find(
-      (pastor) => pastor.discipleId.districtResidence === 'Independencia',
-    );
-
-    const pastorComas = allPastores.find(
-      (pastor) => pastor.discipleId.districtResidence === 'Comas',
-    );
-
-    const pastorCarab = allPastores.find(
-      (pastor) => pastor.discipleId.districtResidence === 'Carabayllo',
-    );
-
-    membersCopastor.forEach((member) => {
-      if (member.districtResidence === 'Independencia') {
-        member.theirPastorId = pastorIndep.id;
-      }
-      if (member.districtResidence === 'Comas') {
-        member.theirPastorId = pastorComas.id;
-      }
-      if (member.districtResidence === 'Carabayllo') {
-        member.theirPastorId = pastorCarab.id;
-      }
-
-      insertPromisesCopastor.push(this.memberService.create(member, user));
+      promisesAnexes.push(this.churchService.create(anexe, user));
     });
 
-    await Promise.all(insertPromisesCopastor);
+    await Promise.all(promisesAnexes);
 
-    //! Create members & preacher
-    const allCopastores = await this.coPastorRepository.find();
+    //* Create Pastor
+    pastors.forEach((pastor) => {
+      pastor.theirChurch = mainChurch?.id;
 
-    //* Copastor by Zona (Independencia)
-    const copastorIndepA = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Independencia' &&
-        copastor.discipleId.firstName === 'Luz Mariella' &&
-        copastor.discipleId.lastName === 'Salgado Huaman',
-    );
-
-    const copastorIndepB = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Independencia' &&
-        copastor.discipleId.firstName === 'Maria Mercedes' &&
-        copastor.discipleId.lastName === 'Quispe Ramirez',
-    );
-
-    const copastorIndepC = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Independencia' &&
-        copastor.discipleId.firstName === 'Liliana Rosario' &&
-        copastor.discipleId.lastName === 'Rivera Geranio',
-    );
-
-    //* Copastor by Zona (Comas)
-    const copastorComasX = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Comas' &&
-        copastor.discipleId.firstName === 'Melisa Eva' &&
-        copastor.discipleId.lastName === 'Camarena Ventura',
-    );
-
-    const copastorComasZ = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Comas' &&
-        copastor.discipleId.firstName === 'Dylan Caleb' &&
-        copastor.discipleId.lastName === 'Gonzales Quispe',
-    );
-
-    //* Copastor by Zona (Carabayllo)
-    const copastorCarabaylloR = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Carabayllo' &&
-        copastor.discipleId.firstName === 'Alberto Julian' &&
-        copastor.discipleId.lastName === 'Fuentes Fiestas',
-    );
-
-    const copastorCarabaylloQ = allCopastores.find(
-      (copastor) =>
-        copastor.discipleId.districtResidence === 'Carabayllo' &&
-        copastor.discipleId.firstName === 'Marcelo Benito' &&
-        copastor.discipleId.lastName === 'Palomares Garcia',
-    );
-
-    membersPreacher.forEach((member, index) => {
-      if (member.districtResidence === 'Independencia') {
-        if (index === 0) {
-          member.theirCopastorId = copastorIndepA.id;
-        }
-        if (index === 1) {
-          member.theirCopastorId = copastorIndepB.id;
-        }
-        if (index === 2) {
-          member.theirCopastorId = copastorIndepC.id;
-        }
-      }
-
-      if (member.districtResidence === 'Comas') {
-        if (index === 3) {
-          member.theirCopastorId = copastorComasX.id;
-        }
-        if (index === 4) {
-          member.theirCopastorId = copastorComasZ.id;
-        }
-      }
-
-      if (member.districtResidence === 'Carabayllo') {
-        if (index === 5) {
-          member.theirCopastorId = copastorCarabaylloR.id;
-        }
-        if (index === 6) {
-          member.theirCopastorId = copastorCarabaylloQ.id;
-        }
-      }
-
-      insertPromisesPreacher.push(this.memberService.create(member, user));
+      promisesPastor.push(this.pastorService.create(pastor, user));
     });
 
-    await Promise.all(insertPromisesPreacher);
+    await Promise.all(promisesPastor);
 
-    //! Create Family Home
-    const allPreachers = await this.preacherRepository.find();
-
-    //* Preacher by Zone (Independencia)
-    const preachersIndepA = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Independencia' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Luz Mariella' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Salgado Huaman',
-    );
-
-    const preachersIndepB = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Independencia' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Maria Mercedes' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Quispe Ramirez',
-    );
-
-    const preachersIndepC = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Independencia' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Liliana Rosario' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Rivera Geranio',
-    );
-
-    //* Preacher by Zone (Comas)
-    const preachersComasX = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Comas' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Melisa Eva' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Camarena Ventura',
-    );
-
-    const preachersComasZ = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Comas' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Dylan Caleb' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Gonzales Quispe',
-    );
-
-    //* Preacher by Zone (Carabayllo)
-    const preachersCarabaylloR = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Carabayllo' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Alberto Julian' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Fuentes Fiestas',
-    );
-
-    const preachersCarabaylloQ = allPreachers.find(
-      (preacher) =>
-        preacher.discipleId.districtResidence === 'Carabayllo' &&
-        preacher.theirCopastorId.discipleId.firstName === 'Marcelo Benito' &&
-        preacher.theirCopastorId.discipleId.lastName === 'Palomares Garcia',
-    );
-
-    familyHouses.forEach((house, index) => {
-      if (house.district === 'Independencia') {
-        if (index === 0) {
-          house.their_preacher = preachersIndepA.id;
-        }
-
-        if (index === 1) {
-          house.their_preacher = preachersIndepB.id;
-        }
-
-        if (index === 2) {
-          house.their_preacher = preachersIndepC.id;
-        }
-      }
-
-      if (house.district === 'Comas') {
-        if (index === 3) {
-          house.their_preacher = preachersComasX.id;
-        }
-
-        if (index === 4) {
-          house.their_preacher = preachersComasZ.id;
-        }
-      }
-
-      if (house.district === 'Carabayllo') {
-        if (index === 5) {
-          house.their_preacher = preachersCarabaylloR.id;
-        }
-
-        if (index === 6) {
-          house.their_preacher = preachersCarabaylloQ.id;
-        }
-      }
-
-      insertPromisesFamilyHome.push(
-        this.familyHousesService.create(house, user),
-      );
+    //* Create Copastor
+    const pastor = await this.pastorRepository.findOne({
+      where: { member: { firstNames: 'Michael Rodrigo' } },
     });
 
-    await Promise.all(insertPromisesFamilyHome);
+    copastors.forEach((copastor) => {
+      copastor.theirPastor = pastor?.id;
 
-    //! Create Members
-    const allFamilyHouses = await this.familyHouseRepository.find();
-
-    //* FamilyHome by Zone (Independencia)
-    const familyHomeA = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Independencia' &&
-        familyHouse.houseZone === 'A',
-    );
-
-    const familyHomeB = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Independencia' &&
-        familyHouse.houseZone === 'B',
-    );
-
-    const familyHomeC = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Independencia' &&
-        familyHouse.houseZone === 'C',
-    );
-
-    //* FamilyHome by Zone (Comas)
-    const familyHomeX = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Comas' && familyHouse.houseZone === 'X',
-    );
-
-    const familyHomeZ = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Comas' && familyHouse.houseZone === 'Z',
-    );
-
-    //* FamilyHome by Zone (Carabayllo)
-    const familyHomeR = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Carabayllo' && familyHouse.houseZone === 'R',
-    );
-
-    const familyHomeQ = allFamilyHouses.find(
-      (familyHouse) =>
-        familyHouse.district === 'Carabayllo' && familyHouse.houseZone === 'Q',
-    );
-
-    members.forEach((member, index) => {
-      if (member.districtResidence === 'Independencia') {
-        if (index >= 0 && index <= 3) {
-          member.theirFamilyHouseId = familyHomeA.id;
-        }
-
-        if (index >= 4 && index <= 6) {
-          member.theirFamilyHouseId = familyHomeB.id;
-        }
-
-        if (index >= 7 && index <= 9) {
-          member.theirFamilyHouseId = familyHomeC.id;
-        }
-      }
-
-      if (member.districtResidence === 'Comas') {
-        if (index >= 10 && index <= 13) {
-          member.theirFamilyHouseId = familyHomeX.id;
-        }
-
-        if (index >= 14 && index <= 16) {
-          member.theirFamilyHouseId = familyHomeZ.id;
-        }
-      }
-
-      if (member.districtResidence === 'Carabayllo') {
-        if (index >= 17 && index <= 20) {
-          member.theirFamilyHouseId = familyHomeR.id;
-        }
-
-        if (index >= 20 && index <= 23) {
-          member.theirFamilyHouseId = familyHomeQ.id;
-        }
-      }
-
-      insertPromisesMembers.push(this.memberService.create(member, user));
+      promisesCopastor.push(this.copastorService.create(copastor, user));
     });
 
-    await Promise.all(insertPromisesMembers);
+    await Promise.all(promisesCopastor);
 
-    //! Create Offerings
-    const allMembers = await this.memberRepository.find();
-
-    //* Select one Copastor (Zonal Fasting)
-    const copastor = allCopastores.find((copastor) => copastor);
-
-    //* Select one FamilyHome (Offering Home)
-    const familyHome = allFamilyHouses.find((familyHome) => familyHome);
-
-    //* Select another Member (Tithe and Offering Special)
-    const memberTithe = allMembers.find((member) => member);
-    const memberOffering = allMembers.find((member) => member);
-
-    offerings.forEach((offering, index) => {
-      if (offering.type === 'tithe') {
-        if (index === 0) {
-          offering.member_id = memberTithe.id;
-        }
-      }
-
-      if (offering.type === 'offering') {
-        if (index === 1 && offering.sub_type === 'zonal_fasting') {
-          offering.copastor_id = copastor.id;
-        }
-
-        if (index === 2 && offering.sub_type === 'family_home') {
-          offering.family_home_id = familyHome.id;
-        }
-
-        if (index === 3 && offering.sub_type === 'special') {
-          offering.member_id = memberOffering.id;
-        }
-      }
-
-      insertPromisesOfferings.push(
-        this.offeringsService.create(offering, user),
-      );
+    //* Create Supervisor
+    const copastor = await this.copastorRepository.findOne({
+      where: { member: { firstNames: 'Luz Mariella' } },
     });
 
-    await Promise.all(insertPromisesOfferings);
+    supervisors.forEach((supervisor) => {
+      supervisor.theirCopastor = copastor.id;
 
-    return true;
+      promisesSupervisor.push(this.supervisorService.create(supervisor, user));
+    });
+
+    await Promise.all(promisesSupervisor);
+
+    //* Create Zones
+    const allSupervisors = await this.supervisorRepository.find();
+
+    let i = 0;
+    zones.forEach((zone) => {
+      zone.theirSupervisor = allSupervisors[i].id;
+      promisesZone.push(this.zoneService.create(zone, user));
+      i++;
+    });
+
+    await Promise.all(promisesZone);
+
+    //* Create Preachers
+    const supervisor = await this.supervisorRepository.findOne({
+      where: { member: { lastNames: 'Lopez Martinez' } },
+    });
+
+    preachers.forEach((preacher) => {
+      preacher.theirSupervisor = supervisor.id;
+
+      promisesPreacher.push(this.preacherService.create(preacher, user));
+    });
+
+    await Promise.all(promisesPreacher);
+
+    //* Create Family Houses
+    const allPreachers = await this.preacherRepository.find({
+      relations: ['theirZone'],
+    });
+
+    async function crearCasasEnOrden(
+      familyGroups,
+      allPreachers,
+      user,
+      familyGroupService,
+    ) {
+      const promisesCreation = [];
+
+      for (const [index, familyGroup] of familyGroups.entries()) {
+        familyGroup.theirZone = allPreachers[0]?.theirZone?.id;
+        familyGroup.theirPreacher = allPreachers[index]?.id;
+
+        try {
+          const createdHouse = await familyGroupService.create(
+            familyGroup,
+            user,
+          );
+          promisesCreation.push(createdHouse);
+        } catch (error) {
+          console.error('Error al crear la casa:', error);
+        }
+      }
+
+      return promisesCreation;
+    }
+
+    await crearCasasEnOrden(
+      familyGroups,
+      allPreachers,
+      user,
+      this.familyGroupService,
+    );
+
+    //* Create Disciples
+    const allFamilyGroups = await this.familyGroupRepository.find({
+      relations: ['theirPreacher'],
+    });
+
+    //? First House
+    disciples[0].theirFamilyGroup = allFamilyGroups[0]?.id;
+    await this.discipleService.create(disciples[0], user);
+
+    disciples[1].theirFamilyGroup = allFamilyGroups[0]?.id;
+    await this.discipleService.create(disciples[1], user);
+
+    disciples[2].theirFamilyGroup = allFamilyGroups[0]?.id;
+    await this.discipleService.create(disciples[2], user);
+
+    disciples[3].theirFamilyGroup = allFamilyGroups[0]?.id;
+    await this.discipleService.create(disciples[3], user);
+
+    //? Second House
+    disciples[4].theirFamilyGroup = allFamilyGroups[1]?.id;
+    await this.discipleService.create(disciples[4], user);
+
+    disciples[5].theirFamilyGroup = allFamilyGroups[1]?.id;
+    await this.discipleService.create(disciples[5], user);
+
+    disciples[6].theirFamilyGroup = allFamilyGroups[1]?.id;
+    await this.discipleService.create(disciples[6], user);
+
+    disciples[7].theirFamilyGroup = allFamilyGroups[1]?.id;
+    await this.discipleService.create(disciples[7], user);
+
+    //? Third House
+    disciples[8].theirFamilyGroup = allFamilyGroups[2]?.id;
+    await this.discipleService.create(disciples[8], user);
+
+    disciples[9].theirFamilyGroup = allFamilyGroups[2]?.id;
+    await this.discipleService.create(disciples[9], user);
+
+    disciples[10].theirFamilyGroup = allFamilyGroups[2]?.id;
+    await this.discipleService.create(disciples[10], user);
+
+    disciples[11].theirFamilyGroup = allFamilyGroups[2]?.id;
+    await this.discipleService.create(disciples[11], user);
+
+    //? Fourth House
+    disciples[12].theirFamilyGroup = allFamilyGroups[3]?.id;
+    await this.discipleService.create(disciples[12], user);
+
+    disciples[13].theirFamilyGroup = allFamilyGroups[3]?.id;
+    await this.discipleService.create(disciples[13], user);
+
+    disciples[14].theirFamilyGroup = allFamilyGroups[3]?.id;
+    await this.discipleService.create(disciples[14], user);
+
+    disciples[15].theirFamilyGroup = allFamilyGroups[3]?.id;
+    await this.discipleService.create(disciples[15], user);
+
+    //? Fifth House
+    disciples[16].theirFamilyGroup = allFamilyGroups[4]?.id;
+    await this.discipleService.create(disciples[16], user);
+
+    disciples[17].theirFamilyGroup = allFamilyGroups[4]?.id;
+    await this.discipleService.create(disciples[17], user);
+
+    disciples[18].theirFamilyGroup = allFamilyGroups[4]?.id;
+    await this.discipleService.create(disciples[18], user);
+
+    disciples[19].theirFamilyGroup = allFamilyGroups[4]?.id;
+    await this.discipleService.create(disciples[19], user);
+  }
+
+  //? PRIVATE METHODS
+  // For future index errors or constrains with code.
+  private handleDBExceptions(error: any) {
+    if (error.code === '23505') throw new BadRequestException(error.detail);
+    this.logger.error(error);
+
+    throw new InternalServerErrorException(
+      'Unexpected errors, check server logs',
+    );
   }
 }

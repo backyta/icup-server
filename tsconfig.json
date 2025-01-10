@@ -3,7 +3,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "src/*"
       ]
     },
     "module": "commonjs",
@@ -15,6 +15,7 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
+    "esModuleInterop": true,
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,

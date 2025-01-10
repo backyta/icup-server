@@ -1,43 +1,40 @@
-import { Response } from 'express';
 import {
-  BadRequestException,
-  Controller,
   Post,
-  Get,
-  UploadedFile,
-  UseInterceptors,
+  Query,
   Param,
-  Res,
+  Delete,
+  Controller,
+  UploadedFiles,
+  ParseFilePipe,
+  UseInterceptors,
+  FileTypeValidator,
+  BadRequestException,
+  MaxFileSizeValidator,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { FileInterceptor } from '@nestjs/platform-express';
-
 import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiBody,
   ApiConsumes,
+  ApiBearerAuth,
+  ApiOkResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiParam,
-  ApiTags,
+  ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
-import { diskStorage } from 'multer';
+import { UserRole } from '@/modules/auth/enums/user-role.enum';
+import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 
-import { FileUploadDto } from '@/modules/files/dtos';
-import { FilesService } from '@/modules/files/files.service';
-import { fileFiler, fileNamer } from '@/modules/files/helpers';
+import { User } from '@/modules/user/entities/user.entity';
 
-import { Auth } from '@/modules/auth/decorators';
-import { ValidUserRoles } from '@/modules/auth/enums';
+import { CreateFileDto } from '@/modules/files/dto/create-file.dto';
+import { DeleteFileDto } from '@/modules/files/dto/delete-file.dto';
 
-@ApiTags('Upload-Files')
-@ApiBearerAuth()
+import { CloudinaryService } from '@/modules/cloudinary/cloudinary.service';
+
+@Controller('files')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
   description: 'Unauthorized Bearer Auth.',
@@ -48,79 +45,60 @@ import { ValidUserRoles } from '@/modules/auth/enums';
 @ApiBadRequestResponse({
   description: 'Bad request.',
 })
-@Controller('files')
 export class FilesController {
-  constructor(
-    private readonly filesService: FilesService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  //* Find Offering File
-  @Get('offering/:offeringFileName')
-  @Auth(
-    ValidUserRoles.superUser,
-    ValidUserRoles.adminUser,
-    ValidUserRoles.treasurerUser,
-  )
-  @ApiParam({
-    name: 'offeringFileName',
-    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661.jpg',
-  })
-  @ApiOkResponse({
-    description: 'Successful operation.',
-  })
-  @ApiNotFoundResponse({
-    description: 'Not found resource.',
-  })
-  findOfferingFile(
-    @Res() res: Response,
-    @Param('offeringFileName')
-    offeringFileName: string,
-  ): void {
-    const path = this.filesService.getStaticOfferingFile(offeringFileName);
-
-    res.sendFile(path);
-  }
-
-  //* Create record offering
-  @Post('offering')
-  @Auth(
-    ValidUserRoles.superUser,
-    ValidUserRoles.adminUser,
-    ValidUserRoles.treasurerUser,
-  )
+  //* Upload file to cloudinary
+  @Post('upload')
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
   @ApiCreatedResponse({
     description: 'Offering file has been successfully uploaded.',
   })
   @ApiForbiddenResponse({
     description: 'Forbidden.',
   })
-  @UseInterceptors(
-    FileInterceptor('file', {
-      fileFilter: fileFiler,
-      limits: { fileSize: 1000000 },
-      storage: diskStorage({
-        destination: './uploads/offering-file',
-        filename: fileNamer,
-      }),
-    }),
-  )
+  @UseInterceptors(AnyFilesInterceptor())
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'Offering File',
-    type: FileUploadDto,
-  })
-  uploadOfferingFile(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException(`Make sure the file is an image`);
+  async uploadImages(
+    @Query() createFileDto: CreateFileDto,
+    @UploadedFiles(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+        ],
+      }),
+    )
+    files: Express.Multer.File[],
+  ) {
+    if (files.length > 4) {
+      throw new BadRequestException('Image limits have been exceeded (max 4).');
     }
 
-    const secureUrl = `${this.configService.get('HOST_API')}/files/offering/${
-      file.filename
-    }`;
+    const uploadedFilesPromises = files.map((file) =>
+      this.cloudinaryService.uploadFile(file, createFileDto),
+    );
 
-    return { secureUrl };
+    const result = await Promise.all(uploadedFilesPromises);
+
+    const imageUrls = result.map((res) => res.secure_url);
+    return { imageUrls };
+  }
+
+  //! Destroy file to cloudinary
+  @Delete(':publicId')
+  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
+  @ApiOkResponse({
+    description: 'Successful operation.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden.',
+  })
+  async deleteFile(
+    @Param('publicId') publicId: string,
+    @Query() deleteFileDto: DeleteFileDto,
+    @GetUser() user: User,
+  ): Promise<void> {
+    await this.cloudinaryService.deleteFile(publicId, deleteFileDto, user);
   }
 }
-
-// TODO : hacer para cloudinary y guardar el url seguro en la entity de Upload, ver video de fernando y Yt

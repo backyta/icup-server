@@ -1,33 +1,38 @@
-import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
-  IsBoolean,
   IsEmail,
   IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
   Matches,
+  IsString,
   MaxLength,
   MinLength,
+  IsNotEmpty,
+  IsOptional,
 } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
-import { ValidUserRoles } from '@/modules/auth/enums';
+import { Gender } from '@/common/enums/gender.enum';
+import { RecordStatus } from '@/common/enums/record-status.enum';
+
+import { UserInactivationReason } from '@/modules/user/enums/user-inactivation-reason.enum';
+import { UserInactivationCategory } from '@/modules/user/enums/user-inactivation-category.enum';
+
+import { UserRole } from '@/modules/auth/enums/user-role.enum';
 
 export class CreateUserDto {
   @ApiProperty({
-    example: 'example@example.com',
+    example: 'jorge.villena@icup.com',
   })
   @IsString()
   @IsEmail()
   email: string;
 
   @ApiProperty({
-    example: 'Abcd12345',
+    example: 'Abcd$12345$',
   })
   @IsString()
   @MinLength(6)
-  @MaxLength(50)
+  @MaxLength(20)
   @Matches(/(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
     message:
       'The password must have a Uppercase, lowercase letter and a number',
@@ -35,28 +40,61 @@ export class CreateUserDto {
   password: string;
 
   @ApiProperty({
-    example: 'John Martin',
+    example: 'Jorge Martin',
   })
   @IsString()
   @MinLength(1)
-  first_name: string;
+  firstNames: string;
 
   @ApiProperty({
-    example: 'Rojas Sanchez',
+    example: 'Villena Sanchez',
   })
   @IsString()
   @MinLength(1)
-  last_name: string;
+  lastNames: string;
 
   @ApiProperty({
-    example: true,
+    example: Gender.Female,
   })
-  @IsBoolean()
+  @IsEnum(Gender, {
+    message:
+      'El género debe ser uno de los siguientes valores: Masculino o Femenino',
+  })
+  gender: string;
+
+  @ApiProperty({
+    example: RecordStatus.Active,
+  })
+  @IsString()
   @IsOptional()
-  is_active?: boolean;
+  recordStatus?: string;
 
-  @IsEnum(ValidUserRoles, { each: true })
+  @ApiProperty({
+    example: [UserRole.SuperUser, UserRole.TreasurerUser],
+  })
+  @IsEnum(UserRole, {
+    each: true,
+    message:
+      'Los roles pueden contener los siguientes valores: Super-Usuario, Usuario-Admin., Usuario-Tesor., Usuario.',
+  })
   @IsArray()
   @IsNotEmpty()
   roles: string[];
+
+  //! Properties record inactivation (optional)
+  @ApiProperty({
+    example: UserInactivationCategory.PerformanceOrConduct,
+    description: 'Member inactivation category.',
+  })
+  @IsOptional()
+  @IsEnum(UserInactivationCategory)
+  userInactivationCategory?: string;
+
+  @ApiProperty({
+    example: UserInactivationReason.PolicyViolation,
+    description: 'Reason for member removal.',
+  })
+  @IsOptional()
+  @IsEnum(UserInactivationReason)
+  userInactivationReason?: string;
 }

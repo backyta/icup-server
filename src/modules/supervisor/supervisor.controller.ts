@@ -1,42 +1,46 @@
-import { SupervisorService } from '@/modules/supervisor/supervisor.service';
 import {
-  CreateSupervisorDto,
-  UpdateSupervisorDto,
-} from '@/modules/supervisor/dto';
-import { Supervisor } from '@/modules/supervisor/entities';
-
-import {
-  Controller,
   Get,
   Post,
   Body,
   Patch,
+  Query,
   Param,
   Delete,
+  Controller,
   ParseUUIDPipe,
-  Query,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
+  ApiTags,
+  ApiParam,
+  ApiOkResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiParam,
-  ApiTags,
+  ApiForbiddenResponse,
+  ApiBadRequestResponse,
   ApiUnauthorizedResponse,
+  ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 
-import { PaginationDto, SearchTypeAndPaginationDto } from '@/common/dtos';
+import { PaginationDto } from '@/common/dtos/pagination.dto';
+import { InactivateMemberDto } from '@/common/dtos/inactivate-member.dto';
+import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
-import { ValidUserRoles } from '@/modules/auth/enums';
-import { Auth, GetUser } from '@/modules/auth/decorators';
+import { UserRole } from '@/modules/auth/enums/user-role.enum';
+import { Auth } from '@/modules/auth/decorators/auth.decorator';
+import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 
-import { User } from '@/modules/user/entities';
+import { User } from '@/modules/user/entities/user.entity';
+import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 
-@ApiTags('Disciples')
+import { CreateSupervisorDto } from '@/modules/supervisor/dto/create-supervisor.dto';
+import { UpdateSupervisorDto } from '@/modules/supervisor/dto/update-supervisor.dto';
+
+import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
+import { SupervisorService } from '@/modules/supervisor/supervisor.service';
+
+@ApiTags('Supervisors')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
   description: 'Unauthorized Bearer Auth.',
@@ -47,15 +51,16 @@ import { User } from '@/modules/user/entities';
 @ApiBadRequestResponse({
   description: 'Bad request.',
 })
-@Controller('supervisor')
+@SkipThrottle()
+@Controller('supervisors')
 export class SupervisorController {
   constructor(private readonly supervisorService: SupervisorService) {}
 
-  //* Create
+  //* CREATE
   @Post()
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiCreatedResponse({
-    description: 'Member has been successfully created.',
+    description: 'Supervisor has been successfully created.',
   })
   @ApiForbiddenResponse({
     description: 'Forbidden.',
@@ -67,7 +72,7 @@ export class SupervisorController {
     return this.supervisorService.create(createSupervisorDto, user);
   }
 
-  //* Find All
+  //* FIND ALL
   @Get()
   @Auth()
   @ApiOkResponse({
@@ -80,12 +85,12 @@ export class SupervisorController {
     return this.supervisorService.findAll(paginationDto);
   }
 
-  //* Find By Term
+  //* FIND BY TERM
   @Get(':term')
   @Auth()
   @ApiParam({
     name: 'term',
-    description: 'Could be id, names, code, roles, etc.',
+    description: 'Could be names, dates, districts, address, etc.',
     example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
   })
   @ApiOkResponse({
@@ -94,16 +99,16 @@ export class SupervisorController {
   @ApiNotFoundResponse({
     description: 'Not found resource.',
   })
-  findTerm(
+  findByTerm(
     @Param('term') term: string,
-    @Query() searchTypeAndPaginationDto: SearchTypeAndPaginationDto,
-  ): Promise<Supervisor | Supervisor[]> {
-    return this.supervisorService.findTerm(term, searchTypeAndPaginationDto);
+    @Query() searchTypeAndPaginationDto: SearchAndPaginationDto,
+  ): Promise<Supervisor[]> {
+    return this.supervisorService.findByTerm(term, searchTypeAndPaginationDto);
   }
 
-  //* Update
+  //* UPDATE
   @Patch(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description: 'Successful operation',
   })
@@ -114,13 +119,14 @@ export class SupervisorController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateSupervisorDto: UpdateSupervisorDto,
     @GetUser() user: User,
-  ): Promise<Supervisor> {
+  ): Promise<Supervisor | Copastor> {
     return this.supervisorService.update(id, updateSupervisorDto, user);
   }
 
-  //* Delete
+  //! INACTIVATE
   @Delete(':id')
-  @Auth(ValidUserRoles.superUser, ValidUserRoles.adminUser)
+  @Auth(UserRole.SuperUser)
+  // @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description: 'Successful operation.',
   })
@@ -129,8 +135,9 @@ export class SupervisorController {
   })
   remove(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query() inactivateMemberDto: InactivateMemberDto,
     @GetUser() user: User,
   ): Promise<void> {
-    return this.supervisorService.remove(id, user);
+    return this.supervisorService.remove(id, inactivateMemberDto, user);
   }
 }

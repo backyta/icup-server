@@ -1,80 +1,84 @@
 import {
   Column,
   Entity,
-  JoinColumn,
-  ManyToOne,
   OneToOne,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import { Status } from '@/modules/disciple/enums';
+import { RecordStatus } from '../../../common/enums/record-status.enum';
 
-import { User } from '@/modules/user/entities';
-import { Disciple } from '@/modules/disciple/entities';
+import { Zone } from '../../../modules/zone/entities/zone.entity';
+import { User } from '../../../modules/user/entities/user.entity';
+import { Church } from '../../../modules/church/entities/church.entity';
+import { Member } from '../../../modules/member/entities/member.entity';
+import { Copastor } from '../../../modules/copastor/entities/copastor.entity';
+import { Preacher } from '../../../modules/preacher/entities/preacher.entity';
+import { Disciple } from '../../../modules/disciple/entities/disciple.entity';
+import { Supervisor } from '../../../modules/supervisor/entities/supervisor.entity';
+import { FamilyGroup } from '../../../modules/family-group/entities/family-group.entity';
 
 @Entity({ name: 'pastors' })
 export class Pastor {
+  //* General and Personal info
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  // Roles amount under their charge
-  @Column('int', { name: 'number_copastors', default: 0 })
-  numberCopastors: number;
+  //* Relations with member
+  @OneToOne(() => Member, {})
+  @JoinColumn({ name: 'member_id' })
+  member: Member;
 
-  @Column('int', { name: 'number_supervisors', default: 0 })
-  numberSupervisors: number;
-
-  @Column('int', { name: 'number_preachers', default: 0 })
-  numberPreachers: number;
-
-  @Column('int', { name: 'number_zones', default: 0 })
-  numberZones: number;
-
-  @Column('int', { name: 'number_family_houses', default: 0 })
-  numberFamilyHouses: number;
-
-  @Column('int', { name: 'number_disciples', default: 0 })
-  numberDisciples: number;
-
-  // Id roles under their charge
-  @Column('uuid', { name: 'copastors_id', array: true, nullable: true })
-  copastorsId: string[];
-
-  @Column('uuid', { name: 'supervisors_id', array: true, nullable: true })
-  supervisorsId: string[];
-
-  @Column('uuid', { name: 'preachers_id', array: true, nullable: true })
-  preachersId: string[];
-
-  @Column('uuid', { name: 'zones_id', array: true, nullable: true })
-  zonesId: string[];
-
-  @Column('uuid', { name: 'family_houses_id', array: true, nullable: true })
-  familyHousesId: string[];
-
-  @Column('uuid', { name: 'disciples_id', array: true, nullable: true })
-  disciplesId: string[];
-
-  // Info register and update date
-  @Column('timestamp', { name: 'created_at', nullable: true })
-  createdAt: string | Date;
+  //* Info register and update date
+  @Column('timestamptz', { name: 'created_at', nullable: true })
+  createdAt: Date;
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'created_by' })
   createdBy: User;
 
-  @Column('timestamp', { name: 'updated_at', nullable: true })
-  updatedAt: string | Date;
+  @Column('timestamptz', { name: 'updated_at', nullable: true })
+  updatedAt: Date;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: 'created_by' })
+  @JoinColumn({ name: 'updated_by' })
   updatedBy: User;
 
-  @Column('text', { default: Status.Active })
-  status: string;
+  @Column('text', { name: 'inactivation_category', nullable: true })
+  inactivationCategory: string;
 
-  // Relation columns
-  @OneToOne(() => Disciple, { eager: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'disciple_id' })
-  discipleId: Disciple;
+  @Column('text', { name: 'inactivation_reason', nullable: true })
+  inactivationReason: string;
+
+  @Column('text', {
+    name: 'record_status',
+    default: RecordStatus.Active,
+  })
+  recordStatus: string;
+
+  //? Relations (Array)
+  @OneToMany(() => Copastor, (copastor) => copastor.theirPastor)
+  copastors: Copastor[];
+
+  @OneToMany(() => Supervisor, (supervisor) => supervisor.theirPastor)
+  supervisors: Supervisor[];
+
+  @OneToMany(() => Preacher, (preacher) => preacher.theirPastor)
+  preachers: Preacher[];
+
+  @OneToMany(() => Zone, (zone) => zone.theirPastor)
+  zones: Zone[];
+
+  @OneToMany(() => FamilyGroup, (familyGroup) => familyGroup.theirPastor)
+  familyGroups: FamilyGroup[];
+
+  @OneToMany(() => Disciple, (disciple) => disciple.theirPastor)
+  disciples: Disciple[];
+
+  //? Relations(FK);
+  @ManyToOne(() => Church, (church) => church.pastors)
+  @JoinColumn({ name: 'their_church_id' })
+  theirChurch: Church;
 }

@@ -1,0 +1,17 @@
+export enum DiscipleSearchSubType {
+  DiscipleByPastorFirstNames = 'disciple_by_pastor_first_names',
+  DiscipleByPastorLastNames = 'disciple_by_pastor_last_names',
+  DiscipleByPastorFullNames = 'disciple_by_pastor_full_names',
+  DiscipleByCopastorFirstNames = 'disciple_by_copastor_first_names',
+  DiscipleByCopastorLastNames = 'disciple_by_copastor_last_names',
+  DiscipleByCopastorFullNames = 'disciple_by_copastor_full_names',
+  DiscipleBySupervisorFirstNames = 'disciple_by_supervisor_first_names',
+  DiscipleBySupervisorLastNames = 'disciple_by_supervisor_last_names',
+  DiscipleBySupervisorFullNames = 'disciple_by_supervisor_full_names',
+  DiscipleByPreacherFirstNames = 'disciple_by_preacher_first_names',
+  DiscipleByPreacherLastNames = 'disciple_by_preacher_last_names',
+  DiscipleByPreacherFullNames = 'disciple_by_preacher_full_names',
+  ByDiscipleFirstNames = 'by_disciple_first_names',
+  ByDiscipleLastNames = 'by_disciple_last_names',
+  ByDiscipleFullNames = 'by_disciple_full_names',
+}

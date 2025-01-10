@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
-  BadRequestException,
+  Logger,
   Injectable,
-  InternalServerErrorException,
+  BadRequestException,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -10,14 +13,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import * as bcrypt from 'bcrypt';
 
-import { LoginUserDto } from '@/modules/auth/dto';
-import { JwtPayload } from '@/modules/auth/interfaces';
+import { RecordStatus } from '@/common/enums/record-status.enum';
 
-import { CreateUserDto } from '@/modules/user/dto';
-import { User } from '@/modules/user/entities';
+import { User } from '@/modules/user/entities/user.entity';
+import { LoginUserDto } from '@/modules/auth/dto/login-user.dto';
+import { JwtPayload } from '@/modules/auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger('AuthService');
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -25,67 +30,83 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(createUserDto: CreateUserDto, user: User) {
-    const { password, ...userData } = createUserDto;
-
-    try {
-      const newUser = this.userRepository.create({
-        ...userData,
-        password: bcrypt.hashSync(password, 10),
-        created_by: user,
-        created_at: new Date(),
-      });
-
-      await this.userRepository.save(newUser);
-      delete newUser.password;
-      return {
-        ...newUser,
-        token: this.getJetToken({ id: newUser.id }),
-      };
-    } catch (error) {
-      this.handleDBErrors(error);
-    }
-  }
-
+  //* Login user
   async login(loginUserDto: LoginUserDto): Promise<any> {
     const { password, email } = loginUserDto;
 
-    const user = await this.userRepository.findOne({
-      where: { email },
-      select: { email: true, password: true, id: true },
-    });
+    try {
+      const user = await this.userRepository.findOne({
+        where: { email },
+        select: {
+          firstNames: true,
+          lastNames: true,
+          roles: true,
+          recordStatus: true,
+          email: true,
+          gender: true,
+          password: true,
+          id: true,
+        },
+      });
 
-    if (!user) {
-      throw new UnauthorizedException(`Credential are not valid (email)`);
+      if (!user) {
+        throw new UnauthorizedException(
+          `Credenciales invalidas, verifique el correo y la contraseña.`,
+        );
+      }
+
+      if (!bcrypt.compareSync(password, user.password)) {
+        throw new UnauthorizedException(
+          `Credenciales invalidas, verifique el correo y la contraseña.`,
+        );
+      }
+
+      if (user.recordStatus === RecordStatus.Inactive) {
+        throw new UnauthorizedException(
+          `Credenciales bloqueadas, este usuario no tiene acceso.`,
+        );
+      }
+
+      const { password: _, ...userWithoutPassword } = user;
+
+      return {
+        ...userWithoutPassword,
+        token: this.getJwtToken({ id: user.id }),
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
+      this.handleDBExceptions(error);
     }
-
-    if (!bcrypt.compareSync(password, user.password)) {
-      throw new UnauthorizedException(`Credential are not valid (password)`);
-    }
-
-    return {
-      ...user,
-      token: this.getJetToken({ id: user.id }),
-    };
   }
 
+  //* Check auth status (regenerate token)
   async checkAuthStatus(user: User) {
     return {
       ...user,
-      token: this.getJetToken({ id: user.id }),
+      token: this.getJwtToken({ id: user.id }),
     };
   }
 
-  private getJetToken(payload: JwtPayload) {
+  //? PRIVATE METHODS
+  //* Sign token
+  private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
   }
 
-  private handleDBErrors(error: any): never {
-    if (error.code == '23505') {
-      throw new BadRequestException(error.detail);
+  // For future index errors or constrains with code.
+  private handleDBExceptions(error: any): never {
+    if (error.code === '23505') {
+      throw new BadRequestException(`${error.message}`);
     }
 
-    throw new InternalServerErrorException('Please check server logs');
+    this.logger.error(error);
+
+    throw new InternalServerErrorException(
+      'Sucedió un error inesperado, hable con el administrador.',
+    );
   }
 }

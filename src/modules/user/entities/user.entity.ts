@@ -1,23 +1,29 @@
 import {
-  BeforeInsert,
-  BeforeUpdate,
   Column,
   Entity,
-  JoinColumn,
   ManyToOne,
+  JoinColumn,
+  BeforeUpdate,
+  BeforeInsert,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import { RecordStatus } from '../../../common/enums/record-status.enum';
+
 @Entity({ name: 'users' })
 export class User {
+  //* General info
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('text')
-  first_name: string;
+  @Column('text', { name: 'first_names' })
+  firstNames: string;
+
+  @Column('text', { name: 'last_names' })
+  lastNames: string;
 
   @Column('text')
-  last_name: string;
+  gender: string;
 
   @Column('text', { unique: true })
   email: string;
@@ -25,27 +31,37 @@ export class User {
   @Column('text', { select: false })
   password: string;
 
-  @Column('boolean', { default: true })
-  is_active: boolean;
-
   @Column('text', { array: true, default: ['user'] })
   roles: string[];
 
   //* Info register and update date
-  @Column('timestamp', { nullable: true })
-  created_at: string | Date;
+  @Column('timestamptz', { name: 'created_at', nullable: true })
+  createdAt: Date;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn()
-  created_by: User;
+  @JoinColumn({ name: 'created_by' })
+  createdBy: User;
 
-  @Column('timestamp', { nullable: true })
-  updated_at: string | Date;
+  @Column('timestamptz', { name: 'updated_at', nullable: true })
+  updatedAt: Date;
 
   @ManyToOne(() => User, { nullable: true })
-  @JoinColumn()
-  updated_by: User;
+  @JoinColumn({ name: 'updated_by' })
+  updatedBy: User;
 
+  @Column('text', { name: 'inactivation_category', nullable: true })
+  inactivationCategory: string;
+
+  @Column('text', { name: 'inactivation_reason', nullable: true })
+  inactivationReason: string;
+
+  @Column('text', {
+    name: 'record_status',
+    default: RecordStatus.Active,
+  })
+  recordStatus: string;
+
+  //? Internal Functions
   @BeforeInsert()
   checkFieldsBeforeInsert() {
     this.email = this.email.toLowerCase().trim();

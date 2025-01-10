@@ -1,16 +1,16 @@
 import {
-  BadRequestException,
+  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  Injectable,
+  BadRequestException,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
+import { Reflector } from '@nestjs/core';
 
-import { User } from '@/modules/user/entities';
-
-import { META_ROLES } from '@/modules/auth/decorators';
+import { User } from '@/modules/user/entities/user.entity';
+import { META_ROLES } from '@/modules/auth/decorators/role-protected.decorator';
+import { getRoleNamesInSpanish } from '@/modules/auth/helpers/get-role-names-in-spanish.helper';
 
 @Injectable()
 export class UserRoleGuard implements CanActivate {
@@ -19,29 +19,29 @@ export class UserRoleGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const validRoles: string = this.reflector.get(
+    const validUserRoles: string[] = this.reflector.get(
       META_ROLES,
       context.getHandler(),
     );
 
-    if (!validRoles) return true;
-    if (validRoles.length === 0) return true;
+    if (!validUserRoles) return true;
+    if (validUserRoles.length === 0) return true;
 
     const req = context.switchToHttp().getRequest();
     const user = req.user as User;
 
     if (!user) {
-      throw new BadRequestException(`User not found`);
+      throw new BadRequestException(`Usuario no encontrado.`);
     }
 
     for (const role of user.roles) {
-      if (validRoles.includes(role)) {
+      if (validUserRoles.includes(role)) {
         return true;
       }
     }
 
     throw new ForbiddenException(
-      `User ${user.first_name}, ${user.last_name} need a valid roles ${validRoles}`,
+      `Acceso denegado: el usuario ${user.firstNames} ${user.lastNames} no posee los roles necesarios para realizar esta operación. Los roles requeridos son: ${getRoleNamesInSpanish(validUserRoles)}.`,
     );
   }
 }
