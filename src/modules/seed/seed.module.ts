@@ -15,6 +15,8 @@ import { DiscipleModule } from '@/modules/disciple/disciple.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
 import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
+import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
+import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 
 @Module({
   controllers: [SeedController],
@@ -31,6 +33,8 @@ import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
     MemberModule,
     AuthModule,
     UserModule,
+    OfferingIncomeModule,
+    OfferingExpenseModule,
     ConfigModule,
   ],
 })

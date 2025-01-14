@@ -29,7 +29,7 @@ export class CreateOfferingExpenseDto {
   })
   @IsEnum(OfferingExpenseSearchSubType)
   @IsOptional()
-  subType: string;
+  subType?: string;
 
   @ApiProperty({
     example: 100,

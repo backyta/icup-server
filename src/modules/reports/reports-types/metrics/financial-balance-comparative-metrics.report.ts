@@ -6536,7 +6536,6 @@ export const getFinancialBalanceComparativeMetricsReport = (
                             item?.church?.abbreviatedChurchName,
                             `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                             item?.subType,
-                            item?.subType,
                             `${item?.accumulatedOfferingPEN.toFixed(2)} PEN`,
                             `${item?.accumulatedOfferingUSD.toFixed(2)} USD`,
                             `${item?.accumulatedOfferingEUR.toFixed(2)} EUR`,

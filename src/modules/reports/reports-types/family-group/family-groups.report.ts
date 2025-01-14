@@ -3,7 +3,7 @@ import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { footerSection } from '@/modules/reports/sections/footer.section';
 import { headerSection } from '@/modules/reports/sections/header.section';
 
-import { ChurchServiceTimeNames } from '@/modules/church/enums/church-service-time.enum';
+import { FamilyGroupServiceTimeNames } from '@/modules/family-group/enums/family-group-service-time.enum';
 
 interface ReportOptions {
   title?: string;
@@ -51,39 +51,25 @@ export const getFamilyGroupsReport = (
         table: {
           headerRows: 1,
           widths: [
-            65,
-            'auto',
+            80,
+            '*',
+            '*',
+            75,
             60,
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
+            '*',
+            '*',
           ],
 
           body: [
             [
               {
-                text: 'Nombre',
+                text: 'Iglesia',
                 style: {
                   bold: true,
                 },
               },
               {
-                text: 'Código',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'H. Culto',
-                style: {
-                  bold: true,
-                },
-              },
-              {
-                text: 'Mbs.',
+                text: 'Supervisor / Zona',
                 style: {
                   bold: true,
                 },
@@ -95,13 +81,13 @@ export const getFamilyGroupsReport = (
                 },
               },
               {
-                text: 'Zona',
+                text: 'Nom. / Cód.',
                 style: {
                   bold: true,
                 },
               },
               {
-                text: 'Supervisor',
+                text: 'H.C / C.M',
                 style: {
                   bold: true,
                 },
@@ -119,19 +105,18 @@ export const getFamilyGroupsReport = (
                 },
               },
             ],
-            ...data.map((item) => [
-              item?.familyGroupName,
-              item?.familyGroupCode,
-              ChurchServiceTimeNames[item?.serviceTime],
-              item?.disciples.length,
+            ...data.map((item: any) => [
+            
+              `${item?.theirChurch?.abbreviatedChurchName}`,
+              `${item?.theirSupervisor?.firstNames} ${item?.theirSupervisor?.lastNames}\nZona: ${item?.theirZone?.zoneName}`,
               `${item?.theirPreacher?.firstNames} ${item?.theirPreacher?.lastNames}`,
-              `${item?.theirZone?.zoneName}`,
-              `${item?.theirSupervisor?.firstNames} ${item?.theirSupervisor?.lastNames}`,
+              `${item?.familyGroupName}\n(${item?.familyGroupCode})`,
+              `${FamilyGroupServiceTimeNames[item?.serviceTime]}\nMbs.: ${item?.disciples.length}`,
               `${item?.province}-${item?.district}-${item?.urbanSector}`,
               `${item?.address} (${item?.referenceAddress})`,
             ]),
-            ['', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', ''],
           ],
         },
       },
@@ -141,15 +126,13 @@ export const getFamilyGroupsReport = (
         table: {
           headerRows: 1,
           widths: [
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
-            'auto',
+            90,
+            '*',
+            '*',
+            75,
+            '*',
+            '*',
+            '*',
           ],
           body: [
             [
@@ -167,8 +150,6 @@ export const getFamilyGroupsReport = (
                 colSpan: 2,
                 margin: [0, 10, 0, 0],
               },
-              {},
-              {},
               {},
               {},
               {},

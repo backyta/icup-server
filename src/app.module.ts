@@ -48,10 +48,6 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
       migrations: ['dist/database/migrations/*.js'],
       migrationsRun: true,
       migrationsTableName: 'migrations',
-      // logging: true,
-      // autoLoadEntities: true,
-      //synchronize: process.env.STAGE === 'prod' ? false : true,
-      // synchronize: true,
     }),
     ThrottlerModule.forRoot([
       {

@@ -95,7 +95,7 @@ export const getOfferingExpensesReport = (
                 },
               },
               {
-                text: 'Comentarios',
+                text: 'Detalles y/o observaciones',
                 style: {
                   bold: true,
                 },

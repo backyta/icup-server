@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsOrderValue, In, Repository } from 'typeorm';
+import { And, Between, FindOptionsOrderValue, In, Repository } from 'typeorm';
 
 import { fromZonedTime } from 'date-fns-tz';
 import { endOfMonth, startOfMonth } from 'date-fns';
@@ -174,12 +174,20 @@ export class MetricsService {
         for (let i = 0; i < 14; i++) {
           sundays.push(zonedDate.toISOString().split('T')[0]);
           zonedDate.setDate(zonedDate.getUTCDate() - 7);
-        }
+        } 
+
+        const currentYear = new Date().getFullYear(); 
 
         const offeringIncome = await this.offeringIncomeRepository.find({
           where: {
             subType: OfferingIncomeSearchType.SundayService,
-            date: In(sundays),
+            date: And(
+              In(sundays),
+              Between(
+                new Date(`${currentYear}-01-01`),
+                new Date(`${currentYear}-12-31`)
+              )
+            ),
             church: church,
             recordStatus: RecordStatus.Active,
           },
@@ -740,7 +748,7 @@ export class MetricsService {
     //* Disciples analysis by zone and gender
     if (term && searchType === MetricSearchType.DisciplesByZoneAndGender) {
       const [churchId, copastorId] = term.split('&');
-
+      
       if (!allZones) {
         try {
           const church = await this.churchRepository.findOne({
@@ -763,11 +771,13 @@ export class MetricsService {
             relations: ['member', 'zones'],
           });
 
-          const zonesId = copastor?.zones?.map((zone) => zone?.id);
+          if (!copastor) return [];
 
+          const zonesId = copastor.zones.map((zone) => zone?.id);
+    
           const zones = await this.zoneRepository.find({
             where: {
-              id: In(zonesId),
+              id: In(zonesId ?? []),
               recordStatus: RecordStatus.Active,
             },
             order: { zoneName: order as FindOptionsOrderValue },
@@ -848,7 +858,7 @@ export class MetricsService {
     //* Preachers analysis by zone and gender
     if (term && searchType === MetricSearchType.PreachersByZoneAndGender) {
       const [churchId, copastorId] = term.split('&');
-
+  
       if (!allZones) {
         try {
           const church = await this.churchRepository.findOne({
@@ -870,6 +880,8 @@ export class MetricsService {
             order: { createdAt: order as FindOptionsOrderValue },
             relations: ['member', 'zones'],
           });
+
+          if (!copastor) return [];
 
           const zonesId = copastor.zones.map((zone) => zone?.id);
 
@@ -1198,6 +1210,8 @@ export class MetricsService {
             relations: ['familyGroups'],
           });
 
+          if (!zone) return [];
+
           const familyGroupsId = zone.familyGroups.map(
             (familyGroup) => familyGroup?.id,
           );
@@ -1310,6 +1324,8 @@ export class MetricsService {
             order: { createdAt: order as FindOptionsOrderValue },
             relations: ['zones'],
           });
+
+          if (!copastor) return [];
 
           const zonesId = copastor.zones.map((zone) => zone?.id);
 
@@ -1496,6 +1512,8 @@ export class MetricsService {
             ],
           });
 
+          if (!zone) return [];
+
           const timeStringToMinutes = (time: string): number => {
             const [hours, minutes] = time.split(':').map(Number);
             return hours * 60 + minutes;
@@ -1602,6 +1620,8 @@ export class MetricsService {
               'familyGroups.theirZone',
             ],
           });
+
+          if (!zone) return [];
 
           const familyGroups = zone?.familyGroups;
 
@@ -3185,8 +3205,6 @@ export class MetricsService {
     //* Others Expenses
     if (term && searchType === MetricSearchType.OtherOfferingExpenses) {
       if (isSingleMonth) {
-        console.log('xd');
-
         const [churchId, monthName, year] = term.split('&');
 
         const monthDate = new Date(`${monthName} 1, ${year}`);

@@ -17,12 +17,39 @@ interface SeedDataZones {
 
 export const dataZones: SeedDataZones = {
   zones: [
+    //* Comas
+    {
+      zoneName: 'Jerusalén',
+      district: 'Comas',
+    },
+    {
+      zoneName: 'Belén',
+      district: 'Comas',
+    },
+    {
+      zoneName: 'Hebrón',
+      district: 'Comas',
+    },
+    {
+      zoneName: 'Jericó',
+      district: 'Comas',
+    },
+    {
+      zoneName: 'Siquem',
+      district: 'Comas',
+    },
+    {
+      zoneName: 'Betel',
+      district: 'Comas',
+    },
+
+    //* Independencia
     {
       zoneName: 'Rubén',
       district: 'Independencia',
     },
     {
-      zoneName: 'Simeón',
+      zoneName: 'Dan',
       district: 'Independencia',
     },
     {
@@ -34,12 +61,38 @@ export const dataZones: SeedDataZones = {
       district: 'Independencia',
     },
     {
-      zoneName: 'Isacar',
+      zoneName: 'Gad',
       district: 'Independencia',
     },
     {
-      zoneName: 'Zabulón',
+      zoneName: 'Aser',
       district: 'Independencia',
+    },
+
+    //* Los Olivos
+    {
+      zoneName: 'Sion',
+      district: 'Los Olivos',
+    },
+    {
+      zoneName: 'Sinaí',
+      district: 'Los Olivos',
+    },
+    {
+      zoneName: 'Hermón',
+      district: 'Los Olivos',
+    },
+    {
+      zoneName: 'Jezreel',
+      district: 'Los Olivos',
+    },
+    {
+      zoneName: 'Jordán',
+      district: 'Los Olivos',
+    },
+    {
+      zoneName: 'Galilea',
+      district: 'Los Olivos',
     },
   ],
 };

@@ -1278,7 +1278,7 @@ export class ReportsService {
   //? FAMILY GROUPS
   //* GENERAL FAMILY GROUPS REPORT
   async getGeneralFamilyGroups(paginationDto: PaginationDto) {
-    const { order, churchId } = paginationDto;
+    const { order, churchId, limit } = paginationDto;
 
     try {
       const familyGroups: FamilyGroup[] =
@@ -1289,7 +1289,7 @@ export class ReportsService {
           `No se encontraron grupos familiares con estos términos de búsqueda.`,
         );
       }
-
+      
       const docDefinition = getFamilyGroupsReport({
         title: 'Reporte de Grupos Familiares',
         subTitle: 'Resultados de Búsqueda de Grupos Familiares',

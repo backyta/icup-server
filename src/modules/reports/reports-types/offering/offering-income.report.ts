@@ -58,12 +58,12 @@ export const getOfferingIncomeReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [100, 60, 50, 60, 65, 75, 60, 60, '*'],
+          widths: [85, 60, 50, 75, 65, 75, 60, 60, '*'],
 
           body: [
             [
               {
-                text: 'Tipo y sub-tipo',
+                text: 'Tipo / Sub-tipo',
                 style: {
                   bold: true,
                 },
@@ -111,7 +111,7 @@ export const getOfferingIncomeReport = (
                 },
               },
               {
-                text: 'Miembro (Tipo y Datos)',
+                text: 'Miembro (Tipo/Nom./Ap.)',
                 style: {
                   bold: true,
                 },

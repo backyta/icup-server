@@ -49,7 +49,7 @@ export const getChurchesReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [100, 75, 'auto', 60, 75, 'auto', 'auto'],
+          widths: [100, 75, 'auto', 60, 95, 'auto', 'auto'],
 
           body: [
             [

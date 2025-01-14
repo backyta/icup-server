@@ -40,9 +40,9 @@ export class SeedController {
   @Get()
   @Auth(UserRole.SuperUser)
   executeSeed(): Promise<string> {
-    if (this.configService.get('STAGE') === 'prod') {
-      throw new BadRequestException('Cannot run seed in production.');
-    }
+    // if (this.configService.get('STAGE') === 'prod') {
+    //   throw new BadRequestException('Cannot run seed in production.');
+    // }
 
     return this.seedService.runSeed();
   }

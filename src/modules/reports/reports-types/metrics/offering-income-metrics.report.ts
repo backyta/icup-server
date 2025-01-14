@@ -80,9 +80,6 @@ export const getOfferingIncomeMetricsReport = (
     offeringIncomeByIncomeAdjustmentDataResult,
   } = options;
 
-  // console.log(offeringIncomeByFamilyGroupDataResult);
-  // console.log(offeringIncomeBySundaySchoolDataResult);
-
   return {
     pageOrientation: 'landscape',
     header: headerSection({

@@ -48,18 +48,18 @@ export const getZonesReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [80, 60, '*', '*', '*', 85, 50, 50, 50],
+          widths: [100, 'auto', '*', '*', '*', '*', 45, 45, 45],
 
           body: [
             [
               {
-                text: 'Nombre',
+                text: 'Iglesia',
                 style: {
                   bold: true,
                 },
               },
               {
-                text: 'Iglesia',
+                text: 'Nombre',
                 style: {
                   bold: true,
                 },
@@ -91,25 +91,28 @@ export const getZonesReport = (
               {
                 text: 'Disc.',
                 style: {
+                  color:'green',
                   bold: true,
                 },
               },
               {
-                text: 'G. Fam.',
+                text: 'G.Fam.',
                 style: {
+                  color:'blue',
                   bold: true,
                 },
               },
               {
                 text: 'Pred.',
                 style: {
+                  color:'purple',
                   bold: true,
                 },
               },
             ],
             ...data.map((item) => [
-              item?.zoneName,
               `${item?.theirChurch?.abbreviatedChurchName}`,
+              item?.zoneName,
               `${item?.theirPastor?.firstNames} ${item?.theirPastor?.lastNames}`,
               `${item?.theirCopastor?.firstNames} ${item?.theirCopastor?.lastNames}`,
               `${item?.theirSupervisor?.firstNames} ${item?.theirSupervisor?.lastNames}`,

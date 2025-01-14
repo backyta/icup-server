@@ -220,7 +220,7 @@ export const offeringIncomeBySundaySchoolFormatter = ({
               : [],
         });
       }
-      // console.log(acc);
+
       return acc;
     }, []);
 
@@ -230,8 +230,6 @@ export const offeringIncomeBySundaySchoolFormatter = ({
     const dateB = parse(dateFormatterToDDMMYY(b.date), 'dd/MM/yy', new Date());
     return compareAsc(dateA, dateB);
   });
-
-  // console.log(resultSorted);
 
   return resultSorted;
 };

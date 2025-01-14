@@ -65,7 +65,7 @@ export const getMembersReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [100, 75, 30, 75, 80, 85, 100, '*'],
+          widths: [100, 75, 30, 'auto', 80, 95, 100, '*'],
 
           body: [
             [
@@ -126,7 +126,7 @@ export const getMembersReport = (
                 'dd/MM/yyyy',
               ),
               item?.member?.age,
-              MaritalStatusNames[item.member.maritalStatus],
+              MaritalStatusNames[item?.member?.maritalStatus],
               format(
                 new Date(addDays(item.member.conversionDate, 1)),
                 'dd/MM/yyyy',
