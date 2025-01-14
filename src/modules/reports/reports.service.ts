@@ -231,8 +231,12 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const { 'search-type': searchType, 'search-sub-type': searchSubType } =
-      searchTypeAndPaginationDto;
+    const {
+      'search-type': searchType,
+      'search-sub-type': searchSubType,
+      order,
+      churchId,
+    } = searchTypeAndPaginationDto;
 
     try {
       const churches: Church[] = await this.churchService.findByTerm(
@@ -283,7 +287,11 @@ export class ReportsService {
         description: 'iglesias',
         searchTerm: `Termino de búsqueda: ${newTerm}`,
         searchType: `Tipo de búsqueda: ${SearchTypeNames[searchType]}`,
-        searchSubType: `Sub-tipo de búsqueda: ${SearchSubTypeNames[searchSubType] ?? 'S/N'}`,
+        searchSubType: SearchSubTypeNames[searchSubType] ?? 'S/N',
+        orderSearch: RecordOrderNames[order],
+        churchName: churchId
+          ? churches[0]?.theirMainChurch?.abbreviatedChurchName
+          : undefined,
         data: churches,
       });
 

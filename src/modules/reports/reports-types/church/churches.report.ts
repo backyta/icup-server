@@ -15,6 +15,7 @@ interface ReportOptions {
   searchType?: string;
   searchSubType?: string;
   orderSearch?: string;
+  churchName?: string;
   data: Church[];
 }
 
@@ -30,6 +31,7 @@ export const getChurchesReport = (
     searchType,
     searchSubType,
     orderSearch,
+    churchName,
   } = options;
 
   return {
@@ -41,9 +43,10 @@ export const getChurchesReport = (
       searchType: searchType,
       searchSubType: searchSubType,
       orderSearch: orderSearch,
+      churchName: churchName,
     }),
     footer: footerSection,
-    pageMargins: [20, 110, 20, 60],
+    pageMargins: [20, 120, 20, 60],
     content: [
       {
         layout: 'customLayout01', // optional
