@@ -292,8 +292,8 @@ export class CopastorService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Copastor[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,

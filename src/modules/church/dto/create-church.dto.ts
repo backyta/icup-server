@@ -156,18 +156,10 @@ export class CreateChurchDto {
   theirMainChurch?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: ChurchInactivationCategory.Administrative,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(ChurchInactivationCategory)
   churchInactivationCategory?: string;
 
-  @ApiProperty({
-    example: ChurchInactivationReason.FinancialInfeasibility,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(ChurchInactivationReason)
   churchInactivationReason?: string;

@@ -246,7 +246,7 @@ export class PastorService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Pastor[]> {
     const {
-      'search-type': searchType,
+      searchType,
       limit,
       offset = 0,
       order,

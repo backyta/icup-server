@@ -144,7 +144,7 @@ export class CreateCopastorDto {
   residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Jr Pascana 123',
+    example: 'Jr Pascana 123.',
   })
   @IsString()
   @IsNotEmpty()
@@ -180,7 +180,7 @@ export class CreateCopastorDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -201,18 +201,10 @@ export class CreateCopastorDto {
   theirChurch?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: MemberInactivationCategory.PersonalChallenges,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationCategory)
   memberInactivationCategory?: string;
 
-  @ApiProperty({
-    example: MemberInactivationReason.HealthIssues,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationReason)
   memberInactivationReason?: string;

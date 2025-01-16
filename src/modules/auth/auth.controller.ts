@@ -19,14 +19,22 @@ import { AuthService } from '@/modules/auth/auth.service';
 import { LoginUserDto } from '@/modules/auth/dto/login-user.dto';
 
 @ApiTags('Auth')
+@ApiBearerAuth()
 @ApiUnauthorizedResponse({
-  description: 'Unauthorized Bearer Auth.',
-})
-@ApiBadRequestResponse({
-  description: 'Bad request.',
+  description:
+    '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description:
+    '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
+})
+@ApiBadRequestResponse({
+  description:
+    '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
+})
+@ApiForbiddenResponse({
+  description:
+    '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
 })
 @Controller('auth')
 export class AuthController {
@@ -37,21 +45,19 @@ export class AuthController {
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @HttpCode(200)
   @ApiOkResponse({
-    description: 'Successful operation',
+    description:
+      '✅ Operation Successful: The login process was completed successfully, and the response includes the authentication token and user details.',
   })
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
 
   //* Check auth status (regenerate new token)
-  @ApiBearerAuth('check-auth-status')
   @Get('check-auth-status')
   @Auth()
   @ApiOkResponse({
-    description: 'Successful operation',
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+    description:
+      '✅ Success: The authentication status of the user was successfully verified, and the response contains the relevant user details.',
   })
   @SkipThrottle()
   checkAuthStatus(@GetUser() user: User) {

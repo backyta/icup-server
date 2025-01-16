@@ -82,7 +82,7 @@ const MaintenanceAndRepairExpensesSubTypes = [
   OfferingExpenseSearchSubType.PaintingAndTouchUpsServices,
   OfferingExpenseSearchSubType.CleaningServices,
   OfferingExpenseSearchSubType.HeatingAndACSystemMaintenance,
-  OfferingExpenseSearchSubType.SoundAndLightingEquipmentMaintenance,
+  OfferingExpenseSearchSubType.SoundEquipmentMaintenance,
 ];
 const DecorationExpensesSubTypes = [
   OfferingExpenseSearchSubType.PurchaseFlowersAndPlants,

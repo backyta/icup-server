@@ -32,13 +32,13 @@ export class CreateOfferingIncomeDto {
   type: string;
 
   @ApiProperty({
-    example: OfferingIncomeCreationSubType.FamilyGroup,
+    example: OfferingIncomeCreationSubType.ChurchGround,
   })
   @IsOptional()
   subType?: string;
 
   @ApiProperty({
-    example: OfferingIncomeCreationCategory.OfferingBox,
+    example: OfferingIncomeCreationCategory.ExternalDonation,
   })
   @IsOptional()
   category?: string;
@@ -182,8 +182,8 @@ export class CreateOfferingIncomeDto {
 
   @ApiProperty({
     example: [
-      `https://res.cloudinary.com/example/image/upload/v111136172/income/offering/sunday_service/nsdhjntwknysxkkn8zfu.png`,
-      `https://res.cloudinary.com/example/image/upload/v111125736/income/offering/sunday_service/nsdhjntwknysxkkn8zfu.png`,
+      `https://res.cloudinary.com/example/image/upload/v111136172/income/offering/church_ground/nsdhjntwknysxkkn8zfu.png`,
+      `https://res.cloudinary.com/example/image/upload/v111125736/income/offering/church_ground/nsdhjntwknysxkkn8zfu.png`,
     ],
   })
   @IsArray()
@@ -205,7 +205,7 @@ export class CreateOfferingIncomeDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;

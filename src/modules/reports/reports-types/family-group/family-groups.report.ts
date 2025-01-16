@@ -50,15 +50,7 @@ export const getFamilyGroupsReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [
-            80,
-            '*',
-            '*',
-            75,
-            60,
-            '*',
-            '*',
-          ],
+          widths: [80, '*', '*', 75, 60, '*', '*'],
 
           body: [
             [
@@ -106,7 +98,6 @@ export const getFamilyGroupsReport = (
               },
             ],
             ...data.map((item: any) => [
-            
               `${item?.theirChurch?.abbreviatedChurchName}`,
               `${item?.theirSupervisor?.firstNames} ${item?.theirSupervisor?.lastNames}\nZona: ${item?.theirZone?.zoneName}`,
               `${item?.theirPreacher?.firstNames} ${item?.theirPreacher?.lastNames}`,
@@ -125,15 +116,7 @@ export const getFamilyGroupsReport = (
         layout: 'noBorders',
         table: {
           headerRows: 1,
-          widths: [
-            90,
-            '*',
-            '*',
-            75,
-            '*',
-            '*',
-            '*',
-          ],
+          widths: [90, '*', '*', 75, '*', '*', '*'],
           body: [
             [
               {

@@ -9,7 +9,7 @@ export enum PastorSearchType {
   MaritalStatus = 'marital_status',
   ResidenceCountry = 'residence_country',
   ResidenceDepartment = 'residence_department',
-  ResidenceProvince = 'residence+province',
+  ResidenceProvince = 'residence_province',
   ResidenceDistrict = 'residence_district',
   ResidenceUrbanSector = 'residence_urban_sector',
   ResidenceAddress = 'residence_address',

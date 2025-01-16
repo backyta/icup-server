@@ -72,7 +72,7 @@ export class CreateFamilyGroupDto {
   urbanSector: string;
 
   @ApiProperty({
-    example: 'Jr. Central 123',
+    example: 'Jr. Central 123.',
   })
   @IsString()
   @IsNotEmpty()
@@ -81,7 +81,7 @@ export class CreateFamilyGroupDto {
   address: string;
 
   @ApiProperty({
-    example: 'Cerca del parque central',
+    example: 'Cerca del parque central.',
   })
   @IsString()
   @IsNotEmpty()
@@ -95,7 +95,7 @@ export class CreateFamilyGroupDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -120,18 +120,10 @@ export class CreateFamilyGroupDto {
   theirZone?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: FamilyGroupInactivationCategory.HostUnavailability,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(FamilyGroupInactivationCategory)
   familyGroupInactivationCategory?: string;
 
-  @ApiProperty({
-    example: FamilyGroupInactivationReason.HostFamilyDecision,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(FamilyGroupInactivationReason)
   familyGroupInactivationReason?: string;

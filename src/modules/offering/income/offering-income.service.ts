@@ -1020,8 +1020,8 @@ export class OfferingIncomeService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<OfferingIncome[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,

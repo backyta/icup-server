@@ -399,8 +399,8 @@ export class SupervisorService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Supervisor[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,

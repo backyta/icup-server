@@ -2,7 +2,7 @@ export enum ZoneInactivationCategory {
   AdministrativeChanges = 'administrative_changes',
   LeadershipIssues = 'leadership_issues',
   LackOfActivityOrCommitment = 'lack_of_activity_or_commitment',
-  GroupFamilyRelatedReasons = 'group_family_related_reasons',
+  FamilyGroupsRelatedReasons = 'family_groups_related_reasons',
   ExternalFactors = 'external_factors',
   UnavoidableCircumstances = 'unavoidable_circumstances',
 }
@@ -17,7 +17,7 @@ export const ZoneInactivationCategoryNames: Record<
     'Razones por problemas de liderazgo',
   [ZoneInactivationCategory.LackOfActivityOrCommitment]:
     'Razones por falta de actividad o compromiso',
-  [ZoneInactivationCategory.GroupFamilyRelatedReasons]:
+  [ZoneInactivationCategory.FamilyGroupsRelatedReasons]:
     'Razones relacionadas con grupos familiares',
   [ZoneInactivationCategory.ExternalFactors]: 'Razones por factores externos',
   [ZoneInactivationCategory.UnavoidableCircumstances]:

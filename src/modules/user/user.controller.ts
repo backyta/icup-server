@@ -20,6 +20,7 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiInternalServerErrorResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 
@@ -36,17 +37,25 @@ import { InactivateUserDto } from '@/modules/user/dto/inactivate-user.dto';
 
 import { User } from '@/modules/user/entities/user.entity';
 import { UserService } from '@/modules/user/user.service';
+import { UserSearchType } from './enums/user-search-type.enum';
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
-  description: 'Unauthorized Bearer Auth.',
+  description:
+    '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description:
+    '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
 })
 @ApiBadRequestResponse({
-  description: 'Bad request.',
+  description:
+    '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
+})
+@ApiForbiddenResponse({
+  description:
+    '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
 })
 @SkipThrottle()
 @Controller('users')
@@ -58,10 +67,8 @@ export class UserController {
   @Post()
   @Auth(UserRole.SuperUser)
   @ApiCreatedResponse({
-    description: 'User has been successfully created.',
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+    description:
+      '✅ Successfully created: The user has been successfully created and added to the system.',
   })
   registerUser(@Body() createUserDto: CreateUserDto, @GetUser() user: User) {
     return this.userService.create(createUserDto, user);
@@ -71,10 +78,12 @@ export class UserController {
   @Get()
   @Auth(UserRole.SuperUser)
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
   })
   @ApiNotFoundResponse({
-    description: 'Not found resource.',
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
   })
   findAll(@Query() paginationDto: PaginationDto): Promise<User[]> {
     return this.userService.findAll(paginationDto);
@@ -83,15 +92,25 @@ export class UserController {
   //* FIND BY TERM
   @Get(':term')
   @Auth()
-  @ApiParam({
-    name: 'term',
-    description: 'Could be names, last names, roles, gender, etc.',
-  })
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
   })
   @ApiNotFoundResponse({
-    description: 'Not found resource.',
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last names birth date, gender, country, department, address, record status, etc.',
+    example: 'Rolando Martin',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: UserSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: UserSearchType.FirstNames,
   })
   findByTerm(
     @Param('term') term: string,
@@ -104,10 +123,18 @@ export class UserController {
   @Patch(':id')
   @Auth(UserRole.SuperUser)
   @ApiOkResponse({
-    description: 'Successful operation',
+    description:
+      '✅ Successfully completed: The resource was successfully updated. The updated data is returned in the response.',
   })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the user to be updated. This ID is used to find the existing record to apply the update.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
   })
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -121,10 +148,18 @@ export class UserController {
   @Delete(':id')
   @Auth(UserRole.SuperUser)
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The resource was successfully deleted. No content is returned.',
   })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the user to be inactivated. This ID is used to find the existing record to apply the inactivated.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
   })
   remove(
     @Param('id', ParseUUIDPipe) id: string,

@@ -58,10 +58,16 @@ export const getOfferingIncomeReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [85, 60, 50, 75, 65, 75, 60, 60, '*'],
+          widths: [85, 85, 60, 40, 65, 75, 60, 60, '*'],
 
           body: [
             [
+              {
+                text: 'Iglesia',
+                style: {
+                  bold: true,
+                },
+              },
               {
                 text: 'Tipo / Sub-tipo',
                 style: {
@@ -93,12 +99,6 @@ export const getOfferingIncomeReport = (
                 },
               },
               {
-                text: 'Iglesia',
-                style: {
-                  bold: true,
-                },
-              },
-              {
                 text: 'G. Familiar',
                 style: {
                   bold: true,
@@ -118,6 +118,7 @@ export const getOfferingIncomeReport = (
               },
             ],
             ...data.map((item) => [
+              `${item?.church?.abbreviatedChurchName ?? '-'}`,
               item?.subType
                 ? `${OfferingIncomeCreationTypeNames[item?.type]} - ${OfferingIncomeCreationSubTypeNames[item?.subType] ?? ''}`
                 : `${OfferingIncomeCreationTypeNames[item?.type]} `,
@@ -125,7 +126,6 @@ export const getOfferingIncomeReport = (
               OfferingIncomeCreationShiftTypeNames[item?.shift] ?? '-',
               `${item?.amount} ${item?.currency}`,
               format(new Date(addDays(item.date, 1)), 'dd/MM/yyyy'),
-              `${item?.church?.abbreviatedChurchName ?? '-'}`,
               `${item?.familyGroup?.familyGroupCode ?? '-'}`,
               `${item?.zone?.zoneName ?? '-'}`,
               `${MemberTypeNames[item?.memberType] ?? '-'}

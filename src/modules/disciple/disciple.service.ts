@@ -372,8 +372,8 @@ export class DiscipleService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Disciple[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,

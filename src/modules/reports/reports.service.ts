@@ -231,12 +231,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const churches: Church[] = await this.churchService.findByTerm(
@@ -353,12 +349,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const pastors: Pastor[] = await this.pastorService.findByTerm(
@@ -526,12 +518,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const copastors: Copastor[] = await this.copastorService.findByTerm(
@@ -699,12 +687,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const supervisors: Supervisor[] = await this.supervisorService.findByTerm(
@@ -872,12 +856,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const preachers: Preacher[] = await this.preacherService.findByTerm(
@@ -1045,12 +1025,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const disciples: Disciple[] = await this.discipleService.findByTerm(
@@ -1217,12 +1193,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const zones: Zone[] = await this.zoneService.findByTerm(
@@ -1286,7 +1258,7 @@ export class ReportsService {
   //? FAMILY GROUPS
   //* GENERAL FAMILY GROUPS REPORT
   async getGeneralFamilyGroups(paginationDto: PaginationDto) {
-    const { order, churchId, limit } = paginationDto;
+    const { order, churchId } = paginationDto;
 
     try {
       const familyGroups: FamilyGroup[] =
@@ -1297,7 +1269,7 @@ export class ReportsService {
           `No se encontraron grupos familiares con estos términos de búsqueda.`,
         );
       }
-      
+
       const docDefinition = getFamilyGroupsReport({
         title: 'Reporte de Grupos Familiares',
         subTitle: 'Resultados de Búsqueda de Grupos Familiares',
@@ -1326,12 +1298,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const familyGroups: FamilyGroup[] =
@@ -1436,12 +1404,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const offeringIncome: OfferingIncome[] =
@@ -1693,12 +1657,8 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-      churchId,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order, churchId } =
+      searchTypeAndPaginationDto;
 
     try {
       const offeringExpenses: OfferingExpense[] =
@@ -1833,11 +1793,7 @@ export class ReportsService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ) {
-    const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
-      order,
-    } = searchTypeAndPaginationDto;
+    const { searchType, searchSubType, order } = searchTypeAndPaginationDto;
 
     try {
       const users: User[] = await this.userService.findByTerm(
@@ -1950,7 +1906,7 @@ export class ReportsService {
       ) {
         membersFluctuationByYearDataResult =
           await this.metricsService.findByTerm(`${churchId}&${year}`, {
-            'search-type': MetricSearchType.MembersFluctuationByYear,
+            searchType: MetricSearchType.MembersFluctuationByYear,
           });
       }
 
@@ -1960,7 +1916,7 @@ export class ReportsService {
         membersByBirthMonthDataResult = await this.metricsService.findByTerm(
           churchId,
           {
-            'search-type': MetricSearchType.MembersByBirthMonth,
+            searchType: MetricSearchType.MembersByBirthMonth,
           },
         );
       }
@@ -1971,7 +1927,7 @@ export class ReportsService {
         membersByCategoryDataResult = await this.metricsService.findByTerm(
           churchId,
           {
-            'search-type': MetricSearchType.MembersByCategory,
+            searchType: MetricSearchType.MembersByCategory,
           },
         );
       }
@@ -1983,7 +1939,7 @@ export class ReportsService {
       ) {
         membersByCategoryAndGenderDataResult =
           await this.metricsService.findByTerm(churchId, {
-            'search-type': MetricSearchType.MembersByCategoryAndGender,
+            searchType: MetricSearchType.MembersByCategoryAndGender,
           });
       }
 
@@ -1993,7 +1949,7 @@ export class ReportsService {
         membersByRoleAndGenderDataResult = await this.metricsService.findByTerm(
           churchId,
           {
-            'search-type': MetricSearchType.MembersByRoleAndGender,
+            searchType: MetricSearchType.MembersByRoleAndGender,
           },
         );
       }
@@ -2004,7 +1960,7 @@ export class ReportsService {
         membersByMaritalStatusDataResult = await this.metricsService.findByTerm(
           churchId,
           {
-            'search-type': MetricSearchType.MembersByMaritalStatus,
+            searchType: MetricSearchType.MembersByMaritalStatus,
           },
         );
       }
@@ -2016,7 +1972,7 @@ export class ReportsService {
       ) {
         disciplesByZoneAndGenderDataResult =
           await this.metricsService.findByTerm(`${churchId}&{''}`, {
-            'search-type': MetricSearchType.DisciplesByZoneAndGender,
+            searchType: MetricSearchType.DisciplesByZoneAndGender,
             allZones: true,
           });
       }
@@ -2028,7 +1984,7 @@ export class ReportsService {
       ) {
         preachersByZoneAndGenderDataResult =
           await this.metricsService.findByTerm(`${churchId}&{''}`, {
-            'search-type': MetricSearchType.PreachersByZoneAndGender,
+            searchType: MetricSearchType.PreachersByZoneAndGender,
             allZones: true,
           });
       }
@@ -2040,7 +1996,7 @@ export class ReportsService {
       ) {
         membersByDistrictAndGenderDataResult =
           await this.metricsService.findByTerm(churchId, {
-            'search-type': MetricSearchType.MembersByDistrictAndGender,
+            searchType: MetricSearchType.MembersByDistrictAndGender,
           });
       }
 
@@ -2050,7 +2006,7 @@ export class ReportsService {
         membersByRecordStatusDataResult = await this.metricsService.findByTerm(
           churchId,
           {
-            'search-type': MetricSearchType.MembersByRecordStatus,
+            searchType: MetricSearchType.MembersByRecordStatus,
           },
         );
       }
@@ -2120,7 +2076,7 @@ export class ReportsService {
       ) {
         familyGroupsFluctuationByYearDataResult =
           await this.metricsService.findByTerm(`${churchId}&${year}`, {
-            'search-type': MetricSearchType.FamilyGroupsFluctuationByYear,
+            searchType: MetricSearchType.FamilyGroupsFluctuationByYear,
           });
       }
 
@@ -2130,7 +2086,7 @@ export class ReportsService {
         familyGroupsByZoneDataResult = await this.metricsService.findByTerm(
           `${churchId}&{''}`,
           {
-            'search-type': MetricSearchType.FamilyGroupsByZone,
+            searchType: MetricSearchType.FamilyGroupsByZone,
             allFamilyGroups: true,
             order: 'ASC',
           },
@@ -2146,7 +2102,7 @@ export class ReportsService {
       ) {
         familyGroupsByCopastorAndZoneDataResult =
           await this.metricsService.findByTerm(`${churchId}&{''}`, {
-            'search-type': MetricSearchType.FamilyGroupsByCopastorAndZone,
+            searchType: MetricSearchType.FamilyGroupsByCopastorAndZone,
             allZones: true,
             order: 'DESC',
           });
@@ -2158,7 +2114,7 @@ export class ReportsService {
         familyGroupsByDistrictDataResult = await this.metricsService.findByTerm(
           `${churchId}&${''}`,
           {
-            'search-type': MetricSearchType.FamilyGroupsByDistrict,
+            searchType: MetricSearchType.FamilyGroupsByDistrict,
             allDistricts: true,
             order: 'DESC',
           },
@@ -2172,7 +2128,7 @@ export class ReportsService {
       ) {
         familyGroupsByServiceTimeDataResult =
           await this.metricsService.findByTerm(`${churchId}&${''}`, {
-            'search-type': MetricSearchType.FamilyGroupsByServiceTime,
+            searchType: MetricSearchType.FamilyGroupsByServiceTime,
             allZones: true,
             order: 'DESC',
           });
@@ -2185,7 +2141,7 @@ export class ReportsService {
       ) {
         familyGroupsByRecordStatusDataResult =
           await this.metricsService.findByTerm(`${churchId}&${''}`, {
-            'search-type': MetricSearchType.FamilyGroupsByRecordStatus,
+            searchType: MetricSearchType.FamilyGroupsByRecordStatus,
             allZones: true,
           });
       }
@@ -2255,7 +2211,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeBySundayService,
+              searchType: MetricSearchType.OfferingIncomeBySundayService,
               isSingleMonth: false,
             },
           );
@@ -2272,7 +2228,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeByFamilyGroup,
+              searchType: MetricSearchType.OfferingIncomeByFamilyGroup,
               isSingleMonth: false,
             },
           );
@@ -2289,7 +2245,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeBySundaySchool,
+              searchType: MetricSearchType.OfferingIncomeBySundaySchool,
               isSingleMonth: false,
             },
           );
@@ -2306,7 +2262,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeByUnitedService,
+              searchType: MetricSearchType.OfferingIncomeByUnitedService,
               isSingleMonth: false,
             },
           );
@@ -2323,7 +2279,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeByFastingAndVigil,
+              searchType: MetricSearchType.OfferingIncomeByFastingAndVigil,
               isSingleMonth: false,
             },
           );
@@ -2340,7 +2296,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeByYouthService,
+              searchType: MetricSearchType.OfferingIncomeByYouthService,
               isSingleMonth: false,
             },
           );
@@ -2357,7 +2313,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeBySpecialOffering,
+              searchType: MetricSearchType.OfferingIncomeBySpecialOffering,
               isSingleMonth: false,
             },
           );
@@ -2374,7 +2330,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeByChurchGround,
+              searchType: MetricSearchType.OfferingIncomeByChurchGround,
               isSingleMonth: false,
             },
           );
@@ -2389,7 +2345,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeByActivities,
+              searchType: MetricSearchType.OfferingIncomeByActivities,
               isSingleMonth: false,
             },
           );
@@ -2404,7 +2360,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingIncomeAdjustment,
+              searchType: MetricSearchType.OfferingIncomeAdjustment,
               isSingleMonth: false,
             },
           );
@@ -2485,7 +2441,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OperationalOfferingExpenses,
+              searchType: MetricSearchType.OperationalOfferingExpenses,
               isSingleMonth: false,
             },
           );
@@ -2502,8 +2458,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.MaintenanceAndRepairOfferingExpenses,
+              searchType: MetricSearchType.MaintenanceAndRepairOfferingExpenses,
               isSingleMonth: false,
             },
           );
@@ -2518,7 +2473,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.DecorationOfferingExpenses,
+              searchType: MetricSearchType.DecorationOfferingExpenses,
               isSingleMonth: false,
             },
           );
@@ -2535,7 +2490,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
+              searchType:
                 MetricSearchType.EquipmentAndTechnologyOfferingExpenses,
               isSingleMonth: false,
             },
@@ -2551,7 +2506,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.SuppliesOfferingExpenses,
+              searchType: MetricSearchType.SuppliesOfferingExpenses,
               isSingleMonth: false,
             },
           );
@@ -2568,7 +2523,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.PlaningEventsOfferingExpenses,
+              searchType: MetricSearchType.PlaningEventsOfferingExpenses,
               isSingleMonth: false,
             },
           );
@@ -2580,7 +2535,7 @@ export class ReportsService {
         othersOfferingExpensesDataResult = await this.metricsService.findByTerm(
           `${churchId}&${startMonth}&${endMonth}&${year}`,
           {
-            'search-type': MetricSearchType.OtherOfferingExpenses,
+            searchType: MetricSearchType.OtherOfferingExpenses,
             isSingleMonth: false,
           },
         );
@@ -2595,7 +2550,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.OfferingExpensesAdjustment,
+              searchType: MetricSearchType.OfferingExpensesAdjustment,
               isSingleMonth: false,
             },
           );
@@ -2674,8 +2629,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${CurrencyType.PEN}&${year}`,
             {
-              'search-type':
-                MetricSearchType.IncomeAndExpensesComparativeByYear,
+              searchType: MetricSearchType.IncomeAndExpensesComparativeByYear,
             },
           );
       }
@@ -2691,8 +2645,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${CurrencyType.USD}&${year}`,
             {
-              'search-type':
-                MetricSearchType.IncomeAndExpensesComparativeByYear,
+              searchType: MetricSearchType.IncomeAndExpensesComparativeByYear,
             },
           );
       }
@@ -2708,8 +2661,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${CurrencyType.EUR}&${year}`,
             {
-              'search-type':
-                MetricSearchType.IncomeAndExpensesComparativeByYear,
+              searchType: MetricSearchType.IncomeAndExpensesComparativeByYear,
             },
           );
       }
@@ -2725,7 +2677,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type': MetricSearchType.GeneralComparativeOfferingIncome,
+              searchType: MetricSearchType.GeneralComparativeOfferingIncome,
               order: RecordOrder.Ascending,
             },
           );
@@ -2743,7 +2695,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.FamilyGroup}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2760,7 +2712,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.SundayService}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2777,7 +2729,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.SundaySchool}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2794,7 +2746,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.GeneralFasting}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2811,7 +2763,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.GeneralVigil}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2828,7 +2780,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.ZonalVigil}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2845,7 +2797,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.ZonalFasting}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2862,7 +2814,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.YouthService}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2879,7 +2831,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.UnitedService}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2896,7 +2848,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.Special}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2913,7 +2865,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.Activities}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2930,7 +2882,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationSubType.ChurchGround}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2947,7 +2899,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingIncomeCreationType.IncomeAdjustment}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingIncomeByType,
+              searchType: MetricSearchType.ComparativeOfferingIncomeByType,
               order: RecordOrder.Descending,
             },
           );
@@ -2964,8 +2916,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.GeneralComparativeOfferingExpenses,
+              searchType: MetricSearchType.GeneralComparativeOfferingExpenses,
               order: RecordOrder.Ascending,
             },
           );
@@ -2983,7 +2934,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.OperationalExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3000,7 +2951,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.MaintenanceAndRepairExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3017,7 +2968,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.DecorationExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3034,7 +2985,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.EquipmentAndTechnologyExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3051,7 +3002,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.SuppliesExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3068,7 +3019,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.PlaningEventsExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3085,7 +3036,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.OtherExpenses}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3102,7 +3053,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.ExpensesAdjustment}&${year}`,
             {
-              'search-type': MetricSearchType.ComparativeOfferingExpensesByType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesByType,
               order: RecordOrder.Descending,
             },
           );
@@ -3120,8 +3071,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.OperationalExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );
@@ -3138,8 +3088,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.MaintenanceAndRepairExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );
@@ -3156,8 +3105,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.DecorationExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );
@@ -3174,8 +3122,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.EquipmentAndTechnologyExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );
@@ -3192,8 +3139,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.SuppliesExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );
@@ -3210,8 +3156,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.PlaningEventsExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );
@@ -3228,8 +3173,7 @@ export class ReportsService {
           await this.metricsService.findByTerm(
             `${churchId}&${OfferingExpenseSearchType.OtherExpenses}&${startMonth}&${endMonth}&${year}`,
             {
-              'search-type':
-                MetricSearchType.ComparativeOfferingExpensesBySubType,
+              searchType: MetricSearchType.ComparativeOfferingExpensesBySubType,
               order: RecordOrder.Descending,
             },
           );

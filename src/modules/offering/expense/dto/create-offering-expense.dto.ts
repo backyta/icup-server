@@ -82,7 +82,7 @@ export class CreateOfferingExpenseDto {
   })
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;

@@ -13,8 +13,10 @@ export enum OfferingExpenseSearchSubType {
   PaintingAndTouchUpsServices = 'painting_and_touch_ups_services',
   CleaningServices = 'cleaning_services',
   HeatingAndACSystemMaintenance = 'heating_and_ac_system_maintenance',
-  SoundAndLightingEquipmentMaintenance = 'sound_and_lighting_equipment_maintenance',
-  SoundAndLightingEquipmentRepairs = 'sound_and_lighting_equipment_repairs',
+  SoundEquipmentMaintenance = 'sound_equipment_maintenance',
+  LightingEquipmentMaintenance = 'lighting_equipment_maintenance',
+  LightingEquipmentRepairs = 'lighting_equipment_repairs',
+  SoundEquipmentRepairs = 'sound_equipment_repairs',
   GardenAndExteriorMaintenance = 'garden_and_exterior_maintenance',
   GeneralEquipmentRepairs = 'general_equipment_repairs',
   GeneralEquipmentMaintenance = 'general_equipment_maintenance',
@@ -40,6 +42,7 @@ export enum OfferingExpenseSearchSubType {
   LightingEquipment = 'lighting_equipment',
   SecurityEquipment = 'security_equipment',
   ComputerEquipment = 'computer_equipment',
+  ConstructionEquipment = 'construction_equipment',
   OfficeEquipment = 'office_equipment',
   KitchenEquipment = 'kitchen_equipment',
   CleaningEquipment = 'cleaning_equipment',
@@ -58,6 +61,13 @@ export enum OfferingExpenseSearchSubType {
   CleaningMaterials = 'cleaning_materials',
   PackagingMaterials = 'packaging_and_storage_materials',
   SundaySchoolMaterials = 'sunday_school_educational_materials',
+  RenovationMaterials = 'renovation_materials',
+  PaintingSupplies = 'painting_supplies',
+  ElectricalSupplies = 'electrical_supplies',
+  ConstructionTools = 'construction_tools',
+  AudioVisualSupplies = 'audio_visual_supplies',
+  SafetyEquipment = 'safety_equipment',
+  FirstAidSupplies = 'first_aid_supplies',
 
   //* Planing Events Expenses
   AdvertisingAndEventPromotion = 'advertising_and_event_promotion',
@@ -108,8 +118,10 @@ export const OfferingExpenseSearchSubTypeNames: Record<
   [OfferingExpenseSearchSubType.CleaningServices]: 'Servicios de limpieza',
   [OfferingExpenseSearchSubType.HeatingAndACSystemMaintenance]:
     'Mantenimiento de SC y AC',
-  [OfferingExpenseSearchSubType.SoundAndLightingEquipmentMaintenance]:
-    'Mant. Equipos de sonido e iluminación',
+  [OfferingExpenseSearchSubType.SoundEquipmentMaintenance]:
+    'Mant. Equipos de sonido',
+  [OfferingExpenseSearchSubType.LightingEquipmentMaintenance]:
+    'Mant. Equipos de iluminación',
   [OfferingExpenseSearchSubType.GardenAndExteriorMaintenance]:
     'Mant. Jardines y exteriores',
   [OfferingExpenseSearchSubType.FurnitureRepairAndMaintenance]: 'Mant. Muebles',
@@ -123,8 +135,10 @@ export const OfferingExpenseSearchSubTypeNames: Record<
     'Rep. Techo y estructuras',
   [OfferingExpenseSearchSubType.DoorAndWindowRepairs]:
     'Rep. Puertas y ventanas',
-  [OfferingExpenseSearchSubType.SoundAndLightingEquipmentRepairs]:
-    'Rep. Equipos de sonido e iluminación',
+  [OfferingExpenseSearchSubType.SoundEquipmentRepairs]:
+    'Rep. Equipos de sonido',
+  [OfferingExpenseSearchSubType.LightingEquipmentRepairs]:
+    'Rep. Equipos de iluminación',
 
   // Decoration Expenses
   [OfferingExpenseSearchSubType.PurchaseFlowersAndPlants]:
@@ -152,6 +166,8 @@ export const OfferingExpenseSearchSubTypeNames: Record<
   [OfferingExpenseSearchSubType.SecurityEquipment]: 'Equipos de seguridad',
   [OfferingExpenseSearchSubType.OfficeEquipment]: 'Equipos de oficina',
   [OfferingExpenseSearchSubType.ComputerEquipment]: 'Equipos informáticos',
+  [OfferingExpenseSearchSubType.ConstructionEquipment]:
+    'Equipos de construcción',
   [OfferingExpenseSearchSubType.KitchenEquipment]: 'Equipos de cocina',
   [OfferingExpenseSearchSubType.CleaningEquipment]: 'Equipos de limpieza',
   [OfferingExpenseSearchSubType.AudioVideoRecordingEquipment]:
@@ -174,6 +190,18 @@ export const OfferingExpenseSearchSubTypeNames: Record<
     'Materiales de almacenamiento',
   [OfferingExpenseSearchSubType.SundaySchoolMaterials]:
     'Material educativo (Esc. Dom.)',
+  [OfferingExpenseSearchSubType.RenovationMaterials]: 'Repuestos en general',
+  [OfferingExpenseSearchSubType.PaintingSupplies]:
+    'Utensilios y materiales de pintura',
+  [OfferingExpenseSearchSubType.ElectricalSupplies]:
+    'Materiales de electricidad',
+  [OfferingExpenseSearchSubType.ConstructionTools]:
+    'Herramientas de construcción',
+  [OfferingExpenseSearchSubType.AudioVisualSupplies]:
+    'Utensilios de audio y video ',
+  [OfferingExpenseSearchSubType.SafetyEquipment]: 'Utensilios de seguridad.',
+  [OfferingExpenseSearchSubType.FirstAidSupplies]:
+    'Insumos y utensilios de primeros auxilios',
 
   // Planing Events Expenses
   [OfferingExpenseSearchSubType.AdvertisingAndEventPromotion]:

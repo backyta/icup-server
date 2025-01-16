@@ -6,16 +6,20 @@ import { ZoneInactivationCategory } from '@/modules/zone/enums/zone-inactivation
 
 export class InactivateZoneDto {
   @ApiProperty({
-    example: ZoneInactivationCategory.GroupFamilyRelatedReasons,
-    description: 'Member inactivation category.',
+    enum: ZoneInactivationCategory,
+    example: ZoneInactivationCategory.FamilyGroupsRelatedReasons,
+    description:
+      'The category that defines the reason for the zone inactivation, such as administrative changes, leadership issues, or other external factors.',
   })
   @IsNotEmpty()
   @IsEnum(ZoneInactivationCategory)
   zoneInactivationCategory: string;
 
   @ApiProperty({
-    example: ZoneInactivationReason.FamilyGroupRelocation,
-    description: 'Reason for member removal.',
+    enum: ZoneInactivationReason,
+    example: ZoneInactivationReason.FamilyGroupsRelocation,
+    description:
+      'The specific reason for the removal or inactivation of a zone, such as structural reorganization, supervisor resignation, or other external factors.',
   })
   @IsNotEmpty()
   @IsEnum(ZoneInactivationReason)

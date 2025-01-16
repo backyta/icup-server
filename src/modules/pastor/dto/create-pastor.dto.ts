@@ -14,8 +14,8 @@ import { Gender } from '@/common/enums/gender.enum';
 import { MemberRole } from '@/common/enums/member-role.enum';
 import { RecordStatus } from '@/common/enums/record-status.enum';
 import { MaritalStatus } from '@/common/enums/marital-status.enum';
-import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
 import { MemberInactivationReason } from '@/common/enums/member-inactivation-reason.enum';
+import { MemberInactivationCategory } from '@/common/enums/member-inactivation-category.enum';
 
 export class CreatePastorDto {
   //* General and Personal info
@@ -144,7 +144,7 @@ export class CreatePastorDto {
   residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Av. Central 123',
+    example: 'Av. Central 123.',
   })
   @IsString()
   @IsNotEmpty()
@@ -153,7 +153,7 @@ export class CreatePastorDto {
   residenceAddress: string;
 
   @ApiProperty({
-    example: 'A 2 cuadras al colegio',
+    example: 'A 2 cuadras al colegio Mariano Melgar.',
   })
   @IsString()
   @IsNotEmpty()
@@ -179,7 +179,7 @@ export class CreatePastorDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -193,18 +193,10 @@ export class CreatePastorDto {
   theirChurch?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: MemberInactivationCategory.PersonalChallenges,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationCategory)
   memberInactivationCategory?: string;
 
-  @ApiProperty({
-    example: MemberInactivationReason.HealthIssues,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationReason)
   memberInactivationReason?: string;

@@ -232,12 +232,7 @@ export class ChurchService {
     term: string,
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Church[]> {
-    const {
-      'search-type': searchType,
-      limit,
-      offset = 0,
-      order,
-    } = searchTypeAndPaginationDto;
+    const { searchType, limit, offset = 0, order } = searchTypeAndPaginationDto;
 
     if (!term) {
       throw new BadRequestException(`El termino de búsqueda es requerido.`);

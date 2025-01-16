@@ -11,7 +11,12 @@ import { SkipThrottle } from '@nestjs/throttler';
 
 import {
   ApiTags,
+  ApiParam,
+  ApiQuery,
+  ApiProduces,
   ApiBearerAuth,
+  ApiOkResponse,
+  ApiForbiddenResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiInternalServerErrorResponse,
@@ -25,25 +30,214 @@ import { Auth } from '@/modules/auth/decorators/auth.decorator';
 
 import { ReportsService } from '@/modules/reports/reports.service';
 
-@ApiTags('Reportes')
+import { UserSearchType } from '@/modules/user/enums/user-search-type.enum';
+import { ZoneSearchType } from '@/modules/zone/enums/zone-search-type.enum';
+import { ChurchSearchType } from '@/modules/church/enums/church-search-type.enum';
+import { PastorSearchType } from '@/modules/pastor/enums/pastor-search-type.enum';
+import { ZoneSearchSubType } from '@/modules/zone/enums/zone-search-sub-type.enum';
+import { PreacherSearchType } from '@/modules/preacher/enums/preacher-search-type.enum';
+import { CopastorSearchType } from '@/modules/copastor/enums/copastor-search-type.enum';
+import { DiscipleSearchType } from '@/modules/disciple/enums/disciple-search-type.enum';
+import { SupervisorSearchType } from '@/modules/supervisor/enums/supervisor-search-type.enum';
+import { CopastorSearchSubType } from '@/modules/copastor/enums/copastor-search-sub-type.enum';
+import { DiscipleSearchSubType } from '@/modules/disciple/enums/disciple-search-sub-type.enum';
+import { PreacherSearchSubType } from '@/modules/preacher/enums/preacher-search-sub-type.enum';
+import { FamilyGroupSearchType } from '@/modules/family-group/enums/family-group-search-type.enum';
+import { SupervisorSearchSubType } from '@/modules/supervisor/enums/supervisor-search-sub-type.num';
+import { FamilyGroupSearchSubType } from '@/modules/family-group/enums/family-group-search-sub-type.enum';
+import { OfferingIncomeSearchType } from '@/modules/offering/income/enums/offering-income-search-type.enum';
+import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
+import { OfferingIncomeSearchSubType } from '@/modules/offering/income/enums/offering-income-search-sub-type.enum';
+import { OfferingExpenseSearchSubType } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
+import PdfPrinter from 'pdfmake';
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
+
+@ApiTags('Reports')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
-  description: 'Unauthorized Bearer Auth.',
+  description:
+    '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description:
+    '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
 })
 @ApiBadRequestResponse({
-  description: 'Bad request.',
+  description:
+    '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
+})
+@ApiForbiddenResponse({
+  description:
+    '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
 })
 @SkipThrottle()
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+  //* BOLETAS DE DEPOSITO
+  @Get('generate')
+  async generateReceipt(@Res() response: Response) {
+    // Define the printer fonts
+    const fonts = {
+      Roboto: {
+        normal: 'fonts/Roboto-Regular.ttf',
+        bold: 'fonts/Roboto-Medium.ttf',
+        italics: 'fonts/Roboto-Italic.ttf',
+        bolditalics: 'fonts/Roboto-MediumItalic.ttf',
+      },
+    };
+
+    // Initialize the printer
+    const printer = new PdfPrinter(fonts);
+
+    // Define the document content
+    const docDefinition: TDocumentDefinitions = {
+      pageSize: { width: 302, height: 'auto' }, // 80 mm width (302 px)
+      pageMargins: [10, 10, 10, 10], // Margins for thermal printer
+      content: [
+        {
+          text: 'Iglesia Cristiana Unidos en su Presencia',
+          style: 'header',
+          alignment: 'center',
+        },
+        {
+          text: 'Av Valle Sagrado de los Incas 333, 3ra zona\nTahuantinsuyo - Independencia - Lima, Perú',
+          style: 'subheader',
+          alignment: 'center',
+          margin: [0, 5],
+        },
+        {
+          text: '------------------------------',
+          alignment: 'center',
+          margin: [0, 10],
+        },
+        {
+          text: 'RECIBO DE OFRENDA',
+          style: 'title',
+          alignment: 'center',
+        },
+        {
+          text: '------------------------------',
+          alignment: 'center',
+          margin: [0, 5],
+        },
+        {
+          table: {
+            widths: ['*', '*'],
+            body: [
+              [
+                { text: 'Fecha:', style: 'label' },
+                { text: '12/01/2025', style: 'value' },
+              ],
+              [
+                { text: 'Monto:', style: 'label' },
+                { text: 'S/ 150.00', style: 'value' },
+              ],
+              [
+                { text: 'Divisa:', style: 'label' },
+                { text: 'Sol', style: 'value' },
+              ],
+              [
+                { text: 'Tipo:', style: 'label' },
+                { text: 'Ofrenda', style: 'value' },
+              ],
+              [
+                { text: 'Subtipo:', style: 'label' },
+                { text: 'Culto Dominical', style: 'value' },
+              ],
+              [
+                { text: 'Categoría:', style: 'label' },
+                { text: 'General', style: 'value' },
+              ],
+              [
+                { text: 'Grupo Familiar:', style: 'label' },
+                { text: 'Levi-2 ~ Los Gedeones', style: 'value' },
+              ],
+              [
+                { text: 'Turno:', style: 'label' },
+                { text: 'Día', style: 'value' },
+              ],
+              [
+                { text: 'Registrado por:', style: 'label' },
+                { text: 'Kevin Baca Angeles', style: 'value' },
+              ],
+            ],
+          },
+          layout: 'noBorders', // Removes table borders
+          margin: [0, 10],
+        },
+        {
+          text: '------------------------------',
+          alignment: 'center',
+          margin: [0, 10],
+        },
+        {
+          text: 'Gracias por su generosidad',
+          style: 'footer',
+          alignment: 'center',
+        },
+        {
+          text: 'Que Dios los bendiga',
+          style: 'footer',
+          alignment: 'center',
+          margin: [0, 5],
+        },
+      ],
+      styles: {
+        header: {
+          fontSize: 14,
+          bold: true,
+        },
+        subheader: {
+          fontSize: 10,
+          italics: true,
+        },
+        title: {
+          fontSize: 12,
+          bold: true,
+          margin: [0, 5],
+        },
+        label: {
+          fontSize: 10,
+          bold: true,
+        },
+        value: {
+          fontSize: 10,
+        },
+        footer: {
+          fontSize: 9,
+          italics: true,
+        },
+      },
+    };
+
+    // Create the PDF
+    const pdfDoc = printer.createPdfKitDocument(docDefinition);
+
+    // Set the response headers
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader('Content-Disposition', 'inline; filename="receipt.pdf"');
+
+    // Pipe the document to the response
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
   //* STUDENT CERTIFICATE
   @Get('student-certificate/:id')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested student certificate has been successfully retrieved. The response includes the certificate as a downloadable PDF file.',
+  })
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the student for whom the certificate is requested. This ID is used to fetch the specific study certificate from the database.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
+  })
+  @ApiProduces('application/pdf')
   async getStudyCertificateById(
     @Res() response: Response,
     @Param('id', ParseUUIDPipe) studentId: string,
@@ -51,7 +245,10 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getStudyCertificateById(studentId);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'student-certificate.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="student-certificate.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -60,6 +257,11 @@ export class ReportsController {
   //* CHURCHES GENERAL REPORT
   @Get('churches')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of churches has been successfully retrieved. The response includes a downloadable PDF report of the churches.',
+  })
+  @ApiProduces('application/pdf')
   async getGeneralChurches(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -67,14 +269,34 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralChurches(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-churches-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-churches-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
 
-  //* PASTORS GENERAL REPORT
+  //* CHURCHES BY TERM REPORT
   @Get('churches/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be church name, department, province, district, urbanSector, address, foundingDate and record status.',
+    example: 'Iglesia Cristiana de Paz',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of churches has been successfully retrieved. The response includes a downloadable PDF report of the churches.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: ChurchSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: ChurchSearchType.ChurchName,
+  })
+  @ApiProduces('application/pdf')
   async getChurchesByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -86,7 +308,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'churches-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="churches-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -95,6 +320,19 @@ export class ReportsController {
   //* PASTORS GENERAL REPORT
   @Get('pastors')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of pastors has been successfully retrieved. The response includes a downloadable PDF report of the pastors.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralPastors(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -102,14 +340,42 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralPastors(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-pastors-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-pastors-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
 
-  //* PASTORS GENERAL REPORT
+  //* PASTORS BY TERM REPORT
   @Get('pastors/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last Names, full names, birth date, birth month, gender, marital status, origin country, residence country, residence department, residence province, residence district, residence urban sector, residence address and record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of pastors has been successfully retrieved. The response includes a downloadable PDF report of the pastors.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: PastorSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: PastorSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getPastorsByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -121,7 +387,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'pastors-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="pastors-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -130,6 +399,19 @@ export class ReportsController {
   //* COPASTORS GENERAL REPORT
   @Get('copastors')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of co-pastors has been successfully retrieved. The response includes a downloadable PDF report of the co-pastors.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralCopastors(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -137,14 +419,49 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralCopastors(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-copastors-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-copastors-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
 
-  //* COPASTORS GENERAL REPORT
+  //* COPASTORS BY TERM REPORT
   @Get('copastors/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last Names, full names, birth date, birth month, gender, marital status, origin country, residence country, residence department, residence province, residence district, residence urban sector, residence address and record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of co-pastors has been successfully retrieved. The response includes a downloadable PDF report of the co-pastors.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: CopastorSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: CopastorSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: CopastorSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: CopastorSearchSubType.CopastorByPastorFirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getCopastorsByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -156,7 +473,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'copastors-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="copastors-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -165,6 +485,19 @@ export class ReportsController {
   //* SUPERVISORS GENERAL REPORT
   @Get('supervisors')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of supervisors has been successfully retrieved. The response includes a downloadable PDF report of the supervisors.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralSupervisors(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -173,14 +506,49 @@ export class ReportsController {
       await this.reportsService.getGeneralSupervisors(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-supervisors-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-supervisors-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
 
-  //* SUPERVISORS GENERAL REPORT
+  //* SUPERVISORS BY TERM REPORT
   @Get('supervisors/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last Names, full names, birth date, birth month, gender, zone name, marital status, origin country, residence country, residence department, residence province, residence district, residence urban sector, residence address and record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of supervisors has been successfully retrieved. The response includes a downloadable PDF report of the supervisors.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: SupervisorSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: SupervisorSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: SupervisorSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: SupervisorSearchSubType.SupervisorByPastorFirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getSupervisorsByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -192,7 +560,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'supervisors-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="supervisors-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -201,6 +572,19 @@ export class ReportsController {
   //* PREACHERS GENERAL REPORT
   @Get('preachers')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of preachers has been successfully retrieved. The response includes a downloadable PDF report of the preachers.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralPreachers(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -208,14 +592,49 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralPreachers(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-preachers-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-preachers-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
 
-  //* PREACHERS GENERAL REPORT
+  //* PREACHERS BY TERM REPORT
   @Get('preachers/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last Names, full names, birth date, birth month, zone name, family group code, family group name, gender, marital status, origin country, residence country, residence department, residence province, residence district, residence urban sector, residence address and record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of preacher has been successfully retrieved. The response includes a downloadable PDF report of the preachers.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: PreacherSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: PreacherSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: PreacherSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: PreacherSearchSubType.PreacherByPastorFirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getPreachersByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -227,7 +646,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'preachers-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="preachers-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -236,6 +658,19 @@ export class ReportsController {
   //* DISCIPLES GENERAL REPORT
   @Get('disciples')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of disciples has been successfully retrieved. The response includes a downloadable PDF report of the disciples.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralDisciples(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -243,14 +678,49 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralDisciples(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-disciples-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-disciples-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
 
-  //* DISCIPLES GENERAL REPORT
+  //* DISCIPLES BY TERM REPORT
   @Get('disciples/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last Names, full names, birth date, birth month, zone name, family group code, family group name, gender, marital status, origin country, residence country, residence department, residence province, residence district, residence urban sector, residence address and record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of disciples has been successfully retrieved. The response includes a downloadable PDF report of the disciples.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: DiscipleSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: DiscipleSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: DiscipleSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: DiscipleSearchSubType.DiscipleByPastorFirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getDisciplesByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -262,7 +732,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'disciples-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="disciples-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -271,6 +744,19 @@ export class ReportsController {
   //* ZONES GENERAL REPORT
   @Get('zones')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of zones has been successfully retrieved. The response includes a downloadable PDF report of the zones.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralZones(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -278,7 +764,10 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralZones(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-zones-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-zones-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -286,6 +775,38 @@ export class ReportsController {
   //* ZONES BY TERM REPORT
   @Get('zones/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last names, full names, zone name, country, department, province, district, record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of zones has been successfully retrieved. The response includes a downloadable PDF report of the zones.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: ZoneSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: ZoneSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: ZoneSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: ZoneSearchSubType.ZoneByPastorFirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getZonesByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -297,7 +818,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'zones-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="zones-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -306,6 +830,19 @@ export class ReportsController {
   //* FAMILY GROUPS GENERAL REPORT
   @Get('family-groups')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of family groups has been successfully retrieved. The response includes a downloadable PDF report of the family groups.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralFamilyGroups(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -314,7 +851,10 @@ export class ReportsController {
       await this.reportsService.getGeneralFamilyGroups(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-family-groups-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-family-groups-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -322,6 +862,38 @@ export class ReportsController {
   //* FAMILY GROUPS BY TERM REPORT
   @Get('family-groups/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last names, full names, zone name, family group code, family group name, country, department, province, district, record status.',
+    example: 'Rolando Martin',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of family groups has been successfully retrieved. The response includes a downloadable PDF report of the family groups.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: FamilyGroupSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: FamilyGroupSearchType.FirstNames,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: FamilyGroupSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: FamilyGroupSearchSubType.FamilyGroupByPastorFirstNames,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getFamilyGroupsByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -333,7 +905,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'family-groups-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="family-groups-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -342,6 +917,19 @@ export class ReportsController {
   //* OFFERING INCOME GENERAL REPORT
   @Get('offering-income')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of offering income has been successfully retrieved. The response includes a downloadable PDF report of the offering income.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralOfferingIncome(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -350,7 +938,10 @@ export class ReportsController {
       await this.reportsService.getGeneralOfferingIncome(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-offering-income-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-offering-income-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -358,6 +949,38 @@ export class ReportsController {
   //* OFFERING INCOME BY TERM REPORT
   @Get('offering-income/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be date or range dates(timestamp), first names, last names, full names, zone names, shift, family group code and active or inactive.',
+    example: '1735707600000+1738299600000',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of offering income has been successfully retrieved. The response includes a downloadable PDF report of the offering income.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: OfferingIncomeSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: OfferingIncomeSearchType.FamilyGroup,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: OfferingIncomeSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: OfferingIncomeSearchSubType.OfferingByDate,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getOfferingIncomeByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -369,7 +992,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'offering-income-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="offering-income-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -378,6 +1004,19 @@ export class ReportsController {
   //* OFFERING EXPENSES GENERAL REPORT
   @Get('offering-expenses')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of offering expenses has been successfully retrieved. The response includes a downloadable PDF report of the offering expenses.',
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getGeneralOfferingExpenses(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -386,7 +1025,10 @@ export class ReportsController {
       await this.reportsService.getGeneralOfferingExpenses(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-offering-expenses-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-offering-expenses-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -394,6 +1036,38 @@ export class ReportsController {
   //* OFFERING EXPENSES BY TERM REPORT
   @Get('offering-expenses/:term')
   @Auth()
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be date o range dates (timestamp), and active or inactive.',
+    example: '1735707600000+1738299600000',
+  })
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of offering expenses has been successfully retrieved. The response includes a downloadable PDF report of the offering expenses.',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: OfferingExpenseSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: OfferingExpenseSearchType.OperationalExpenses,
+  })
+  @ApiQuery({
+    name: 'searchSubType',
+    enum: OfferingExpenseSearchSubType,
+    required: false,
+    description: 'Choose one of the types to perform a search.',
+    example: OfferingExpenseSearchSubType.VenueRental,
+  })
+  @ApiQuery({
+    name: 'churchId',
+    type: 'string',
+    description:
+      'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
+    example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
+    required: false,
+  })
+  @ApiProduces('application/pdf')
   async getOfferingExpensesByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -405,7 +1079,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'offering-expenses-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="offering-expenses-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -414,6 +1091,11 @@ export class ReportsController {
   //* USERS GENERAL REPORT
   @Get('users')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of users has been successfully retrieved. The response includes a downloadable PDF report of the users.',
+  })
+  @ApiProduces('application/pdf')
   async getGeneralUsers(
     @Res() response: Response,
     @Query() paginationDto: PaginationDto,
@@ -421,7 +1103,10 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getGeneralUsers(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'general-users-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="general-users-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -429,6 +1114,23 @@ export class ReportsController {
   //* USERS BY TERM REPORT
   @Get('users/:term')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested list of users has been successfully retrieved. The response includes a downloadable PDF report of the users.',
+  })
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be first names, last names, full names, roles, gender, etc.',
+    example: 'User Test 1',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: UserSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: UserSearchType.FirstNames,
+  })
+  @ApiProduces('application/pdf')
   async getUsersByTerm(
     @Res() response: Response,
     @Param('term') term: string,
@@ -440,7 +1142,10 @@ export class ReportsController {
     );
 
     response.setHeader('Content-Type', 'application/pdf');
-    pdfDoc.info.Title = 'users-by-term-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="users-by-term-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -449,6 +1154,11 @@ export class ReportsController {
   //* MEMBER METRICS REPORT
   @Get('member-metrics')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested member metrics report has been successfully generated and includes a downloadable PDF.',
+  })
+  @ApiProduces('application/pdf')
   async getMemberMetrics(
     @Res() response: Response,
     @Query() paginationDto: MetricsPaginationDto,
@@ -456,8 +1166,10 @@ export class ReportsController {
     const pdfDoc = await this.reportsService.getMemberMetrics(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-
-    pdfDoc.info.Title = 'member-metrics-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="member-metrics-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -465,6 +1177,11 @@ export class ReportsController {
   //* FAMILY GROUP METRICS REPORT
   @Get('family-group-metrics')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested family groups metrics report has been successfully generated and includes a downloadable PDF.',
+  })
+  @ApiProduces('application/pdf')
   async getFamilyGroupMetrics(
     @Res() response: Response,
     @Query() paginationDto: MetricsPaginationDto,
@@ -473,8 +1190,10 @@ export class ReportsController {
       await this.reportsService.getFamilyGroupMetrics(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-
-    pdfDoc.info.Title = 'family-group-metrics-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="family-groups-metrics-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -482,6 +1201,11 @@ export class ReportsController {
   //* OFFERING INCOME METRICS REPORT
   @Get('offering-income-metrics')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested offering income metrics report has been successfully generated and includes a downloadable PDF.',
+  })
+  @ApiProduces('application/pdf')
   async getOfferingIncomeMetrics(
     @Res() response: Response,
     @Query() paginationDto: MetricsPaginationDto,
@@ -490,8 +1214,10 @@ export class ReportsController {
       await this.reportsService.getOfferingIncomeMetrics(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-
-    pdfDoc.info.Title = 'offering-income-metrics-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="offering-income-metrics-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -499,6 +1225,11 @@ export class ReportsController {
   //* OFFERING EXPENSE METRICS REPORT
   @Get('offering-expense-metrics')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested offering expenses metrics report has been successfully generated and includes a downloadable PDF.',
+  })
+  @ApiProduces('application/pdf')
   async getOfferingExpenseMetrics(
     @Res() response: Response,
     @Query() paginationDto: MetricsPaginationDto,
@@ -507,8 +1238,10 @@ export class ReportsController {
       await this.reportsService.getOfferingExpenseMetrics(paginationDto);
 
     response.setHeader('Content-Type', 'application/pdf');
-
-    pdfDoc.info.Title = 'offering-expense-metrics-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="offering-expenses-metrics-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }
@@ -516,6 +1249,11 @@ export class ReportsController {
   //* FINANCIAL BALANCE COMPARATIVE METRICS REPORT
   @Get('financial-balance-comparative-metrics')
   @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested financial balance comparative metrics report has been successfully generated and includes a downloadable PDF.',
+  })
+  @ApiProduces('application/pdf')
   async getFinancialBalanceComparativeMetrics(
     @Res() response: Response,
     @Query() paginationDto: MetricsPaginationDto,
@@ -524,10 +1262,11 @@ export class ReportsController {
       await this.reportsService.getFinancialBalanceComparativeMetrics(
         paginationDto,
       );
-
     response.setHeader('Content-Type', 'application/pdf');
-
-    pdfDoc.info.Title = 'financial-balance-comparative-metrics-report.pdf';
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="financial-balance-comparative-metrics-report.pdf"',
+    );
     pdfDoc.pipe(response);
     pdfDoc.end();
   }

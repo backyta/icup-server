@@ -145,7 +145,7 @@ export class CreatePreacherDto {
   residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Av. Central 123',
+    example: 'Av. Central 123.',
   })
   @IsString()
   @IsNotEmpty()
@@ -154,7 +154,7 @@ export class CreatePreacherDto {
   residenceAddress: string;
 
   @ApiProperty({
-    example: 'A 1 cuadra del colegio',
+    example: 'A 1 cuadra del colegio Maria Auxiliadora.',
   })
   @IsString()
   @IsNotEmpty()
@@ -181,7 +181,7 @@ export class CreatePreacherDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -216,18 +216,10 @@ export class CreatePreacherDto {
   theirSupervisor?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: MemberInactivationCategory.PersonalChallenges,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationCategory)
   memberInactivationCategory?: string;
 
-  @ApiProperty({
-    example: MemberInactivationReason.HealthIssues,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationReason)
   memberInactivationReason?: string;

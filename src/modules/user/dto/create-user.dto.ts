@@ -54,7 +54,7 @@ export class CreateUserDto {
   lastNames: string;
 
   @ApiProperty({
-    example: Gender.Female,
+    example: Gender.Male,
   })
   @IsEnum(Gender, {
     message:
@@ -82,18 +82,10 @@ export class CreateUserDto {
   roles: string[];
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: UserInactivationCategory.PerformanceOrConduct,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(UserInactivationCategory)
   userInactivationCategory?: string;
 
-  @ApiProperty({
-    example: UserInactivationReason.PolicyViolation,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(UserInactivationReason)
   userInactivationReason?: string;

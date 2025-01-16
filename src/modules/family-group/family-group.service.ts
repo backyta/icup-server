@@ -342,8 +342,8 @@ export class FamilyGroupService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<FamilyGroup[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,

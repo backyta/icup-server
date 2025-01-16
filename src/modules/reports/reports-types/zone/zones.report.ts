@@ -91,21 +91,21 @@ export const getZonesReport = (
               {
                 text: 'Disc.',
                 style: {
-                  color:'green',
+                  color: 'green',
                   bold: true,
                 },
               },
               {
                 text: 'G.Fam.',
                 style: {
-                  color:'blue',
+                  color: 'blue',
                   bold: true,
                 },
               },
               {
                 text: 'Pred.',
                 style: {
-                  color:'purple',
+                  color: 'purple',
                   bold: true,
                 },
               },

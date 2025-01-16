@@ -63,7 +63,7 @@ export class CreateZoneDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -79,18 +79,10 @@ export class CreateZoneDto {
   theirSupervisor?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: ZoneInactivationCategory.GroupFamilyRelatedReasons,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(ZoneInactivationCategory)
   zoneInactivationCategory?: string;
 
-  @ApiProperty({
-    example: ZoneInactivationReason.FamilyGroupDissolution,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(ZoneInactivationReason)
   zoneInactivationReason?: string;

@@ -1,7 +1,7 @@
 import {
+  IsEnum,
   IsArray,
   IsEmail,
-  IsEnum,
   IsString,
   MaxLength,
   MinLength,
@@ -144,7 +144,7 @@ export class CreateDiscipleDto {
   residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Av. Central 123',
+    example: 'Av. Central 123.',
   })
   @IsString()
   @IsNotEmpty()
@@ -153,7 +153,7 @@ export class CreateDiscipleDto {
   residenceAddress: string;
 
   @ApiProperty({
-    example: 'A una cuadra del hospital central',
+    example: 'A una cuadra del hospital central.',
   })
   @IsString()
   @IsNotEmpty()
@@ -180,7 +180,7 @@ export class CreateDiscipleDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -201,18 +201,10 @@ export class CreateDiscipleDto {
   theirSupervisor?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: MemberInactivationCategory.PersonalChallenges,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationCategory)
   memberInactivationCategory?: string;
 
-  @ApiProperty({
-    example: MemberInactivationReason.HealthIssues,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationReason)
   memberInactivationReason?: string;

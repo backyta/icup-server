@@ -15,13 +15,16 @@ import {
   ApiConsumes,
   ApiBearerAuth,
   ApiOkResponse,
-  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiInternalServerErrorResponse,
+  ApiParam,
+  ApiBody,
 } from '@nestjs/swagger';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+
+import { SkipThrottle } from '@nestjs/throttler';
 
 import { UserRole } from '@/modules/auth/enums/user-role.enum';
 import { Auth } from '@/modules/auth/decorators/auth.decorator';
@@ -37,28 +40,54 @@ import { CloudinaryService } from '@/modules/cloudinary/cloudinary.service';
 @Controller('files')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
-  description: 'Unauthorized Bearer Auth.',
+  description:
+    '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description:
+    '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
 })
 @ApiBadRequestResponse({
-  description: 'Bad request.',
+  description:
+    '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
 })
+@ApiForbiddenResponse({
+  description:
+    '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
+})
+@SkipThrottle()
 export class FilesController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   //* Upload file to cloudinary
   @Post('upload')
   @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
-  @ApiCreatedResponse({
-    description: 'Offering file has been successfully uploaded.',
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The images were successfully uploaded. The response includes the URLs of the uploaded images.',
   })
   @UseInterceptors(AnyFilesInterceptor())
   @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description:
+      'The images to be uploaded. A maximum of 4 images is allowed, and they must be in .png, .jpeg, or .jpg format.',
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+        description: {
+          type: 'string',
+          example: 'Upload images for a specific record (income or expense).',
+        },
+      },
+    },
+  })
   async uploadImages(
     @Query() createFileDto: CreateFileDto,
     @UploadedFiles(
@@ -89,10 +118,14 @@ export class FilesController {
   @Delete(':publicId')
   @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Operation Successful: The requested image has been successfully deleted. No content is returned in the response.',
   })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the image to be deleted. This ID is used to locate and remove the corresponding image from the storage.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
   })
   async deleteFile(
     @Param('publicId') publicId: string,

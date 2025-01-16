@@ -6,16 +6,20 @@ import { ChurchInactivationCategory } from '@/modules/church/enums/church-inacti
 
 export class InactivateChurchDto {
   @ApiProperty({
+    enum: ChurchInactivationCategory,
     example: ChurchInactivationCategory.FinancialChallenges,
-    description: 'Member inactivation category.',
+    description:
+      'The category that defines the reason for the church inactivation, such as financial challenges, low attendance, or other operational issues.',
   })
   @IsNotEmpty()
   @IsEnum(ChurchInactivationCategory)
   churchInactivationCategory: string;
 
   @ApiProperty({
+    enum: ChurchInactivationReason,
     example: ChurchInactivationReason.FinancialInfeasibility,
-    description: 'Reason for member removal.',
+    description:
+      'The specific reason for the removal or inactivation of a church, such as financial infeasibility, lack of resources, or other related factors.',
   })
   @IsNotEmpty()
   @IsEnum(ChurchInactivationReason)

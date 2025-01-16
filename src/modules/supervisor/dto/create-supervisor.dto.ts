@@ -145,7 +145,7 @@ export class CreateSupervisorDto {
   residenceUrbanSector: string;
 
   @ApiProperty({
-    example: 'Jr. Central 123',
+    example: 'Jr. Central 123.',
   })
   @IsString()
   @IsNotEmpty()
@@ -154,7 +154,7 @@ export class CreateSupervisorDto {
   residenceAddress: string;
 
   @ApiProperty({
-    example: 'A 1 cuadra del parque',
+    example: 'A 1 cuadra del parque central.',
   })
   @IsString()
   @IsNotEmpty()
@@ -181,7 +181,7 @@ export class CreateSupervisorDto {
   @IsString()
   @IsEnum(RecordStatus, {
     message:
-      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo',
+      'El estado de registro debe ser uno de los siguientes valores: Activo o Inactivo.',
   })
   @IsOptional()
   recordStatus?: string;
@@ -208,18 +208,10 @@ export class CreateSupervisorDto {
   theirPastor?: string;
 
   //! Properties record inactivation (optional)
-  @ApiProperty({
-    example: MemberInactivationCategory.PersonalChallenges,
-    description: 'Member inactivation category.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationCategory)
   memberInactivationCategory?: string;
 
-  @ApiProperty({
-    example: MemberInactivationReason.HealthIssues,
-    description: 'Reason for member removal.',
-  })
   @IsOptional()
   @IsEnum(MemberInactivationReason)
   memberInactivationReason?: string;

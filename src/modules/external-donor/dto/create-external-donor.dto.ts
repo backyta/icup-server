@@ -50,7 +50,7 @@ export class CreateExternalDonorDto {
   externalDonorPhoneNumber?: string;
 
   @ApiProperty({
-    example: 'example@example.com',
+    example: 'donor.test@google.com',
   })
   @IsEmail()
   @IsOptional()
@@ -84,7 +84,7 @@ export class CreateExternalDonorDto {
   externalDonorResidenceCity?: string;
 
   @ApiProperty({
-    example: 'A 2 cuadras al colegio',
+    example: '00672',
   })
   @IsString()
   @IsOptional()

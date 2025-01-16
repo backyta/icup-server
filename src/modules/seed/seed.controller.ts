@@ -3,7 +3,9 @@ import {
   ApiTags,
   ApiOkResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
@@ -17,17 +19,17 @@ import { SeedService } from '@/modules/seed/seed.service';
 
 @ApiTags('Seed')
 @ApiBearerAuth()
-@ApiOkResponse({
-  description: 'SEED executed Successful.',
-})
 @ApiUnauthorizedResponse({
-  description: 'Unauthorized Bearer Auth.',
-})
-@ApiForbiddenResponse({
-  description: 'Forbidden.',
+  description: '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description: '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
+})
+@ApiBadRequestResponse({
+  description: '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
+})
+@ApiForbiddenResponse({
+  description: '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
 })
 @SkipThrottle()
 @Controller('seed')
@@ -39,6 +41,9 @@ export class SeedController {
 
   @Get()
   @Auth(UserRole.SuperUser)
+  @ApiCreatedResponse({
+    description: '✅ Successfully created: SEED operation executed successfully. The database has been seeded with initial data.',
+  })
   executeSeed(): Promise<string> {
     // if (this.configService.get('STAGE') === 'prod') {
     //   throw new BadRequestException('Cannot run seed in production.');

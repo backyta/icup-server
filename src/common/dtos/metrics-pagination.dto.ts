@@ -6,37 +6,44 @@ import { ApiProperty } from '@nestjs/swagger';
 export class MetricsPaginationDto {
   @ApiProperty({
     example: '2024',
-    description: 'Year in which metrics reports will be generated.',
+    description:
+      'The year for which the metrics reports are to be generated. This is important for filtering reports by a specific year.',
   })
   @IsOptional()
   @Type(() => String)
   year?: string;
 
   @ApiProperty({
+    required: false,
     example: 'January',
-    description: 'Start month in which metrics reports will be generated.',
+    description:
+      'The starting month for the metrics report generation. This parameter helps define the time frame for which the report will include data.',
   })
   @IsOptional()
   @Type(() => String)
   startMonth?: string;
 
   @ApiProperty({
+    required: false,
     example: 'March',
-    description: 'End month in which metrics reports will be generated.',
+    description:
+      'The ending month for the metrics report generation. This completes the time frame for the report, indicating the last month of data to include.',
   })
   @IsOptional()
   @Type(() => String)
   endMonth?: string;
 
   @ApiProperty({
-    example: ['members_by_category', 'members_by_category_and_gender'],
-    description: 'Types of metrics that will be generated in the report.',
+    example: 'members_by_category+members_by_category_and_gender',
+    description:
+      'A list of report types that will be generated. This can include various predefined metric categories, such as "members_by_category" or "members_by_category_and_gender". The values determine the content and structure of the report.',
   })
   @IsOptional()
   types?: string;
 
   @ApiProperty({
-    description: 'ID of the church that is part of the search.',
+    description:
+      'The unique identifier (ID) of the church for which the metrics will be generated. This helps narrow down the report to specific church data.',
     example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
   })
   @IsOptional()

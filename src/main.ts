@@ -25,14 +25,43 @@ async function bootstrap() {
   await superUserService.createSuperUser();
 
   // Config Documentation
-  const config = new DocumentBuilder()
-    .setTitle('ICUP Restful API')
-    .setDescription('ICUP Sever Endpoints')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  if (process.env.STAGE === 'dev') {
+    const config = new DocumentBuilder()
+      .setTitle('ICUP Restful API')
+      .setDescription('ICUP Sever Endpoints')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document, {
+      swaggerOptions: {
+        tagsSorter: (tagA: string, tagB: string) => {
+          const order = [
+            'Churches',
+            'Pastors',
+            'Co-Pastors',
+            'Supervisors',
+            'Zones',
+            'Preachers',
+            'Family Groups',
+            'Disciples',
+            'Offering Income',
+            'Offering Expenses',
+            'Metrics',
+            'Users',
+            'External Donors',
+            'Reports',
+            'Auth',
+            'Files',
+            'Seed',
+          ];
+          return order.indexOf(tagA) - order.indexOf(tagB);
+        },
+      },
+    });
+  } else {
+    console.log('Swagger documentation is disabled in this environment');
+  }
 
   // CORS config
   app.enableCors({

@@ -6,16 +6,20 @@ import { UserInactivationCategory } from '@/modules/user/enums/user-inactivation
 
 export class InactivateUserDto {
   @ApiProperty({
+    enum: UserInactivationCategory,
     example: UserInactivationCategory.PerformanceOrConduct,
-    description: 'Member inactivation category.',
+    description:
+      'The category that defines the reason for the member inactivation, such as administrative changes, performance or conduct, or other issues.',
   })
   @IsNotEmpty()
   @IsEnum(UserInactivationCategory)
   userInactivationCategory: string;
 
   @ApiProperty({
+    enum: UserInactivationReason,
     example: UserInactivationReason.OrganizationalRestructure,
-    description: 'Reason for member removal.',
+    description:
+      'The specific reason for the removal or inactivation of a member, such as role reassignment, obsolete role, or other related factors.',
   })
   @IsNotEmpty()
   @IsEnum(UserInactivationReason)

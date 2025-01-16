@@ -6,16 +6,20 @@ import { FamilyGroupInactivationCategory } from '@/modules/family-group/enums/fa
 
 export class InactivateFamilyGroupDto {
   @ApiProperty({
+    enum: FamilyGroupInactivationCategory,
     example: FamilyGroupInactivationCategory.HostUnavailability,
-    description: 'Member inactivation category.',
+    description:
+      'The category that defines the reason for the family group inactivation, such as administrative changes, leadership issues, or other operational issues.',
   })
   @IsNotEmpty()
   @IsEnum(FamilyGroupInactivationCategory)
   familyGroupInactivationCategory: string;
 
   @ApiProperty({
+    enum: FamilyGroupInactivationReason,
     example: FamilyGroupInactivationReason.HostFamilyDecision,
-    description: 'Reason for member removal.',
+    description:
+      'The specific reason for the removal or inactivation of a family group, such as preacher resignation, host family decision, or other related factors.',
   })
   @IsNotEmpty()
   @IsEnum(FamilyGroupInactivationReason)

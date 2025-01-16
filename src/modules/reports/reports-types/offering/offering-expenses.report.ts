@@ -54,10 +54,16 @@ export const getOfferingExpensesReport = (
         layout: 'customLayout01', // optional
         table: {
           headerRows: 1,
-          widths: [130, 120, 55, 55, 70, 80, '*'],
+          widths: [100, 100, 130, 55, 70, 80, '*'],
 
           body: [
             [
+              {
+                text: 'Iglesia',
+                style: {
+                  bold: true,
+                },
+              },
               {
                 text: 'Tipo',
                 style: {
@@ -89,12 +95,6 @@ export const getOfferingExpensesReport = (
                 },
               },
               {
-                text: 'Iglesia',
-                style: {
-                  bold: true,
-                },
-              },
-              {
                 text: 'Detalles y/o observaciones',
                 style: {
                   bold: true,
@@ -102,12 +102,12 @@ export const getOfferingExpensesReport = (
               },
             ],
             ...data.map((item) => [
+              `${item?.church?.abbreviatedChurchName ?? '-'}`,
               OfferingExpenseSearchTypeNames[item?.type],
               OfferingExpenseSearchSubTypeNames[item?.subType] ?? '-',
               item?.amount ?? '-',
               item?.currency ?? '-',
               format(new Date(addDays(item.date, 1)), 'dd/MM/yyyy'),
-              `${item?.church?.abbreviatedChurchName ?? '-'}`,
               item?.comments ?? '-',
             ]),
             ['', '', '', '', '', '', ''],

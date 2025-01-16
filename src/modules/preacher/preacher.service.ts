@@ -340,8 +340,8 @@ export class PreacherService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Preacher[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,
@@ -2487,8 +2487,6 @@ export class PreacherService {
         } catch (error) {
           this.handleDBExceptions(error);
         }
-
-        return savedPreacher;
       }
     }
 

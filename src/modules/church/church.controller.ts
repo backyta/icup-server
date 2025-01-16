@@ -12,6 +12,7 @@ import {
 import {
   ApiTags,
   ApiParam,
+  ApiQuery,
   ApiOkResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -25,6 +26,9 @@ import { SkipThrottle } from '@nestjs/throttler';
 
 import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
+import { InactivateChurchDto } from '@/modules/church/dto/inactivate-church.dto';
+
+import { ChurchSearchType } from '@/modules/church/enums/church-search-type.enum';
 
 import { User } from '@/modules/user/entities/user.entity';
 
@@ -36,18 +40,24 @@ import { ChurchService } from '@/modules/church/church.service';
 import { Church } from '@/modules/church/entities/church.entity';
 import { CreateChurchDto } from '@/modules/church/dto/create-church.dto';
 import { UpdateChurchDto } from '@/modules/church/dto/update-church.dto';
-import { InactivateChurchDto } from '@/modules/church/dto/inactivate-church.dto';
 
 @ApiTags('Churches')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
-  description: 'Unauthorized Bearer Auth.',
+  description:
+    '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: 'Internal server error, check logs.',
+  description:
+    '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
 })
 @ApiBadRequestResponse({
-  description: 'Bad request.',
+  description:
+    '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
+})
+@ApiForbiddenResponse({
+  description:
+    '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
 })
 @SkipThrottle()
 @Controller('churches')
@@ -58,10 +68,8 @@ export class ChurchController {
   @Post()
   @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiCreatedResponse({
-    description: 'Church has been successfully created.',
-  })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+    description:
+      '✅ Successfully created: The church has been successfully created and added to the system.',
   })
   create(
     @Body() createChurchDto: CreateChurchDto,
@@ -74,10 +82,12 @@ export class ChurchController {
   @Get('main-church')
   @Auth()
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
   })
   @ApiNotFoundResponse({
-    description: 'Not found resource.',
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
   })
   findMainChurch(@Query() paginationDto: PaginationDto): Promise<Church[]> {
     return this.churchService.findMainChurch(paginationDto);
@@ -87,10 +97,20 @@ export class ChurchController {
   @Get()
   @Auth()
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
   })
   @ApiNotFoundResponse({
-    description: 'Not found resource.',
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiQuery({
+    name: 'isSimpleQuery',
+    example: 'false',
+    required: false,
+    type: 'boolean',
+    description:
+      'Specifies whether the query should be simple (without loading relations) or full (including relations).',
   })
   findAll(@Query() paginationDto: PaginationDto): Promise<Church[]> {
     return this.churchService.findAll(paginationDto);
@@ -99,16 +119,25 @@ export class ChurchController {
   //* FIND BY TERM
   @Get(':term')
   @Auth()
-  @ApiParam({
-    name: 'term',
-    description: 'Could be name church, dates, department, address, etc.',
-    example: 'cf5a9ee3-cad7-4b73-a331-a5f3f76f6661',
-  })
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',
   })
   @ApiNotFoundResponse({
-    description: 'Not found resource.',
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiParam({
+    name: 'term',
+    description:
+      'Could be name church, date or range date, country, department, address, record status, etc.',
+    example: 'Iglesia de Paz - Central',
+  })
+  @ApiQuery({
+    name: 'searchType',
+    enum: ChurchSearchType,
+    description: 'Choose one of the types to perform a search.',
+    example: ChurchSearchType.ChurchName,
   })
   findByTerm(
     @Param('term') term: string,
@@ -121,10 +150,18 @@ export class ChurchController {
   @Patch(':id')
   @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
-    description: 'Successful operation',
+    description:
+      '✅ Successfully completed: The resource was successfully updated. The updated data is returned in the response.',
   })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the church to be updated. This ID is used to find the existing record to apply the update.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
   })
   update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -139,10 +176,18 @@ export class ChurchController {
   @Auth(UserRole.SuperUser)
   // @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
-    description: 'Successful operation.',
+    description:
+      '✅ Successfully completed: The resource was successfully deleted. No content is returned.',
   })
-  @ApiForbiddenResponse({
-    description: 'Forbidden.',
+  @ApiNotFoundResponse({
+    description:
+      '❓ Not Found: The requested resource was not found. Please verify the provided parameters or URL.',
+  })
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the church to be inactivated. This ID is used to find the existing record to apply the inactivated.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
   })
   remove(
     @Param('id') id: string,

@@ -276,8 +276,8 @@ export class ZoneService {
     searchTypeAndPaginationDto: SearchAndPaginationDto,
   ): Promise<Zone[]> {
     const {
-      'search-type': searchType,
-      'search-sub-type': searchSubType,
+      searchType,
+      searchSubType,
       limit,
       offset = 0,
       order,

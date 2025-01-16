@@ -15,6 +15,7 @@ import { OfferingFileType } from '@/common/enums/offering-file-type.enum';
 
 export class CreateFileDto {
   @ApiProperty({
+    enum: OfferingFileType,
     example: OfferingFileType.Income,
     description: 'Type of file to be used for the image path.',
   })
@@ -25,6 +26,7 @@ export class CreateFileDto {
   fileType: string;
 
   @ApiProperty({
+    enum: OfferingIncomeCreationType,
     example: OfferingIncomeCreationType.Offering,
     description: 'Type of offering to be used for the image path.',
   })
@@ -35,7 +37,9 @@ export class CreateFileDto {
   offeringType: string;
 
   @ApiProperty({
+    enum: OfferingIncomeCreationSubType,
     example: OfferingIncomeCreationSubType.ChurchGround,
+    required: false,
     description: 'Sub-type of offering to be used for the image path.',
   })
   @IsString()
