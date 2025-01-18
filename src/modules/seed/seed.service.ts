@@ -253,7 +253,7 @@ export class SeedService {
 
     await Promise.all(promisesCopastor);
 
-    //? Create Supervisor
+    //? Create Supervisors
     const copastor = await this.copastorRepository.find({
       order: {
         member: {
@@ -263,26 +263,29 @@ export class SeedService {
     });
 
     supervisors.forEach((supervisor, index) => {
-      //* Comas
-      index >= 0 && index <= 1
-        ? (supervisor.theirCopastor = copastor[0]?.id)
-        : index >= 2 && index <= 3
-          ? (supervisor.theirCopastor = copastor[1]?.id)
-          : index >= 4 && index <= 5
-            ? (supervisor.theirCopastor = copastor[2]?.id)
-            : //* Independencia
-              index >= 6 && index <= 7
-              ? (supervisor.theirCopastor = copastor[3]?.id)
-              : index >= 8 && index <= 9
-                ? (supervisor.theirCopastor = copastor[4]?.id)
-                : index >= 10 && index <= 11
-                  ? (supervisor.theirCopastor = copastor[5]?.id)
-                  : //* Los Olivos
-                    index >= 12 && index <= 13
-                    ? (supervisor.theirCopastor = copastor[6]?.id)
-                    : index >= 14 && index <= 15
-                      ? (supervisor.theirCopastor = copastor[7]?.id)
-                      : (supervisor.theirCopastor = copastor[8]?.id);
+      const copastorIndex =
+        //* Comas
+        index <= 1
+          ? 0
+          : index <= 3
+            ? 1
+            : index <= 5
+              ? 2
+              : //* Independencia
+                index <= 7
+                ? 3
+                : index <= 9
+                  ? 4
+                  : index <= 11
+                    ? 5
+                    : //* Los Olivos
+                      index <= 13
+                      ? 6
+                      : index <= 15
+                        ? 7
+                        : 8;
+
+      supervisor.theirCopastor = copastor[copastorIndex]?.id;
 
       promisesSupervisor.push(this.supervisorService.create(supervisor, user));
     });
@@ -307,52 +310,45 @@ export class SeedService {
 
     //? Create Preachers
     preachers.forEach((preacher, index) => {
-      //* Comas
-      index >= 0 && index <= 2
-        ? (preacher.theirSupervisor = allSupervisors[0]?.id) // 3
-        : index >= 3 && index <= 5
-          ? (preacher.theirSupervisor = allSupervisors[1]?.id) // 3
-          : index >= 6 && index <= 9
-            ? (preacher.theirSupervisor = allSupervisors[2]?.id) // 4
-            : index >= 10 && index <= 13
-              ? (preacher.theirSupervisor = allSupervisors[3]?.id) // 4
-              : index >= 14 && index <= 17
-                ? (preacher.theirSupervisor = allSupervisors[4]?.id) // 4
-                : index >= 18 && index <= 19
-                  ? (preacher.theirSupervisor = allSupervisors[5]?.id) // 2
-                  : //* Independencia
-                    index >= 20 && index <= 22
-                    ? (preacher.theirSupervisor = allSupervisors[6]?.id) // 3
-                    : index >= 23 && index <= 25
-                      ? (preacher.theirSupervisor = allSupervisors[7]?.id) // 3
-                      : index >= 26 && index <= 29
-                        ? (preacher.theirSupervisor = allSupervisors[8]?.id) // 4
-                        : index >= 30 && index <= 33
-                          ? (preacher.theirSupervisor = allSupervisors[9]?.id) // 4
-                          : index >= 34 && index <= 37
-                            ? (preacher.theirSupervisor =
-                                allSupervisors[10]?.id) // 4
-                            : index >= 38 && index <= 39
-                              ? (preacher.theirSupervisor =
-                                  allSupervisors[11]?.id) // 2
-                              : //* Los Olivos
-                                index >= 40 && index <= 42
-                                ? (preacher.theirSupervisor =
-                                    allSupervisors[12]?.id) // 3
-                                : index >= 43 && index <= 45
-                                  ? (preacher.theirSupervisor =
-                                      allSupervisors[13]?.id) // 3
-                                  : index >= 46 && index <= 49
-                                    ? (preacher.theirSupervisor =
-                                        allSupervisors[14]?.id) // 4
-                                    : index >= 50 && index <= 53
-                                      ? (preacher.theirSupervisor =
-                                          allSupervisors[15]?.id) // 4
-                                      : index >= 54 && index <= 57
-                                        ? (preacher.theirSupervisor =
-                                            allSupervisors[16]?.id) // 4
-                                        : (preacher.theirSupervisor =
-                                            allSupervisors[17]?.id); // 2
+      const supervisorIndex =
+        //* Comas
+        index <= 2
+          ? 0
+          : index <= 5
+            ? 1
+            : index <= 9
+              ? 2
+              : index <= 13
+                ? 3
+                : index <= 17
+                  ? 4
+                  : index <= 19
+                    ? 5
+                    : index <= 22 //* Independencia
+                      ? 6
+                      : index <= 25
+                        ? 7
+                        : index <= 29
+                          ? 8
+                          : index <= 33
+                            ? 9
+                            : index <= 37
+                              ? 10
+                              : index <= 39
+                                ? 11
+                                : index <= 42 //* Los Olivos
+                                  ? 12
+                                  : index <= 45
+                                    ? 13
+                                    : index <= 49
+                                      ? 14
+                                      : index <= 53
+                                        ? 15
+                                        : index <= 57
+                                          ? 16
+                                          : 17;
+
+      preacher.theirSupervisor = allSupervisors[supervisorIndex]?.id;
 
       promisesPreacher.push(this.preacherService.create(preacher, user));
     });
@@ -407,275 +403,77 @@ export class SeedService {
       },
     });
 
-    disciples.forEach((disciple, index) => {
+    const groupRanges = [
       //* Comas (134 disciples)
-      index >= 0 && index <= 4
-        ? (disciple.theirFamilyGroup = allFamilyGroups[0]?.id) // 5
-        : index >= 5 && index <= 11
-          ? (disciple.theirFamilyGroup = allFamilyGroups[1]?.id) // 7
-          : index >= 12 && index <= 17
-            ? (disciple.theirFamilyGroup = allFamilyGroups[2]?.id) // 6
-            : index >= 18 && index <= 22
-              ? (disciple.theirFamilyGroup = allFamilyGroups[3]?.id) // 5
-              : index >= 23 && index <= 30
-                ? (disciple.theirFamilyGroup = allFamilyGroups[4]?.id) // 8
-                : index >= 31 && index <= 34
-                  ? (disciple.theirFamilyGroup = allFamilyGroups[5]?.id) // 4
-                  : index >= 35 && index <= 39
-                    ? (disciple.theirFamilyGroup = allFamilyGroups[6]?.id) // 5
-                    : index >= 40 && index <= 46
-                      ? (disciple.theirFamilyGroup = allFamilyGroups[7]?.id) // 7
-                      : index >= 47 && index <= 56
-                        ? (disciple.theirFamilyGroup = allFamilyGroups[8]?.id) // 10
-                        : index >= 57 && index <= 64
-                          ? (disciple.theirFamilyGroup = allFamilyGroups[9]?.id) // 8
-                          : index >= 65 && index <= 71
-                            ? (disciple.theirFamilyGroup =
-                                allFamilyGroups[10]?.id) // 7
-                            : index >= 72 && index <= 81
-                              ? (disciple.theirFamilyGroup =
-                                  allFamilyGroups[11]?.id) // 10
-                              : index >= 82 && index <= 87
-                                ? (disciple.theirFamilyGroup =
-                                    allFamilyGroups[12]?.id) // 6
-                                : index >= 88 && index <= 92
-                                  ? (disciple.theirFamilyGroup =
-                                      allFamilyGroups[13]?.id) // 5
-                                  : index >= 93 && index <= 98
-                                    ? (disciple.theirFamilyGroup =
-                                        allFamilyGroups[14]?.id) // 6
-                                    : index >= 99 && index <= 102
-                                      ? (disciple.theirFamilyGroup =
-                                          allFamilyGroups[15]?.id) // 4
-                                      : index >= 103 && index <= 110
-                                        ? (disciple.theirFamilyGroup =
-                                            allFamilyGroups[16]?.id) // 8
-                                        : index >= 111 && index <= 119
-                                          ? (disciple.theirFamilyGroup =
-                                              allFamilyGroups[17]?.id) // 9
-                                          : index >= 120 && index <= 128
-                                            ? (disciple.theirFamilyGroup =
-                                                allFamilyGroups[18]?.id) // 9
-                                            : index >= 129 && index <= 133
-                                              ? (disciple.theirFamilyGroup =
-                                                  allFamilyGroups[19]?.id) // 5
-                                              : //* Independencia (123 disciples)
-                                                index >= 134 && index <= 138
-                                                ? (disciple.theirFamilyGroup =
-                                                    allFamilyGroups[20]?.id) // 5
-                                                : index >= 139 && index <= 146
-                                                  ? (disciple.theirFamilyGroup =
-                                                      allFamilyGroups[21]?.id) // 8
-                                                  : index >= 147 && index <= 155
-                                                    ? (disciple.theirFamilyGroup =
-                                                        allFamilyGroups[22]?.id) // 9
-                                                    : index >= 156 &&
-                                                        index <= 159
-                                                      ? (disciple.theirFamilyGroup =
-                                                          allFamilyGroups[23]?.id) // 4
-                                                      : index >= 160 &&
-                                                          index <= 162
-                                                        ? (disciple.theirFamilyGroup =
-                                                            allFamilyGroups[24]?.id) // 3
-                                                        : index >= 163 &&
-                                                            index <= 169
-                                                          ? (disciple.theirFamilyGroup =
-                                                              allFamilyGroups[25]?.id) // 7
-                                                          : index >= 170 &&
-                                                              index <= 175
-                                                            ? (disciple.theirFamilyGroup =
-                                                                allFamilyGroups[26]?.id) // 6
-                                                            : index >= 176 &&
-                                                                index <= 179
-                                                              ? (disciple.theirFamilyGroup =
-                                                                  allFamilyGroups[27]?.id) // 4
-                                                              : index >= 180 &&
-                                                                  index <= 184
-                                                                ? (disciple.theirFamilyGroup =
-                                                                    allFamilyGroups[28]?.id) // 5
-                                                                : index >=
-                                                                      185 &&
-                                                                    index <= 189
-                                                                  ? (disciple.theirFamilyGroup =
-                                                                      allFamilyGroups[29]?.id) // 5
-                                                                  : index >=
-                                                                        190 &&
-                                                                      index <=
-                                                                        197
-                                                                    ? (disciple.theirFamilyGroup =
-                                                                        allFamilyGroups[30]?.id) // 8
-                                                                    : index >=
-                                                                          198 &&
-                                                                        index <=
-                                                                          203
-                                                                      ? (disciple.theirFamilyGroup =
-                                                                          allFamilyGroups[31]?.id) // 6
-                                                                      : index >=
-                                                                            204 &&
-                                                                          index <=
-                                                                            208
-                                                                        ? (disciple.theirFamilyGroup =
-                                                                            allFamilyGroups[32]?.id) // 5
-                                                                        : index >=
-                                                                              209 &&
-                                                                            index <=
-                                                                              217
-                                                                          ? (disciple.theirFamilyGroup =
-                                                                              allFamilyGroups[33]?.id) // 9
-                                                                          : index >=
-                                                                                218 &&
-                                                                              index <=
-                                                                                224
-                                                                            ? (disciple.theirFamilyGroup =
-                                                                                allFamilyGroups[34]?.id) // 7
-                                                                            : index >=
-                                                                                  225 &&
-                                                                                index <=
-                                                                                  234
-                                                                              ? (disciple.theirFamilyGroup =
-                                                                                  allFamilyGroups[35]?.id) // 10
-                                                                              : index >=
-                                                                                    235 &&
-                                                                                  index <=
-                                                                                    239
-                                                                                ? (disciple.theirFamilyGroup =
-                                                                                    allFamilyGroups[36]?.id) // 5
-                                                                                : index >=
-                                                                                      240 &&
-                                                                                    index <=
-                                                                                      245
-                                                                                  ? (disciple.theirFamilyGroup =
-                                                                                      allFamilyGroups[37]?.id) // 6
-                                                                                  : index >=
-                                                                                        246 &&
-                                                                                      index <=
-                                                                                        250
-                                                                                    ? (disciple.theirFamilyGroup =
-                                                                                        allFamilyGroups[38]?.id) // 5
-                                                                                    : index >=
-                                                                                          251 &&
-                                                                                        index <=
-                                                                                          256
-                                                                                      ? (disciple.theirFamilyGroup =
-                                                                                          allFamilyGroups[39]?.id) // 6
-                                                                                      : //* Los Olivos (121 disciples)
-                                                                                        index >=
-                                                                                            257 &&
-                                                                                          index <=
-                                                                                            261
-                                                                                        ? (disciple.theirFamilyGroup =
-                                                                                            allFamilyGroups[40]?.id) // 5
-                                                                                        : index >=
-                                                                                              262 &&
-                                                                                            index <=
-                                                                                              269
-                                                                                          ? (disciple.theirFamilyGroup =
-                                                                                              allFamilyGroups[41]?.id) // 8
-                                                                                          : index >=
-                                                                                                270 &&
-                                                                                              index <=
-                                                                                                278
-                                                                                            ? (disciple.theirFamilyGroup =
-                                                                                                allFamilyGroups[42]?.id) // 9
-                                                                                            : index >=
-                                                                                                  279 &&
-                                                                                                index <=
-                                                                                                  282
-                                                                                              ? (disciple.theirFamilyGroup =
-                                                                                                  allFamilyGroups[43]?.id) // 4
-                                                                                              : index >=
-                                                                                                    283 &&
-                                                                                                  index <=
-                                                                                                    285
-                                                                                                ? (disciple.theirFamilyGroup =
-                                                                                                    allFamilyGroups[44]?.id) // 3
-                                                                                                : index >=
-                                                                                                      286 &&
-                                                                                                    index <=
-                                                                                                      292
-                                                                                                  ? (disciple.theirFamilyGroup =
-                                                                                                      allFamilyGroups[45]?.id) // 7
-                                                                                                  : index >=
-                                                                                                        293 &&
-                                                                                                      index <=
-                                                                                                        298
-                                                                                                    ? (disciple.theirFamilyGroup =
-                                                                                                        allFamilyGroups[46]?.id) // 6
-                                                                                                    : index >=
-                                                                                                          299 &&
-                                                                                                        index <=
-                                                                                                          302
-                                                                                                      ? (disciple.theirFamilyGroup =
-                                                                                                          allFamilyGroups[47]?.id) // 4
-                                                                                                      : index >=
-                                                                                                            303 &&
-                                                                                                          index <=
-                                                                                                            307
-                                                                                                        ? (disciple.theirFamilyGroup =
-                                                                                                            allFamilyGroups[48]?.id) // 5
-                                                                                                        : index >=
-                                                                                                              308 &&
-                                                                                                            index <=
-                                                                                                              312
-                                                                                                          ? (disciple.theirFamilyGroup =
-                                                                                                              allFamilyGroups[49]?.id) // 5
-                                                                                                          : index >=
-                                                                                                                313 &&
-                                                                                                              index <=
-                                                                                                                320
-                                                                                                            ? (disciple.theirFamilyGroup =
-                                                                                                                allFamilyGroups[50]?.id) // 8
-                                                                                                            : index >=
-                                                                                                                  321 &&
-                                                                                                                index <=
-                                                                                                                  326
-                                                                                                              ? (disciple.theirFamilyGroup =
-                                                                                                                  allFamilyGroups[51]?.id) // 6
-                                                                                                              : index >=
-                                                                                                                    327 &&
-                                                                                                                  index <=
-                                                                                                                    331
-                                                                                                                ? (disciple.theirFamilyGroup =
-                                                                                                                    allFamilyGroups[52]?.id) // 5
-                                                                                                                : index >=
-                                                                                                                      332 &&
-                                                                                                                    index <=
-                                                                                                                      339
-                                                                                                                  ? (disciple.theirFamilyGroup =
-                                                                                                                      allFamilyGroups[53]?.id) // 8
-                                                                                                                  : index >=
-                                                                                                                        340 &&
-                                                                                                                      index <=
-                                                                                                                        346
-                                                                                                                    ? (disciple.theirFamilyGroup =
-                                                                                                                        allFamilyGroups[54]?.id) // 7
-                                                                                                                    : index >=
-                                                                                                                          347 &&
-                                                                                                                        index <=
-                                                                                                                          355
-                                                                                                                      ? (disciple.theirFamilyGroup =
-                                                                                                                          allFamilyGroups[55]?.id) // 9
-                                                                                                                      : index >=
-                                                                                                                            356 &&
-                                                                                                                          index <=
-                                                                                                                            360
-                                                                                                                        ? (disciple.theirFamilyGroup =
-                                                                                                                            allFamilyGroups[56]?.id) // 5
-                                                                                                                        : index >=
-                                                                                                                              361 &&
-                                                                                                                            index <=
-                                                                                                                              366
-                                                                                                                          ? (disciple.theirFamilyGroup =
-                                                                                                                              allFamilyGroups[57]?.id) // 6
-                                                                                                                          : index >=
-                                                                                                                                367 &&
-                                                                                                                              index <=
-                                                                                                                                371
-                                                                                                                            ? (disciple.theirFamilyGroup =
-                                                                                                                                allFamilyGroups[58]?.id) // 5
-                                                                                                                            : (disciple.theirFamilyGroup =
-                                                                                                                                allFamilyGroups[59]?.id); // 6
+      { start: 0, end: 4, groupIndex: 0, count: 5 },
+      { start: 5, end: 11, groupIndex: 1, count: 7 },
+      { start: 12, end: 17, groupIndex: 2, count: 6 },
+      { start: 18, end: 22, groupIndex: 3, count: 5 },
+      { start: 23, end: 30, groupIndex: 4, count: 8 },
+      { start: 31, end: 34, groupIndex: 5, count: 4 },
+      { start: 35, end: 39, groupIndex: 6, count: 5 },
+      { start: 40, end: 46, groupIndex: 7, count: 7 },
+      { start: 47, end: 56, groupIndex: 8, count: 10 },
+      { start: 57, end: 64, groupIndex: 9, count: 8 },
+      { start: 65, end: 71, groupIndex: 10, count: 7 },
+      { start: 72, end: 81, groupIndex: 11, count: 10 },
+      { start: 82, end: 87, groupIndex: 12, count: 6 },
+      { start: 88, end: 92, groupIndex: 13, count: 5 },
+      { start: 93, end: 98, groupIndex: 14, count: 6 },
+      { start: 99, end: 102, groupIndex: 15, count: 4 },
+      { start: 103, end: 110, groupIndex: 16, count: 8 },
+      { start: 111, end: 119, groupIndex: 17, count: 9 },
+      { start: 120, end: 128, groupIndex: 18, count: 9 },
+      { start: 129, end: 133, groupIndex: 19, count: 5 },
+      //* Independencia (123 disciples)
+      { start: 134, end: 138, groupIndex: 20, count: 5 },
+      { start: 139, end: 146, groupIndex: 21, count: 8 },
+      { start: 147, end: 155, groupIndex: 22, count: 9 },
+      { start: 156, end: 159, groupIndex: 23, count: 4 },
+      { start: 160, end: 162, groupIndex: 24, count: 3 },
+      { start: 163, end: 169, groupIndex: 25, count: 7 },
+      { start: 170, end: 175, groupIndex: 26, count: 6 },
+      { start: 176, end: 179, groupIndex: 27, count: 4 },
+      { start: 180, end: 184, groupIndex: 28, count: 5 },
+      { start: 185, end: 189, groupIndex: 29, count: 5 },
+      { start: 190, end: 197, groupIndex: 30, count: 8 },
+      { start: 198, end: 203, groupIndex: 31, count: 6 },
+      { start: 204, end: 208, groupIndex: 32, count: 5 },
+      { start: 209, end: 217, groupIndex: 33, count: 9 },
+      { start: 218, end: 224, groupIndex: 34, count: 7 },
+      { start: 225, end: 234, groupIndex: 35, count: 10 },
+      { start: 235, end: 239, groupIndex: 36, count: 5 },
+      { start: 240, end: 245, groupIndex: 37, count: 6 },
+      { start: 246, end: 250, groupIndex: 38, count: 5 },
+      { start: 251, end: 256, groupIndex: 39, count: 6 },
+      //* Los Olivos (121 disciples)
+      { start: 257, end: 261, groupIndex: 40, count: 5 },
+      { start: 262, end: 269, groupIndex: 41, count: 8 },
+      { start: 270, end: 278, groupIndex: 42, count: 9 },
+      { start: 279, end: 282, groupIndex: 43, count: 4 },
+      { start: 283, end: 285, groupIndex: 44, count: 3 },
+      { start: 286, end: 292, groupIndex: 45, count: 7 },
+      { start: 293, end: 298, groupIndex: 46, count: 6 },
+      { start: 299, end: 302, groupIndex: 47, count: 4 },
+      { start: 303, end: 307, groupIndex: 48, count: 5 },
+      { start: 308, end: 312, groupIndex: 49, count: 5 },
+      { start: 313, end: 320, groupIndex: 50, count: 8 },
+      { start: 321, end: 326, groupIndex: 51, count: 6 },
+      { start: 327, end: 331, groupIndex: 52, count: 5 },
+      { start: 332, end: 339, groupIndex: 53, count: 8 },
+      { start: 340, end: 346, groupIndex: 54, count: 7 },
+      { start: 347, end: 355, groupIndex: 55, count: 9 },
+      { start: 356, end: 360, groupIndex: 56, count: 5 },
+      { start: 361, end: 366, groupIndex: 57, count: 6 },
+      { start: 367, end: 371, groupIndex: 58, count: 5 },
+      { start: 372, end: 377, groupIndex: 59, count: 6 },
+    ];
 
+    disciples.forEach((disciple, index) => {
+      const range = groupRanges.find((r) => index >= r.start && index <= r.end);
+      if (range) {
+        disciple.theirFamilyGroup = allFamilyGroups[range.groupIndex]?.id;
+      }
       promisesDisciple.push(this.discipleService.create(disciple, user));
     });
 
@@ -977,8 +775,6 @@ export class SeedService {
 
     await Promise.all(promisesAdjustmentOfferingExpenses);
   }
-
-  // TODO : revisar que esten en sus respectivas casa y que no haiga vacias
 
   //? PRIVATE METHODS
   // For future index errors or constrains with code.

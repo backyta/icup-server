@@ -39,8 +39,8 @@ import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 
 import { User } from '@/modules/user/entities/user.entity';
 
-import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 import { PastorService } from '@/modules/pastor/pastor.service';
+import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 
 @ApiTags('Pastors')
 @ApiBearerAuth()

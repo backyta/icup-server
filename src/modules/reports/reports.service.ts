@@ -29,7 +29,10 @@ import { PaginationDto } from '@/common/dtos/pagination.dto';
 import { MetricsPaginationDto } from '@/common/dtos/metrics-pagination.dto';
 import { SearchAndPaginationDto } from '@/common/dtos/search-and-pagination.dto';
 
-import { MemberTypeNames } from '@/modules/offering/income/enums/member-type.enum';
+import {
+  MemberType,
+  MemberTypeNames,
+} from '@/modules/offering/income/enums/member-type.enum';
 import { OfferingIncomeCreationType } from '@/modules/offering/income/enums/offering-income-creation-type.enum';
 import { OfferingIncomeCreationSubType } from '@/modules/offering/income/enums/offering-income-creation-sub-type.enum';
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
@@ -59,6 +62,7 @@ import { getMemberMetricsReport } from '@/modules/reports/reports-types/metrics/
 import { getFamilyGroupMetricsReport } from '@/modules/reports/reports-types/metrics/family-group-metrics.report';
 import { getOfferingIncomeMetricsReport } from '@/modules/reports/reports-types/metrics/offering-income-metrics.report';
 import { getOfferingExpensesMetricsReport } from '@/modules/reports/reports-types/metrics/offering-expenses-metrics.report';
+import { generateTicketByOfferingIncomeIdReport } from '@/modules/reports/reports-types/tickets/generate-ticket-by-offering-income-id.report';
 import { getFinancialBalanceComparativeMetricsReport } from '@/modules/reports/reports-types/metrics/financial-balance-comparative-metrics.report';
 
 import { UserService } from '@/modules/user/user.service';
@@ -137,6 +141,10 @@ export class ReportsService {
     @InjectRepository(Church)
     private readonly churchRepository: Repository<Church>,
 
+    @InjectRepository(OfferingIncome)
+    private readonly offeringIncomeRepository: Repository<OfferingIncome>,
+
+    @InjectRepository(OfferingExpense)
     private readonly churchService: ChurchService,
     private readonly pastorService: PastorService,
     private readonly copastorService: CopastorService,
@@ -177,6 +185,112 @@ export class ReportsService {
         studyEndDate: DateFormatter.getDDMMYYYY(new Date('2024-10-07')),
         classSchedule: '17:00 a 19:00',
         hoursNumber: 10,
+      });
+
+      const doc = this.printerService.createPdf(docDefinition);
+
+      return doc;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.handleDBExceptions(error);
+    }
+  }
+
+  //* GENERATE TICKET
+  async generateTicketByOfferingIncomeId(recordId: string) {
+    try {
+      const offeringIncome = await this.offeringIncomeRepository.findOne({
+        where: {
+          id: recordId,
+        },
+        relations: [
+          'church',
+          'pastor.member',
+          'copastor.member',
+          'supervisor.member',
+          'preacher.member',
+          'disciple.member',
+          'familyGroup.theirPreacher.member',
+          'familyGroup.theirSupervisor.member',
+          'familyGroup.theirCopastor.member',
+          'familyGroup.theirPastor.member',
+          'zone.theirSupervisor.member',
+          'zone.theirCopastor.member',
+          'zone.theirPastor.member',
+          'externalDonor',
+        ],
+      });
+
+      if (!offeringIncome) {
+        throw new NotFoundException(
+          `El registro con id: ${recordId}, no fue encontrado.`,
+        );
+      }
+
+      const docDefinition = generateTicketByOfferingIncomeIdReport({
+        churchName: offeringIncome?.church?.churchName,
+        abbreviatedChurchName: offeringIncome?.church?.abbreviatedChurchName,
+        churchAddress: offeringIncome?.church?.address,
+        type: offeringIncome?.type,
+        subType: offeringIncome?.subType,
+        amount: offeringIncome?.amount,
+        currency: offeringIncome?.currency,
+        category: offeringIncome?.category,
+        comments: offeringIncome?.comments,
+        shift: offeringIncome?.shift,
+        date: offeringIncome?.date,
+        memberType: offeringIncome?.memberType,
+        memberFullName:
+          offeringIncome?.memberType === MemberType.Pastor
+            ? `${offeringIncome?.pastor?.member?.firstNames} ${offeringIncome?.pastor?.member?.lastNames}`
+            : offeringIncome?.memberType === MemberType.Copastor
+              ? `${offeringIncome?.copastor?.member?.firstNames} ${offeringIncome?.copastor?.member?.lastNames}`
+              : offeringIncome?.memberType === MemberType.Supervisor
+                ? `${offeringIncome?.supervisor?.member?.firstNames} ${offeringIncome?.supervisor?.member?.lastNames}`
+                : offeringIncome?.memberType === MemberType.Preacher
+                  ? `${offeringIncome?.preacher?.member?.firstNames} ${offeringIncome?.preacher?.member?.lastNames}`
+                  : `${offeringIncome?.disciple?.member?.firstNames} ${offeringIncome?.disciple?.member?.lastNames}`,
+        externalDonorFullName: `${offeringIncome?.externalDonor?.firstNames} ${offeringIncome?.externalDonor?.lastNames}`,
+        familyGroupName: offeringIncome?.familyGroup?.familyGroupName,
+        familyGroupCode: offeringIncome?.familyGroup?.familyGroupCode,
+        zoneName: offeringIncome?.zone?.zoneName,
+        zoneDistrict: offeringIncome?.zone?.district,
+        preacherFullName:
+          offeringIncome.subType === OfferingIncomeCreationSubType.FamilyGroup
+            ? `${offeringIncome?.familyGroup?.theirPreacher?.member?.firstNames} ${offeringIncome?.familyGroup?.theirPreacher?.member?.lastNames}`
+            : '',
+        supervisorFullName:
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalFasting ||
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+            ? `${offeringIncome?.zone?.theirSupervisor?.member?.firstNames} ${offeringIncome?.zone?.theirSupervisor?.member?.lastNames}`
+            : offeringIncome.subType ===
+                OfferingIncomeCreationSubType.FamilyGroup
+              ? `${offeringIncome?.familyGroup?.theirSupervisor?.member?.firstNames} ${offeringIncome?.familyGroup?.theirSupervisor?.member?.lastNames}`
+              : '',
+        copastorFullName:
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalFasting ||
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+            ? `${offeringIncome?.zone?.theirCopastor?.member?.firstNames} ${offeringIncome?.zone?.theirCopastor?.member?.lastNames}`
+            : offeringIncome.subType ===
+                OfferingIncomeCreationSubType.FamilyGroup
+              ? `${offeringIncome?.familyGroup?.theirCopastor?.member?.firstNames} ${offeringIncome?.familyGroup?.theirCopastor?.member?.lastNames}`
+              : '',
+        pastorFullName:
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalFasting ||
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+            ? `${offeringIncome?.zone?.theirPastor?.member?.firstNames} ${offeringIncome?.zone?.theirPastor?.member?.lastNames}`
+            : offeringIncome.subType ===
+                OfferingIncomeCreationSubType.FamilyGroup
+              ? `${offeringIncome?.familyGroup?.theirPastor?.member?.firstNames} ${offeringIncome?.familyGroup?.theirPastor?.member?.lastNames}`
+              : '',
+        createdAt: offeringIncome?.createdAt,
+        createdBy: `${offeringIncome?.createdBy.firstNames} ${offeringIncome?.createdBy.lastNames}`,
       });
 
       const doc = this.printerService.createPdf(docDefinition);
@@ -3277,6 +3391,8 @@ export class ReportsService {
     if (error.code === '23505') {
       throw new BadRequestException(`${error.message}`);
     }
+
+    console.log(error);
 
     this.logger.error(error);
 

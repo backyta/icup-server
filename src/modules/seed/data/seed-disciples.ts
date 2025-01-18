@@ -32,7 +32,6 @@ interface SeedDataMembers {
   disciples: SeedDisciples[];
 }
 
-// NOTE : 20 casas por iglesia, son de 5 a 10 miembros x casas
 //! Data Disciples
 export const dataDisciples: SeedDataMembers = {
   disciples: [
@@ -123,17 +122,17 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'A dos cuadras del estadio municipal',
       roles: ['disciple'],
     },
-  
+
     //* Casa 2 : 7 disciples
     {
       firstNames: 'Ana Gabriela',
       lastNames: 'Fernandez Nuñez',
       gender: 'female',
       originCountry: 'Perú',
-      birthDate: new Date('2008-05-05'), 
+      birthDate: new Date('2008-05-05'),
       maritalStatus: 'single',
       numberChildren: 0,
-      conversionDate: new Date('2015-03-15'), 
+      conversionDate: new Date('2015-03-15'),
       email: 'ana.fernandez_0945@google.com',
       phoneNumber: '+51 999-666-666',
       residenceDistrict: 'Comas',
@@ -147,10 +146,10 @@ export const dataDisciples: SeedDataMembers = {
       lastNames: 'Ramirez Torres',
       gender: 'male',
       originCountry: 'Perú',
-      birthDate: new Date('1995-08-15'), 
+      birthDate: new Date('1995-08-15'),
       maritalStatus: 'married',
       numberChildren: 1,
-      conversionDate: new Date('2010-05-25'), 
+      conversionDate: new Date('2010-05-25'),
       email: 'carlos.ramirez56_912@google.com',
       phoneNumber: '+51 999-777-777',
       residenceDistrict: 'Comas',
@@ -164,10 +163,10 @@ export const dataDisciples: SeedDataMembers = {
       lastNames: 'Cruz Mendoza',
       gender: 'female',
       originCountry: 'Perú',
-      birthDate: new Date('1985-04-28'), 
+      birthDate: new Date('1985-04-28'),
       maritalStatus: 'divorced',
       numberChildren: 2,
-      conversionDate: new Date('2005-10-15'), 
+      conversionDate: new Date('2005-10-15'),
       email: 'diana.cruz21_1293@google.com',
       phoneNumber: '+51 999-888-888',
       residenceDistrict: 'Comas',
@@ -181,10 +180,10 @@ export const dataDisciples: SeedDataMembers = {
       lastNames: 'Salazar Paredes',
       gender: 'male',
       originCountry: 'Perú',
-      birthDate: new Date('1982-02-14'), 
+      birthDate: new Date('1982-02-14'),
       maritalStatus: 'married',
       numberChildren: 2,
-      conversionDate: new Date('2005-05-10'), 
+      conversionDate: new Date('2005-05-10'),
       email: 'jose.salazar47_283@google.com',
       phoneNumber: '+51 999-999-111',
       residenceDistrict: 'Comas',
@@ -198,10 +197,10 @@ export const dataDisciples: SeedDataMembers = {
       lastNames: 'Flores Rojas',
       gender: 'female',
       originCountry: 'Perú',
-      birthDate: new Date('1999-11-30'), 
+      birthDate: new Date('1999-11-30'),
       maritalStatus: 'single',
       numberChildren: 0,
-      conversionDate: new Date('2015-06-15'), 
+      conversionDate: new Date('2015-06-15'),
       email: 'claudia.flores421_019@google.com',
       phoneNumber: '+51 999-999-112',
       residenceDistrict: 'Comas',
@@ -215,10 +214,10 @@ export const dataDisciples: SeedDataMembers = {
       lastNames: 'Chávez Mendoza',
       gender: 'male',
       originCountry: 'Perú',
-      birthDate: new Date('2005-05-12'), 
+      birthDate: new Date('2005-05-12'),
       maritalStatus: 'single',
       numberChildren: 0,
-      conversionDate: new Date('2017-09-05'), 
+      conversionDate: new Date('2017-09-05'),
       email: 'roberto.chavez215_291@google.com',
       phoneNumber: '+51 999-999-113',
       residenceDistrict: 'Comas',
@@ -232,10 +231,10 @@ export const dataDisciples: SeedDataMembers = {
       lastNames: 'Vargas Silva',
       gender: 'female',
       originCountry: 'Perú',
-      birthDate: new Date('1978-07-18'), 
+      birthDate: new Date('1978-07-18'),
       maritalStatus: 'married',
       numberChildren: 3,
-      conversionDate: new Date('2000-08-20'), 
+      conversionDate: new Date('2000-08-20'),
       email: 'lucia.vargas456@google.com',
       phoneNumber: '+51 999-999-114',
       residenceDistrict: 'Comas',
@@ -643,7 +642,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'A un costado de la plaza central',
       roles: ['disciple'],
     },
-    
+
     //* House 7: 5 disciples
     {
       firstNames: 'Sofía Valentina',
@@ -851,7 +850,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Frente al colegio San Felipe',
       roles: ['disciple'],
     },
-    
+
     //* House 9: 10 disciples
     {
       firstNames: 'Tomás Andrés',
@@ -1023,7 +1022,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Carmen Alto',
       roles: ['disciple'],
     },
-    
+
     //* House 10: 8 disciples
     {
       firstNames: 'José Antonio',
@@ -1161,7 +1160,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Frente al mercado San Agustín',
       roles: ['disciple'],
     },
-    
+
     //* House 11: 7 disciples
     {
       firstNames: 'Luis Miguel',
@@ -1282,7 +1281,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque El Retablo',
       roles: ['disciple'],
     },
-    
+
     //* House 12: 10 disciples
     {
       firstNames: 'Carlos Alberto',
@@ -1454,7 +1453,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Sol de Villa',
       roles: ['disciple'],
     },
-    
+
     //* House 13: 6 disciples
     {
       firstNames: 'Juan Carlos',
@@ -1558,7 +1557,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia San Agustín',
       roles: ['disciple'],
     },
-    
+
     //* House 14: 5 disciples
     {
       firstNames: 'María Teresa',
@@ -1645,7 +1644,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque San Felipe',
       roles: ['disciple'],
     },
-    
+
     //* House 15: 6 disciples
     {
       firstNames: 'Pedro Andrés',
@@ -1749,7 +1748,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Chacra Cerro',
       roles: ['disciple'],
     },
-    
+
     //* House 16: 4 disciples
     {
       firstNames: 'José Luis',
@@ -1819,7 +1818,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la tienda Santa Luzmila',
       roles: ['disciple'],
     },
-    
+
     //* House 17: 8 disciples
     {
       firstNames: 'Luis Eduardo',
@@ -1957,7 +1956,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la plaza Año Nuevo',
       roles: ['disciple'],
     },
-    
+
     //* House 18: 9 disciples
     {
       firstNames: 'David Alberto',
@@ -2112,7 +2111,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque La Pascana',
       roles: ['disciple'],
     },
-    
+
     //* House 19: 9 disciples
     {
       firstNames: 'Marta Elena',
@@ -2267,7 +2266,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque San Felipe',
       roles: ['disciple'],
     },
-    
+
     //* House 20: 5 disciples
     {
       firstNames: 'Lucía María',
@@ -2579,7 +2578,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceAddress: 'Jr. San Juan 456',
       referenceAddress: 'Frente al centro comercial Industrial',
       roles: ['disciple'],
-    },    
+    },
 
     //* House 3: 9 disciples
     {
@@ -2735,7 +2734,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque Tahuantinsuyo',
       roles: ['disciple'],
     },
-    
+
     //* House 4: 4 disciples
     {
       firstNames: 'Pedro Luis',
@@ -2805,7 +2804,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Año Nuevo',
       roles: ['disciple'],
     },
-    
+
     //* House 5: 3 disciples
     {
       firstNames: 'Juan Carlos',
@@ -2858,7 +2857,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del mercado El Retablo',
       roles: ['disciple'],
     },
-    
+
     //* House 6: 7 disciples
     {
       firstNames: 'Andrea Paola',
@@ -2979,7 +2978,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la clínica Unificada',
       roles: ['disciple'],
     },
-    
+
     //* House 7: 6 disciples
     {
       firstNames: 'Miriam Beatriz',
@@ -3083,7 +3082,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del mercado Independencia',
       roles: ['disciple'],
     },
-    
+
     //* House 8: 4 disciples
     {
       firstNames: 'Patricia Lourdes',
@@ -3153,7 +3152,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Ermitaño',
       roles: ['disciple'],
     },
-    
+
     //* House 9: 5 disciples
     {
       firstNames: 'María Teresa',
@@ -3240,7 +3239,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Frente a la estación Industrial',
       roles: ['disciple'],
     },
-    
+
     //* House 10: 5 disciples
     {
       firstNames: 'Ana María',
@@ -3327,7 +3326,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Frente a la estación La Merced',
       roles: ['disciple'],
     },
-    
+
     //* House 11: 8 disciples
     {
       firstNames: 'Carlos Julian',
@@ -3465,7 +3464,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del centro de salud El Retablo',
       roles: ['disciple'],
     },
-    
+
     //* House 12: 6 disciples
     {
       firstNames: 'Isabel María',
@@ -3569,7 +3568,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del mercado San Agustín',
       roles: ['disciple'],
     },
-    
+
     //* House 13: 5 disciples
     {
       firstNames: 'Ana Paula',
@@ -3656,7 +3655,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia San Felipe',
       roles: ['disciple'],
     },
-    
+
     //* House 14: 9 disciples
     {
       firstNames: 'Carlos Javier',
@@ -3811,7 +3810,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del colegio San Felipe',
       roles: ['disciple'],
     },
-    
+
     //* House 15: 7 disciples
     {
       firstNames: 'Carlos Alberto',
@@ -3932,7 +3931,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia San Felipe',
       roles: ['disciple'],
     },
-    
+
     //* House 16: 10 disciples
     {
       firstNames: 'Ana Beatriz',
@@ -4104,7 +4103,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque El Retablo',
       roles: ['disciple'],
     },
-    
+
     //* House 17: 5 disciples
     {
       firstNames: 'Carlos Alberto',
@@ -4191,7 +4190,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia El Retablo',
       roles: ['disciple'],
     },
-    
+
     //* House 18: 6 disciples
     {
       firstNames: 'Ana María',
@@ -4295,7 +4294,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Collique',
       roles: ['disciple'],
     },
-    
+
     //* House 19: 5 disciples
     {
       firstNames: 'Luis Alberto',
@@ -4382,7 +4381,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Ermitaño',
       roles: ['disciple'],
     },
-    
+
     //* House 20: 6 disciples
     {
       firstNames: 'Ana Isabel',
@@ -4486,7 +4485,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Sol de La Molina',
       roles: ['disciple'],
     },
-    
+
     //? Los Olivos (121)
     //* House 1: 5 disciples
     {
@@ -4574,7 +4573,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia El Trébol',
       roles: ['disciple'],
     },
-    
+
     //* House 2: 8 disciples
     {
       firstNames: 'Juan Sebastián',
@@ -4712,7 +4711,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque El Trébol',
       roles: ['disciple'],
     },
-    
+
     //* House 3: 9 disciples
     {
       firstNames: 'Gabriela Fernanda',
@@ -4867,7 +4866,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Pro',
       roles: ['disciple'],
     },
-    
+
     //* House 4: 4 disciples
     {
       firstNames: 'Ricardo José',
@@ -4937,7 +4936,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Villa Sol',
       roles: ['disciple'],
     },
-    
+
     //* House 5: 3 disciples
     {
       firstNames: 'Carlos Manuel',
@@ -4990,7 +4989,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque El Naranjal',
       roles: ['disciple'],
     },
-    
+
     //* House 6: 7 disciples
     {
       firstNames: 'Luis Alberto',
@@ -5111,7 +5110,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque Sol De Oro',
       roles: ['disciple'],
     },
-    
+
     //* House 7: 6 disciples
     {
       firstNames: 'Juan Carlos',
@@ -5215,7 +5214,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la iglesia Infantas',
       roles: ['disciple'],
     },
-    
+
     //* House 8: 4 disciples
     {
       firstNames: 'Esteban Luis',
@@ -5285,7 +5284,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del centro Covida',
       roles: ['disciple'],
     },
-    
+
     //* House 9: 5 disciples
     {
       firstNames: 'Ricardo Alberto',
@@ -5372,7 +5371,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la Plaza Pro',
       roles: ['disciple'],
     },
-    
+
     //* House 10: 5 disciples
     {
       firstNames: 'Juan Carlos',
@@ -5459,7 +5458,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del centro comercial El Trébol',
       roles: ['disciple'],
     },
-    
+
     //* House 11: 8 disciples
     {
       firstNames: 'José Luis',
@@ -5597,7 +5596,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Frente al mercado Infantas',
       roles: ['disciple'],
     },
-    
+
     //* House 12: 6 disciples
     {
       firstNames: 'Carlos Eduardo',
@@ -5701,7 +5700,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del centro comercial Angélica Gamarra',
       roles: ['disciple'],
     },
-    
+
     //* House 13: 5 disciples
     {
       firstNames: 'Ricardo Felipe',
@@ -5788,7 +5787,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del mercado Las Palmeras',
       roles: ['disciple'],
     },
-    
+
     //* House 14: 8 disciples
     {
       firstNames: 'Carlos Alberto',
@@ -5926,7 +5925,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la plaza El Naranjal',
       roles: ['disciple'],
     },
-    
+
     //* House 15: 7 disciples
     {
       firstNames: 'Carlos Eduardo',
@@ -6047,7 +6046,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la plaza El Naranjal',
       roles: ['disciple'],
     },
-    
+
     //* House 16: 9 disciples
     {
       firstNames: 'Ana Patricia',
@@ -6202,7 +6201,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca de la tienda Las Palmeras',
       roles: ['disciple'],
     },
-    
+
     //* House 17: 5 disciples
     {
       firstNames: 'Carlos Eduardo',
@@ -6289,7 +6288,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque Las Palmeras',
       roles: ['disciple'],
     },
-    
+
     //* House 18: 6 disciples
     {
       firstNames: 'Claudia Beatriz',
@@ -6393,7 +6392,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del parque Santa Elvira',
       roles: ['disciple'],
     },
-    
+
     //* House 19: 5 disciples
     {
       firstNames: 'Carlos Javier',
@@ -6480,7 +6479,7 @@ export const dataDisciples: SeedDataMembers = {
       referenceAddress: 'Cerca del supermercado Pro',
       roles: ['disciple'],
     },
-    
+
     //* House 20: 6 disciples
     {
       firstNames: 'Fernando Alberto',
@@ -6583,6 +6582,6 @@ export const dataDisciples: SeedDataMembers = {
       residenceAddress: 'Jr. Villa Sol 124',
       referenceAddress: 'Cerca de la tienda Villa Sol',
       roles: ['disciple'],
-    }
- ],
+    },
+  ],
 };

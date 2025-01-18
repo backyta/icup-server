@@ -2,6 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiParam,
+  ApiQuery,
   ApiBearerAuth,
   ApiOkResponse,
   ApiNotFoundResponse,
@@ -9,7 +10,6 @@ import {
   ApiBadRequestResponse,
   ApiUnauthorizedResponse,
   ApiInternalServerErrorResponse,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 

@@ -61,7 +61,7 @@ export const dataChurches: SeedDataChurches = {
       province: 'Lima',
       district: 'Independencia',
       urbanSector: 'Tahuantinsuyo',
-      address: 'Jr. Valle Sagrado de los Incas 123',
+      address: 'Jr. Valle Sagrado de los Incas 167, 3ra Zona Tahuantinsuyo.',
       referenceAddress: 'Al frente del colegio Maria Auxiliadora.',
     },
   ],

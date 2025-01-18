@@ -41,8 +41,8 @@ import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 import { User } from '@/modules/user/entities/user.entity';
 import { Preacher } from '@/modules/preacher/entities/preacher.entity';
 
-import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 import { DiscipleService } from '@/modules/disciple/disciple.service';
+import { Disciple } from '@/modules/disciple/entities/disciple.entity';
 
 @ApiTags('Disciples')
 @ApiBearerAuth()

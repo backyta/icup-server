@@ -41,8 +41,8 @@ import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 import { User } from '@/modules/user/entities/user.entity';
 import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 
-import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { SupervisorService } from '@/modules/supervisor/supervisor.service';
+import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 
 @ApiTags('Supervisors')
 @ApiBearerAuth()

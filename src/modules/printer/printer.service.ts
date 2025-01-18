@@ -24,19 +24,21 @@ const customTableLayouts: Record<string, CustomTableLayout> = {
       }
       return i === node.table.headerRows ? 2 : 1;
     },
-    vLineWidth: function (i) {
+    vLineWidth: function () {
+      //i
       return 0;
     },
     hLineColor: function (i) {
       return i === 1 ? 'black' : '#eee';
     },
     paddingLeft: function (i) {
+      //node
       return i === 0 ? 0 : 8;
     },
     paddingRight: function (i, node) {
       return i === node.table.widths.length - 1 ? 0 : 8;
     },
-    fillColor: function (i, node) {
+    fillColor: function (i) {
       if (i === 0) {
         return '#6aaef0';
       }

@@ -40,8 +40,8 @@ import { CreateZoneDto } from '@/modules/zone/dto/create-zone.dto';
 import { UpdateZoneDto } from '@/modules/zone/dto/update-zone.dto';
 import { InactivateZoneDto } from '@/modules/zone/dto/inactivate-zone.dto';
 
-import { Zone } from '@/modules/zone/entities/zone.entity';
 import { ZoneService } from '@/modules/zone/zone.service';
+import { Zone } from '@/modules/zone/entities/zone.entity';
 
 @ApiTags('Zones')
 @ApiBearerAuth()

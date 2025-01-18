@@ -49,8 +49,6 @@ import { OfferingIncomeSearchType } from '@/modules/offering/income/enums/offeri
 import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
 import { OfferingIncomeSearchSubType } from '@/modules/offering/income/enums/offering-income-search-sub-type.enum';
 import { OfferingExpenseSearchSubType } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
-import PdfPrinter from 'pdfmake';
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 @ApiTags('Reports')
 @ApiBearerAuth()
@@ -74,155 +72,6 @@ import { TDocumentDefinitions } from 'pdfmake/interfaces';
 @Controller('reports')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
-
-  //* BOLETAS DE DEPOSITO
-  @Get('generate')
-  async generateReceipt(@Res() response: Response) {
-    // Define the printer fonts
-    const fonts = {
-      Roboto: {
-        normal: 'fonts/Roboto-Regular.ttf',
-        bold: 'fonts/Roboto-Medium.ttf',
-        italics: 'fonts/Roboto-Italic.ttf',
-        bolditalics: 'fonts/Roboto-MediumItalic.ttf',
-      },
-    };
-
-    // Initialize the printer
-    const printer = new PdfPrinter(fonts);
-
-    // Define the document content
-    const docDefinition: TDocumentDefinitions = {
-      pageSize: { width: 302, height: 'auto' }, // 80 mm width (302 px)
-      pageMargins: [10, 10, 10, 10], // Margins for thermal printer
-      content: [
-        {
-          text: 'Iglesia Cristiana Unidos en su Presencia',
-          style: 'header',
-          alignment: 'center',
-        },
-        {
-          text: 'Av Valle Sagrado de los Incas 333, 3ra zona\nTahuantinsuyo - Independencia - Lima, Perú',
-          style: 'subheader',
-          alignment: 'center',
-          margin: [0, 5],
-        },
-        {
-          text: '------------------------------',
-          alignment: 'center',
-          margin: [0, 10],
-        },
-        {
-          text: 'RECIBO DE OFRENDA',
-          style: 'title',
-          alignment: 'center',
-        },
-        {
-          text: '------------------------------',
-          alignment: 'center',
-          margin: [0, 5],
-        },
-        {
-          table: {
-            widths: ['*', '*'],
-            body: [
-              [
-                { text: 'Fecha:', style: 'label' },
-                { text: '12/01/2025', style: 'value' },
-              ],
-              [
-                { text: 'Monto:', style: 'label' },
-                { text: 'S/ 150.00', style: 'value' },
-              ],
-              [
-                { text: 'Divisa:', style: 'label' },
-                { text: 'Sol', style: 'value' },
-              ],
-              [
-                { text: 'Tipo:', style: 'label' },
-                { text: 'Ofrenda', style: 'value' },
-              ],
-              [
-                { text: 'Subtipo:', style: 'label' },
-                { text: 'Culto Dominical', style: 'value' },
-              ],
-              [
-                { text: 'Categoría:', style: 'label' },
-                { text: 'General', style: 'value' },
-              ],
-              [
-                { text: 'Grupo Familiar:', style: 'label' },
-                { text: 'Levi-2 ~ Los Gedeones', style: 'value' },
-              ],
-              [
-                { text: 'Turno:', style: 'label' },
-                { text: 'Día', style: 'value' },
-              ],
-              [
-                { text: 'Registrado por:', style: 'label' },
-                { text: 'Kevin Baca Angeles', style: 'value' },
-              ],
-            ],
-          },
-          layout: 'noBorders', // Removes table borders
-          margin: [0, 10],
-        },
-        {
-          text: '------------------------------',
-          alignment: 'center',
-          margin: [0, 10],
-        },
-        {
-          text: 'Gracias por su generosidad',
-          style: 'footer',
-          alignment: 'center',
-        },
-        {
-          text: 'Que Dios los bendiga',
-          style: 'footer',
-          alignment: 'center',
-          margin: [0, 5],
-        },
-      ],
-      styles: {
-        header: {
-          fontSize: 14,
-          bold: true,
-        },
-        subheader: {
-          fontSize: 10,
-          italics: true,
-        },
-        title: {
-          fontSize: 12,
-          bold: true,
-          margin: [0, 5],
-        },
-        label: {
-          fontSize: 10,
-          bold: true,
-        },
-        value: {
-          fontSize: 10,
-        },
-        footer: {
-          fontSize: 9,
-          italics: true,
-        },
-      },
-    };
-
-    // Create the PDF
-    const pdfDoc = printer.createPdfKitDocument(docDefinition);
-
-    // Set the response headers
-    response.setHeader('Content-Type', 'application/pdf');
-    response.setHeader('Content-Disposition', 'inline; filename="receipt.pdf"');
-
-    // Pipe the document to the response
-    pdfDoc.pipe(response);
-    pdfDoc.end();
-  }
 
   //* STUDENT CERTIFICATE
   @Get('student-certificate/:id')
@@ -248,6 +97,36 @@ export class ReportsController {
     response.setHeader(
       'Content-Disposition',
       'attachment; filename="student-certificate.pdf"',
+    );
+    pdfDoc.pipe(response);
+    pdfDoc.end();
+  }
+
+  //* OFFERING INCOME TICKET
+  @Get('offering-income/:id/ticket')
+  @Auth()
+  @ApiOkResponse({
+    description:
+      '✅ Operation Successful: The requested offering income ticket has been successfully generated. The response includes the ticket as a downloadable PDF file.',
+  })
+  @ApiParam({
+    name: 'id',
+    description:
+      'Unique identifier of the offering income record for which the ticket is being generated. This ID is used to retrieve the corresponding data from the database.',
+    example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
+  })
+  @ApiProduces('application/pdf')
+  async generateReceipt(
+    @Res() response: Response,
+    @Param('id', ParseUUIDPipe) studentId: string,
+  ) {
+    const pdfDoc =
+      await this.reportsService.generateTicketByOfferingIncomeId(studentId);
+
+    response.setHeader('Content-Type', 'application/pdf');
+    response.setHeader(
+      'Content-Disposition',
+      'attachment; filename="offering-income-ticket.pdf"',
     );
     pdfDoc.pipe(response);
     pdfDoc.end();

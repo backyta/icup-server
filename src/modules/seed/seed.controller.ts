@@ -1,7 +1,6 @@
-import { BadRequestException, Controller, Get } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import {
   ApiTags,
-  ApiOkResponse,
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -20,16 +19,20 @@ import { SeedService } from '@/modules/seed/seed.service';
 @ApiTags('Seed')
 @ApiBearerAuth()
 @ApiUnauthorizedResponse({
-  description: '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
+  description:
+    '🔒 Unauthorized: Missing or invalid Bearer Token. Please provide a valid token to access this resource.',
 })
 @ApiInternalServerErrorResponse({
-  description: '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
+  description:
+    '🚨 Internal Server Error: An unexpected error occurred on the server. Please check the server logs for more details.',
 })
 @ApiBadRequestResponse({
-  description: '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
+  description:
+    '❌ Bad Request: The request contains invalid data or parameters. Please verify the input and try again.',
 })
 @ApiForbiddenResponse({
-  description: '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
+  description:
+    '🚫 Forbidden: You do not have the necessary permissions to access this resource.',
 })
 @SkipThrottle()
 @Controller('seed')
@@ -42,8 +45,10 @@ export class SeedController {
   @Get()
   @Auth(UserRole.SuperUser)
   @ApiCreatedResponse({
-    description: '✅ Successfully created: SEED operation executed successfully. The database has been seeded with initial data.',
+    description:
+      '✅ Successfully created: SEED operation executed successfully. The database has been seeded with initial data.',
   })
+  //TODO : ACTIVAR LA PROHIBICIÓN DE SEMILLA EN PRODUCCIÓN
   executeSeed(): Promise<string> {
     // if (this.configService.get('STAGE') === 'prod') {
     //   throw new BadRequestException('Cannot run seed in production.');

@@ -37,10 +37,6 @@ export class PaginationDto {
   order?: string;
 
   //* For zone module when search supervisors and return supervisors with zone or not
-  // @ApiProperty({
-  //   example: 'true',
-  //   description: 'Do you want null relationships to be returned?',
-  // })
   @IsOptional()
   @IsBoolean()
   @Transform(({ value }) =>
@@ -48,23 +44,12 @@ export class PaginationDto {
   )
   isNullZone?: boolean;
 
-  // @ApiProperty({
-  //   example: 'true',
-  //   description:
-  //     'Is it a simple query (does not need to load relationships) or a complete query (does need to load relationships)?',
-  // })
   @IsOptional()
-  // @IsBoolean()
   @Transform(({ value }) =>
     value === 'true' ? true : value === 'false' ? false : value,
   )
   isSimpleQuery?: boolean;
 
-  // @ApiProperty({
-  //   description: 'Unique identifier of the church to be used for filtering or retrieving related records in the search.',
-  //   example: 'b740f708-f19d-4116-82b5-3d7b5653be9b',
-  //   required: false,
-  // })
   @IsOptional()
   @IsString()
   @Type(() => String)

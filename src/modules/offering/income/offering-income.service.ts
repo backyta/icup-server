@@ -2958,9 +2958,11 @@ export class OfferingIncomeService {
       memberId,
       currency,
       imageUrls,
+      category,
       memberType,
       recordStatus,
       familyGroupId,
+      externalDonorId,
     } = updateOfferingIncomeDto;
 
     if (!isUUID(id)) {
@@ -2979,6 +2981,7 @@ export class OfferingIncomeService {
         'supervisor.member',
         'preacher.member',
         'disciple.member',
+        'externalDonor',
       ],
     });
 
@@ -3036,6 +3039,15 @@ export class OfferingIncomeService {
     if (zoneId && zoneId !== offering?.zone?.id) {
       throw new BadRequestException(
         `No se puede actualizar la Zona al  que pertenece este registro.`,
+      );
+    }
+
+    if (
+      memberType === MemberType.ExternalDonor &&
+      externalDonorId !== offering?.externalDonor?.id
+    ) {
+      throw new BadRequestException(
+        `No se puede actualizar el Discípulo que pertenece este registro.`,
       );
     }
 
@@ -3138,22 +3150,77 @@ export class OfferingIncomeService {
         });
       }
 
+      let externalDonor: ExternalDonor;
+      if (memberType === MemberType.ExternalDonor) {
+        externalDonor = await this.externalDonorRepository.findOne({
+          where: {
+            id: externalDonorId,
+          },
+        });
+      }
+
       let existsOffering: OfferingIncome[];
 
-      //* Sunday school and sunday service
-      if (
-        subType === OfferingIncomeCreationSubType.SundaySchool ||
-        subType === OfferingIncomeCreationSubType.SundayService
-      ) {
+      //* Sunday service
+      if (subType === OfferingIncomeCreationSubType.SundayService) {
         existsOffering = await this.offeringIncomeRepository.find({
           where: {
             id: Not(id),
             type: type,
             subType: subType,
+            category: category,
             church: church,
             date: new Date(date),
             currency: currency,
             shift: shift,
+            recordStatus: RecordStatus.Active,
+          },
+        });
+      }
+
+      //* Sunday school
+      if (subType === OfferingIncomeCreationSubType.SundaySchool) {
+        existsOffering = await this.offeringIncomeRepository.find({
+          where: {
+            id: Not(id),
+            type: type,
+            subType: subType,
+            category: category,
+            church: church,
+            date: new Date(date),
+            currency: currency,
+            shift: shift,
+            memberType: memberType,
+            pastor: memberValue as Pastor,
+            copastor: memberValue as Copastor,
+            supervisor: memberValue as Supervisor,
+            preacher: memberValue as Preacher,
+            disciple: memberValue as Disciple,
+            externalDonor: externalDonor,
+            recordStatus: RecordStatus.Active,
+          },
+        });
+      }
+
+      //* Youth Service
+      if (subType === OfferingIncomeCreationSubType.YouthService) {
+        existsOffering = await this.offeringIncomeRepository.find({
+          where: {
+            id: Not(id),
+            type: type,
+            subType: subType,
+            category: category,
+            church: church,
+            date: new Date(date),
+            currency: currency,
+            shift: shift,
+            memberType: memberType,
+            pastor: memberValue as Pastor,
+            copastor: memberValue as Copastor,
+            supervisor: memberValue as Supervisor,
+            preacher: memberValue as Preacher,
+            disciple: memberValue as Disciple,
+            externalDonor: externalDonor,
             recordStatus: RecordStatus.Active,
           },
         });
@@ -3166,6 +3233,7 @@ export class OfferingIncomeService {
             id: Not(id),
             type: type,
             subType: subType,
+            category: category,
             date: new Date(date),
             currency: currency,
             familyGroup: familyGroup,
@@ -3184,6 +3252,7 @@ export class OfferingIncomeService {
             id: Not(id),
             type: type,
             subType: subType,
+            category: category,
             date: new Date(date),
             currency: currency,
             zone: zone,
@@ -3192,11 +3261,10 @@ export class OfferingIncomeService {
         });
       }
 
-      //* General fasting, general vigil, youth service, united services, activities
+      //* General fasting, general vigil united services, activities
       if (
         subType === OfferingIncomeCreationSubType.GeneralFasting ||
         subType === OfferingIncomeCreationSubType.GeneralVigil ||
-        subType === OfferingIncomeCreationSubType.YouthService ||
         subType === OfferingIncomeCreationSubType.UnitedService ||
         subType === OfferingIncomeCreationSubType.Activities
       ) {
@@ -3205,6 +3273,7 @@ export class OfferingIncomeService {
             id: Not(id),
             type: type,
             subType: subType,
+            category: category,
             date: new Date(date),
             church: church,
             currency: currency,
@@ -3224,6 +3293,7 @@ export class OfferingIncomeService {
               id: Not(id),
               type: type,
               subType: subType,
+              category: category,
               date: new Date(date),
               currency: currency,
               memberType: memberType,
@@ -3238,6 +3308,7 @@ export class OfferingIncomeService {
               id: Not(id),
               type: type,
               subType: subType,
+              category: category,
               date: new Date(date),
               currency: currency,
               memberType: memberType,
@@ -3252,6 +3323,7 @@ export class OfferingIncomeService {
               id: Not(id),
               type: type,
               subType: subType,
+              category: category,
               date: new Date(date),
               currency: currency,
               memberType: memberType,
@@ -3267,6 +3339,7 @@ export class OfferingIncomeService {
               id: Not(id),
               type: type,
               subType: subType,
+              category: category,
               date: new Date(date),
               currency: currency,
               memberType: memberType,
@@ -3281,10 +3354,26 @@ export class OfferingIncomeService {
               id: Not(id),
               type: type,
               subType: subType,
+              category: category,
               date: new Date(date),
               currency: currency,
               memberType: memberType,
               disciple: memberValue as Disciple,
+              recordStatus: RecordStatus.Active,
+            },
+          });
+        }
+        if (memberType === MemberType.ExternalDonor) {
+          existsOffering = await this.offeringIncomeRepository.find({
+            where: {
+              id: Not(id),
+              type: type,
+              subType: subType,
+              category: category,
+              date: new Date(date),
+              currency: currency,
+              memberType: memberType,
+              externalDonor: externalDonor,
               recordStatus: RecordStatus.Active,
             },
           });

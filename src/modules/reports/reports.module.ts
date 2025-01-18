@@ -14,10 +14,10 @@ import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
 
 import { PrinterModule } from '@/modules/printer/printer.module';
+import { MetricsModule } from '@/modules/metrics/metrics.module';
 
 import { UserModule } from '@/modules/user/user.module';
 import { AuthModule } from '@/modules/auth/auth.module';
-import { MetricsModule } from '@/modules/metrics/metrics.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 

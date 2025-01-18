@@ -41,8 +41,8 @@ import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
 import { User } from '@/modules/user/entities/user.entity';
 import { Pastor } from '@/modules/pastor/entities/pastor.entity';
 
-import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 import { CopastorService } from '@/modules/copastor/copastor.service';
+import { Copastor } from '@/modules/copastor/entities/copastor.entity';
 
 @ApiTags('Co-Pastors')
 @ApiBearerAuth()

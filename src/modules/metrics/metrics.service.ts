@@ -46,6 +46,7 @@ import { offeringIncomeByFastingAndVigilFormatter } from '@/modules/metrics/help
 import { offeringIncomeByIncomeAdjustmentFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-income-adjustment-formatter.helper';
 
 import { offeringExpenseChartFormatter } from '@/modules/metrics/helpers/offering-expense/offering-expense-chart-formatter.helper';
+import { offeringExpenseReportFormatter } from '@/modules/metrics/helpers/offering-expense/offering-expense-report-formatter.helper';
 import { offeringExpenseProportionFormatter } from '@/modules/metrics/helpers/offering-expense/offering-expense-proportion-formatter.helper';
 import { offeringExpensesAdjustmentFormatter } from '@/modules/metrics/helpers/offering-expense/offering-expenses-adjustment-formatter.helper';
 
@@ -79,7 +80,6 @@ import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 import { FamilyGroup } from '@/modules/family-group/entities/family-group.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
-import { offeringExpenseReportFormatter } from './helpers/offering-expense/offering-expense-report-formatter.helper';
 
 @Injectable()
 export class MetricsService {
