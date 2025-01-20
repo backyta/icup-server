@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, Between, FindOptionsOrderValue, In, Repository } from 'typeorm';
 
-import { fromZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { endOfMonth, startOfMonth } from 'date-fns';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
@@ -162,16 +162,15 @@ export class MetricsService {
 
         const timeZone = 'America/Lima';
         const sundays = [];
-        const newDate = new Date();
-        const zonedDate = fromZonedTime(dateTerm, timeZone);
+        const zonedDate = toZonedTime(`${dateTerm} UTC`, timeZone);
 
         zonedDate.setDate(
-          newDate.getUTCDay() === 0
+          zonedDate.getUTCDay() === 0
             ? zonedDate.getUTCDate()
             : zonedDate.getUTCDate() - zonedDate.getUTCDay(),
         ); // Domingo mas cercano
 
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 7; i++) {
           sundays.push(zonedDate.toISOString().split('T')[0]);
           zonedDate.setDate(zonedDate.getUTCDate() - 7);
         }

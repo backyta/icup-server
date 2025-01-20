@@ -1,5 +1,6 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+
+import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import { OfferingExpenseSearchTypeNames } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
 import { OfferingExpenseSearchSubTypeNames } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
@@ -107,7 +108,7 @@ export const getOfferingExpensesReport = (
               OfferingExpenseSearchSubTypeNames[item?.subType] ?? '-',
               item?.amount ?? '-',
               item?.currency ?? '-',
-              format(new Date(addDays(item.date, 1)), 'dd/MM/yyyy'),
+              formatDateToLimaDayMonthYear(item?.date),
               item?.comments ?? '-',
             ]),
             ['', '', '', '', '', '', ''],

@@ -11,7 +11,7 @@ interface Church {
 }
 
 export interface OfferingIncomeByActivitiesDataResult {
-  date: string;
+  date: Date;
   category: string;
   accumulatedOfferingPEN: number;
   accumulatedOfferingUSD: number;
@@ -20,7 +20,7 @@ export interface OfferingIncomeByActivitiesDataResult {
   allOfferings: Array<{
     offering: number;
     currency: string;
-    date: string;
+    date: Date;
   }>;
 }
 

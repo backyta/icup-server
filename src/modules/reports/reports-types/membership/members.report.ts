@@ -1,4 +1,3 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 import { MaritalStatusNames } from '@/common/enums/marital-status.enum';
@@ -11,6 +10,7 @@ import { Supervisor } from '@/modules/supervisor/entities/supervisor.entity';
 
 import { footerSection } from '@/modules/reports/sections/footer.section';
 import { headerSection } from '@/modules/reports/sections/header.section';
+import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 type MemberOptions = Pastor | Copastor | Supervisor | Preacher | Disciple;
 type DataOptions =
@@ -120,17 +120,10 @@ export const getMembersReport = (
             ],
             ...data.map((item: MemberOptions) => [
               `${item?.member?.firstNames} ${item?.member?.lastNames}`,
-
-              format(
-                new Date(addDays(item?.member?.birthDate, 1)),
-                'dd/MM/yyyy',
-              ),
+              formatDateToLimaDayMonthYear(item?.member?.birthDate),
               item?.member?.age,
               MaritalStatusNames[item?.member?.maritalStatus],
-              format(
-                new Date(addDays(item.member.conversionDate, 1)),
-                'dd/MM/yyyy',
-              ),
+              formatDateToLimaDayMonthYear(item?.member?.conversionDate),
               item.member.phoneNumber ?? '-',
               `${item?.member?.residenceDistrict} - ${item?.member?.residenceUrbanSector}`,
               `${item?.member?.residenceAddress} (${item?.member?.referenceAddress})`,

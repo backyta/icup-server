@@ -15,7 +15,7 @@ interface Church {
 }
 
 export interface OfferingIncomeByChurchGroundDataResult {
-  date: string;
+  date: Date;
   category: string;
   accumulatedOfferingPEN: number;
   accumulatedOfferingUSD: number;
@@ -35,7 +35,7 @@ export interface OfferingIncomeByChurchGroundDataResult {
     sendingCountry: string | null;
     offering: number;
     currency: string;
-    date: string;
+    date: Date;
   }>;
 }
 

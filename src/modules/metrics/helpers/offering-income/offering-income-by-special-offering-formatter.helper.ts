@@ -30,7 +30,7 @@ export interface OfferingIncomeBySpecialOfferingDataResult {
     sendingCountry: string | null;
     offering: number;
     currency: string;
-    date: string;
+    date: Date;
   }>;
   church: Church;
   accumulatedOfferingPEN: number;

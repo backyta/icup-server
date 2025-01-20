@@ -144,7 +144,6 @@ export class ReportsService {
     @InjectRepository(OfferingIncome)
     private readonly offeringIncomeRepository: Repository<OfferingIncome>,
 
-    @InjectRepository(OfferingExpense)
     private readonly churchService: ChurchService,
     private readonly pastorService: PastorService,
     private readonly copastorService: CopastorService,
@@ -3391,8 +3390,6 @@ export class ReportsService {
     if (error.code === '23505') {
       throw new BadRequestException(`${error.message}`);
     }
-
-    console.log(error);
 
     this.logger.error(error);
 

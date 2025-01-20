@@ -11,7 +11,7 @@ interface Church {
 }
 
 export interface OfferingExpensesAdjustmentDataResult {
-  date: string;
+  date: Date;
   comments: string;
   accumulatedOfferingPEN: number;
   accumulatedOfferingUSD: number;

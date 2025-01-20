@@ -1,8 +1,9 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 import { headerSection } from '@/modules/reports/sections/header.section';
 import { footerSection } from '@/modules/reports/sections/footer.section';
+
+import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.enum';
 
@@ -138,7 +139,7 @@ export const getOfferingExpensesMetricsReport = (
                   ],
                   ...operationalOfferingExpensesDataResult?.map((expense) => [
                     expense?.church?.abbreviatedChurchName,
-                    format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(expense?.date),
                     expense.subType,
                     expense.comments,
                     expense.accumulatedOfferingPEN.toFixed(2),
@@ -278,7 +279,7 @@ export const getOfferingExpensesMetricsReport = (
                   ...maintenanceAndRepairOfferingExpensesDataResult.map(
                     (expense) => [
                       expense?.church?.abbreviatedChurchName,
-                      format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                      formatDateToLimaDayMonthYear(expense?.date),
                       expense.subType,
                       expense.comments,
                       expense.accumulatedOfferingPEN.toFixed(2),
@@ -416,7 +417,7 @@ export const getOfferingExpensesMetricsReport = (
                   ],
                   ...decorationOfferingExpensesDataResult.map((expense) => [
                     expense?.church?.abbreviatedChurchName,
-                    format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(expense?.date),
                     expense.subType,
                     expense.comments,
                     expense.accumulatedOfferingPEN.toFixed(2),
@@ -556,7 +557,7 @@ export const getOfferingExpensesMetricsReport = (
                   ...equipmentAndTechnologyOfferingExpensesDataResult.map(
                     (expense) => [
                       expense?.church?.abbreviatedChurchName,
-                      format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                      formatDateToLimaDayMonthYear(expense?.date),
                       expense.subType,
                       expense.comments,
                       expense.accumulatedOfferingPEN.toFixed(2),
@@ -694,7 +695,7 @@ export const getOfferingExpensesMetricsReport = (
                   ],
                   ...suppliesOfferingExpensesDataResult.map((expense) => [
                     expense?.church?.abbreviatedChurchName,
-                    format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(expense?.date),
                     expense.subType,
                     expense.comments,
                     expense.accumulatedOfferingPEN.toFixed(2),
@@ -831,7 +832,7 @@ export const getOfferingExpensesMetricsReport = (
                   ],
                   ...planingEventsOfferingExpensesDataResult.map((expense) => [
                     expense?.church?.abbreviatedChurchName,
-                    format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(expense?.date),
                     expense.subType,
                     expense.comments,
                     expense.accumulatedOfferingPEN.toFixed(2),
@@ -968,7 +969,7 @@ export const getOfferingExpensesMetricsReport = (
                   ],
                   ...othersOfferingExpensesDataResult.map((expense) => [
                     expense?.church?.abbreviatedChurchName,
-                    format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(expense?.date),
                     expense.subType,
                     expense.comments,
                     expense.accumulatedOfferingPEN.toFixed(2),
@@ -1099,7 +1100,7 @@ export const getOfferingExpensesMetricsReport = (
                   ],
                   ...offeringExpensesAdjustmentsDataResult.map((expense) => [
                     expense?.church?.abbreviatedChurchName,
-                    format(addDays(expense?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(expense?.date),
                     expense.comments,
                     `${expense.accumulatedOfferingPEN.toFixed(2)} PEN`,
                     `${expense.accumulatedOfferingUSD.toFixed(2)} USD`,

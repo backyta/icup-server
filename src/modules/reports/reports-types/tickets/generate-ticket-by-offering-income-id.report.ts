@@ -1,5 +1,9 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+
+import {
+  formatDateToLimaWithTime,
+  formatDateToLimaDayMonthYear,
+} from '@/common/helpers/format-date-to-lima';
 
 import {
   OfferingIncomeCreationType,
@@ -151,7 +155,7 @@ export const generateTicketByOfferingIncomeIdReport = (
         style: 'label',
       },
       {
-        text: `${format(new Date(addDays(date, 1)), 'dd/MM/yyyy')}`,
+        text: `${formatDateToLimaDayMonthYear(date)}`,
         style: 'value',
       },
     ]);
@@ -430,7 +434,7 @@ export const generateTicketByOfferingIncomeIdReport = (
         },
       },
       {
-        text: `${format(new Date(createdAt), 'dd/MM/yyyy - hh:mm:ss a')}`,
+        text: `${formatDateToLimaWithTime(createdAt)}`,
         margin: [5, 0, 5, 0],
         style: {
           fontSize: 12,

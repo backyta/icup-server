@@ -2458,7 +2458,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Independencia',
       residenceAddress: 'Jr. Bolívar 456',
       referenceAddress: 'Frente a la comisaría Independencia',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'Patricia Rosa',
@@ -2492,7 +2492,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Payet',
       residenceAddress: 'Jr. Los Sauces 102',
       referenceAddress: 'Cerca de la plaza Payet',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'Liliana María',
@@ -2560,7 +2560,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Ermitaño',
       residenceAddress: 'Jr. Los Olivos 222',
       referenceAddress: 'Cerca del colegio Ermitaño',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'Sofía Rocío',
@@ -2596,7 +2596,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Tahuantinsuyo',
       residenceAddress: 'Jr. San Martín 567',
       referenceAddress: 'Cerca de la escuela Tahuantinsuyo',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'Ricardo Alberto',
@@ -2613,7 +2613,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Ermitaño',
       residenceAddress: 'Jr. Los Rosales 234',
       referenceAddress: 'Frente a la Plaza Ermitaño',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'María Elena',
@@ -2630,7 +2630,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Industrial',
       residenceAddress: 'Jr. Industrial 123',
       referenceAddress: 'Cerca del mercado Industrial',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'Pedro Antonio',
@@ -2647,7 +2647,7 @@ export const dataDisciples: SeedDataMembers = {
       residenceUrbanSector: 'Independencia',
       residenceAddress: 'Jr. Lima 500',
       referenceAddress: 'Frente al parque Independencia',
-      roles: ['elder', 'disciple'],
+      roles: ['disciple'],
     },
     {
       firstNames: 'Laura Patricia',

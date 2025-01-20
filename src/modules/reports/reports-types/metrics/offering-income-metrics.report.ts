@@ -1,10 +1,11 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 import { headerSection } from '@/modules/reports/sections/header.section';
 import { footerSection } from '@/modules/reports/sections/footer.section';
 
 import { MetricSearchType } from '@/modules/metrics/enums/metrics-search-type.enum';
+
+import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import {
   OfferingIncomeCreationCategory,
@@ -187,7 +188,7 @@ export const getOfferingIncomeMetricsReport = (
                   ],
                   ...offeringIncomeBySundayServiceDataResult.map((offering) => [
                     offering?.church?.abbreviatedChurchName,
-                    format(addDays(offering?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(offering?.date),
                     OfferingIncomeCreationCategoryNames[offering.category],
                     `D: ${offering?.dayPEN.toFixed(2)} PEN\nT: ${offering?.afternoonPEN.toFixed(2)} PEN`,
                     `${(offering?.dayPEN + offering?.afternoonPEN).toFixed(2)} PEN`,
@@ -645,7 +646,7 @@ export const getOfferingIncomeMetricsReport = (
                       monthNames[startMonth] === monthNames[endMonth] &&
                       offering.category ===
                         OfferingIncomeCreationCategory.OfferingBox
-                        ? format(addDays(offering?.date, 1), 'dd/MM/yyyy')
+                        ? formatDateToLimaDayMonthYear(offering?.date)
                         : `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                       OfferingIncomeCreationCategoryNames[offering.category],
                       offering?.internalDonor?.memberType
@@ -826,7 +827,7 @@ export const getOfferingIncomeMetricsReport = (
                   ],
                   ...offeringIncomeByUnitedServiceDataResult.map((offering) => [
                     offering?.church?.abbreviatedChurchName,
-                    format(addDays(offering?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(offering?.date),
                     OfferingIncomeCreationCategoryNames[offering.category],
                     `${offering.accumulatedOfferingPEN.toFixed(2)} PEN`,
                     `${offering.accumulatedOfferingUSD.toFixed(2)} USD`,
@@ -976,7 +977,7 @@ export const getOfferingIncomeMetricsReport = (
                   ...offeringIncomeByFastingAndVigilDataResult.map(
                     (offering) => [
                       offering?.church?.abbreviatedChurchName,
-                      format(addDays(offering?.date, 1), 'dd/MM/yyyy'),
+                      formatDateToLimaDayMonthYear(offering?.date),
                       OfferingIncomeCreationSubTypeNames[offering?.type],
                       OfferingIncomeCreationCategoryNames[offering?.category],
                       offering?.supervisor?.firstNames &&
@@ -1275,7 +1276,7 @@ export const getOfferingIncomeMetricsReport = (
                       monthNames[startMonth] === monthNames[endMonth] &&
                       offering.category ===
                         OfferingIncomeCreationCategory.OfferingBox
-                        ? format(addDays(offering?.date, 1), 'dd/MM/yyyy')
+                        ? formatDateToLimaDayMonthYear(offering?.date)
                         : `${monthNames[startMonth]} - ${monthNames[endMonth]}`,
                       OfferingIncomeCreationCategoryNames[offering.category],
                       offering?.internalDonor?.memberType
@@ -1564,7 +1565,7 @@ export const getOfferingIncomeMetricsReport = (
                   ],
                   ...offeringIncomeByActivitiesDataResult.map((offering) => [
                     offering?.church?.abbreviatedChurchName,
-                    format(addDays(offering?.date, 1), 'dd/MM/yyyy'),
+                    formatDateToLimaDayMonthYear(offering?.date),
                     OfferingIncomeCreationCategoryNames[offering.category],
                     `${offering.accumulatedOfferingPEN.toFixed(2)} PEN`,
                     `${offering.accumulatedOfferingUSD.toFixed(2)} USD`,
@@ -1843,7 +1844,7 @@ export const getOfferingIncomeMetricsReport = (
                   ...offeringIncomeByIncomeAdjustmentDataResult.map(
                     (offering) => [
                       offering?.church?.abbreviatedChurchName,
-                      format(addDays(offering?.date, 1), 'dd/MM/yyyy'),
+                      formatDateToLimaDayMonthYear(offering?.date),
                       offering.comments,
                       `${offering.accumulatedOfferingPEN.toFixed(2)} PEN`,
                       `${offering.accumulatedOfferingUSD.toFixed(2)} USD`,

@@ -38,7 +38,6 @@ export class CreateExternalDonorDto {
   @ApiProperty({
     example: '1990-12-23',
   })
-  @IsString()
   @IsOptional()
   externalDonorBirthDate?: Date;
 

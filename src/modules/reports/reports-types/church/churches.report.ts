@@ -1,5 +1,6 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+
+import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import { Church } from '@/modules/church/entities/church.entity';
 import { ChurchServiceTimeNames } from '@/modules/church/enums/church-service-time.enum';
@@ -101,7 +102,7 @@ export const getChurchesReport = (
             ],
             ...data.map((item) => [
               `${item?.abbreviatedChurchName}`,
-              format(new Date(addDays(item?.foundingDate, 1)), 'dd/MM/yyyy'),
+              formatDateToLimaDayMonthYear(item?.foundingDate),
               item?.isAnexe ? 'Sí' : 'No',
               item?.serviceTimes.map((item) => ChurchServiceTimeNames[item]),
               item?.phoneNumber,

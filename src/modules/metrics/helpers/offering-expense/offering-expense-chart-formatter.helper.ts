@@ -23,7 +23,7 @@ export interface OfferingExpenseDataResult {
   allOfferings: Array<{
     offering: number;
     currency: string;
-    date: string;
+    date: Date;
   }>;
   totalAmount: number;
 }

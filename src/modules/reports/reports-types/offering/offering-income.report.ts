@@ -1,8 +1,9 @@
-import { addDays, format } from 'date-fns';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 import { footerSection } from '@/modules/reports/sections/footer.section';
 import { headerSection } from '@/modules/reports/sections/header.section';
+
+import { formatDateToLimaDayMonthYear } from '@/common/helpers/format-date-to-lima';
 
 import {
   MemberType,
@@ -93,7 +94,7 @@ export const getOfferingIncomeReport = (
                 },
               },
               {
-                text: 'F. Deposito',
+                text: 'F. Ofrenda',
                 style: {
                   bold: true,
                 },
@@ -125,7 +126,7 @@ export const getOfferingIncomeReport = (
               OfferingIncomeCreationCategoryNames[item?.category] ?? '-',
               OfferingIncomeCreationShiftTypeNames[item?.shift] ?? '-',
               `${item?.amount} ${item?.currency}`,
-              format(new Date(addDays(item.date, 1)), 'dd/MM/yyyy'),
+              formatDateToLimaDayMonthYear(item?.date),
               `${item?.familyGroup?.familyGroupCode ?? '-'}`,
               `${item?.zone?.zoneName ?? '-'}`,
               `${MemberTypeNames[item?.memberType] ?? '-'}
