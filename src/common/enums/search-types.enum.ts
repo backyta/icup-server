@@ -19,12 +19,12 @@ export enum SearchType {
   Gender = 'gender',
   MaritalStatus = 'marital_status',
 
-  //* Disciple, Supervisor, Preacher, Family House
+  //* Disciple, Supervisor, Preacher, Family Group
   ZoneName = 'zone_name',
   ZoneId = 'zone_id',
   CopastorId = 'copastor_id',
 
-  //* Disciple, Supervisor, Preacher, Fam. House,
+  //* Disciple, Supervisor, Preacher, Fam. Group,
   FamilyGroupCode = 'family_group_code',
   FamilyGroupName = 'family_group_name',
 
@@ -43,7 +43,7 @@ export enum SearchType {
   ResidenceUrbanSector = 'residence_urban_sector',
   ResidenceAddress = 'residence_address',
 
-  //* Disciple, Pastor, Copastor, Supervisor, Preacher, Fam. House, Offering, User
+  //* Disciple, Pastor, Copastor, Supervisor, Preacher, Fam. Group, Offering, User
   RecordStatus = 'record_status',
 
   //* User

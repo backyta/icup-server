@@ -41,6 +41,7 @@ import { dataSupervisors } from '@/modules/seed/data/seed-supervisor';
 import { dataFamilyGroups } from '@/modules/seed/data/seed-family-group';
 import { dataOfferingIncome } from '@/modules/seed/data/seed-offering-income';
 import { dataOfferingExpenses } from '@/modules/seed/data/seed-offering-expenses';
+import { ExternalDonor } from '@/modules/external-donor/entities/external-donor.entity';
 import { OfferingIncome } from '@/modules/offering/income/entities/offering-income.entity';
 import { OfferingExpense } from '@/modules/offering/expense/entities/offering-expense.entity';
 
@@ -85,6 +86,9 @@ export class SeedService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
 
+    @InjectRepository(ExternalDonor)
+    private readonly externalDonorRepository: Repository<ExternalDonor>,
+
     private readonly churchService: ChurchService,
     private readonly pastorService: PastorService,
     private readonly copastorService: CopastorService,
@@ -112,10 +116,13 @@ export class SeedService {
     const queryPreachers =
       this.preacherRepository.createQueryBuilder('preachers');
     const queryFamilyGroups =
-      this.familyGroupRepository.createQueryBuilder('family-houses');
+      this.familyGroupRepository.createQueryBuilder('familyGroups');
     const queryDisciples =
       this.discipleRepository.createQueryBuilder('disciples');
     const queryUsers = this.userRepository.createQueryBuilder('users');
+
+    const queryExternalDonors =
+      this.externalDonorRepository.createQueryBuilder('externalDonors');
 
     const queryOfferingIncome =
       this.offeringIncomeRepository.createQueryBuilder('offeringIncome');
@@ -132,6 +139,7 @@ export class SeedService {
       await queryPastors.delete().where({}).execute();
       await queryChurches.delete().where({}).execute();
       await queryMembers.delete().where({}).execute();
+      await queryExternalDonors.delete().where({}).execute();
 
       await queryOfferingIncome.delete().where({}).execute();
       await queryOfferingExpense.delete().where({}).execute();

@@ -105,7 +105,7 @@ export class DiscipleService {
       );
     }
 
-    //? Validate and assign Family House
+    //? Validate and assign Family Group
     if (!theirFamilyGroup) {
       throw new NotFoundException(
         `Para crear un nuevo Discípulo se le debe asignar un Grupo familiar`,
@@ -136,7 +136,7 @@ export class DiscipleService {
       );
     }
 
-    //* Validate and assign preacher according family house
+    //* Validate and assign preacher according family Group
     if (!familyGroup?.theirPreacher) {
       throw new NotFoundException(
         `Predicador no fue encontrado, verifica que Grupo Familiar tenga un Predicador asignado.`,
@@ -153,7 +153,7 @@ export class DiscipleService {
       );
     }
 
-    //* Validate and assign zone according family house
+    //* Validate and assign zone according family Group
     if (!familyGroup?.theirZone) {
       throw new NotFoundException(
         `Zona no fue encontrada, verifica que Grupo Familiar tenga una Zona asignada.`,
@@ -170,7 +170,7 @@ export class DiscipleService {
       );
     }
 
-    //* Validate and assign supervisor according family house
+    //* Validate and assign supervisor according family Group
     if (!familyGroup?.theirSupervisor) {
       throw new NotFoundException(
         `Supervisor no fue encontrado, verifica que Grupo Familiar tenga un Supervisor asignado.`,
@@ -187,7 +187,7 @@ export class DiscipleService {
       );
     }
 
-    //* Validate and assign copastor according family house
+    //* Validate and assign copastor according family Group
     if (!familyGroup?.theirCopastor) {
       throw new NotFoundException(
         `Co-Pastor no fue encontrado, verifica que Grupo Familiar tenga un Co-Pastor asignado.`,
@@ -204,7 +204,7 @@ export class DiscipleService {
       );
     }
 
-    //* Validate and assign pastor according family house
+    //* Validate and assign pastor according family Group
     if (!familyGroup?.theirPastor) {
       throw new NotFoundException(
         `Pastor no fue encontrado, verifica que Grupo Familiar tenga un Pastor asignado.`,
@@ -221,7 +221,7 @@ export class DiscipleService {
       );
     }
 
-    //* Validate and assign church according family house
+    //* Validate and assign church according family Group
     if (!familyGroup?.theirChurch) {
       throw new NotFoundException(
         `Iglesia no fue encontrada, verifica que Grupo Familiar tenga una Iglesia asignada.`,
@@ -2167,9 +2167,9 @@ export class DiscipleService {
         );
       }
 
-      //? Update if their Family House is different
+      //? Update if their Family Group is different
       if (disciple?.theirFamilyGroup?.id !== theirFamilyGroup) {
-        //* Validate family house
+        //* Validate family Group
         if (!theirFamilyGroup) {
           throw new NotFoundException(
             `Para poder actualizar un Discípulo, se debe asignar un Grupo familiar.`,
@@ -2200,7 +2200,7 @@ export class DiscipleService {
           );
         }
 
-        //* Validate Preacher according family house
+        //* Validate Preacher according family Group
         if (!newFamilyGroup?.theirPreacher) {
           throw new BadRequestException(
             `No se encontró el Predicador, verifica que Grupo Familiar tenga una Predicador asignado.`,
@@ -2217,7 +2217,7 @@ export class DiscipleService {
           );
         }
 
-        //* Validate Supervisor according family house
+        //* Validate Supervisor according family Group
         if (!newFamilyGroup?.theirSupervisor) {
           throw new BadRequestException(
             `No se encontró el Supervisor, verifica que Grupo Familiar tenga una Supervisor asignado.`,
@@ -2234,7 +2234,7 @@ export class DiscipleService {
           );
         }
 
-        //* Validate Zone according family house
+        //* Validate Zone according family Group
         if (!newFamilyGroup?.theirZone) {
           throw new BadRequestException(
             `No se encontró la Zona, verifica que Grupo Familiar tenga una Zona asignada.`,
@@ -2251,7 +2251,7 @@ export class DiscipleService {
           );
         }
 
-        //* Validate Copastor according family house
+        //* Validate Copastor according family Group
         if (!newFamilyGroup?.theirCopastor) {
           throw new BadRequestException(
             `No se encontró el Co-Pastor, verifica que Grupo Familiar tenga un Co-Pastor asignado.`,
@@ -2268,7 +2268,7 @@ export class DiscipleService {
           );
         }
 
-        //* Validate Pastor according family house
+        //* Validate Pastor according family Group
         if (!newFamilyGroup?.theirPastor) {
           throw new BadRequestException(
             `No se encontró el Pastor, verifica que Grupo Familiar tenga una Pastor asignado.`,
@@ -2285,7 +2285,7 @@ export class DiscipleService {
           );
         }
 
-        //* Validate Church according family house
+        //* Validate Church according family Group
         if (!newFamilyGroup?.theirChurch) {
           throw new BadRequestException(
             `No se encontró la Iglesia, verifica que Grupo Familiar tenga una Iglesia asignada.`,

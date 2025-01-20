@@ -88,7 +88,7 @@ export class OfferingIncome {
   @JoinColumn({ name: 'church_id' })
   church: Church;
 
-  //? Family House
+  //? Family Group
   @ManyToOne(() => FamilyGroup, {
     nullable: true,
     onDelete: 'SET NULL',

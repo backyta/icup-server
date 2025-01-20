@@ -15,6 +15,7 @@ import { DiscipleModule } from '@/modules/disciple/disciple.module';
 import { CopastorModule } from '@/modules/copastor/copastor.module';
 import { SupervisorModule } from '@/modules/supervisor/supervisor.module';
 import { FamilyGroupModule } from '@/modules/family-group/family-group.module';
+import { ExternalDonorModule } from '@/modules/external-donor/external-donor.module';
 import { OfferingIncomeModule } from '@/modules/offering/income/offering-income.module';
 import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expense.module';
 
@@ -33,6 +34,7 @@ import { OfferingExpenseModule } from '@/modules/offering/expense/offering-expen
     MemberModule,
     AuthModule,
     UserModule,
+    ExternalDonorModule,
     OfferingIncomeModule,
     OfferingExpenseModule,
     ConfigModule,

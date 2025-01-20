@@ -5,11 +5,11 @@ export enum OfferingIncomeSearchSubType {
   OfferingByShift = 'offering_by_shift',
   OfferingByShiftDate = 'offering_by_shift_date',
 
-  // Family House, Fasting Zonal, Vigil Zonal
+  // Family Group, Fasting Zonal, Vigil Zonal
   OfferingByZone = 'offering_by_zone',
   OfferingByZoneDate = 'offering_by_zone_date',
 
-  // Offering Family House
+  // Offering Family Group
   OfferingByGroupCode = 'offering_by_group_code',
   OfferingByGroupCodeDate = 'offering_by_group_code_date',
   OfferingByPreacherFirstNames = 'offering_by_preacher_first_names',
