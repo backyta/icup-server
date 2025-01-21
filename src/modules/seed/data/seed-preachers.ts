@@ -182,7 +182,7 @@ export const dataPreachers: SeedDataPreachers = {
       email: 'mariana.alvarez@google.com',
       phoneNumber: '+51 999-923-999',
       residenceDistrict: 'Comas',
-      residenceUrbanSector:'Santa Luzmila',
+      residenceUrbanSector: 'Santa Luzmila',
       residenceAddress: 'Av. Las Margaritas 234',
       referenceAddress: 'Frente al supermercado',
       roles: ['preacher'],
@@ -1058,6 +1058,5 @@ export const dataPreachers: SeedDataPreachers = {
       referenceAddress: 'Cerca del centro cultural',
       roles: ['preacher'],
     },
-    
   ],
 };

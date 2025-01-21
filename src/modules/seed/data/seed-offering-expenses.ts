@@ -1,8 +1,8 @@
-import { RecordStatus } from "@/common/enums/record-status.enum";
-import { CurrencyType } from "@/modules/offering/shared/enums/currency-type.enum";
+import { RecordStatus } from '@/common/enums/record-status.enum';
+import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 
-import { OfferingExpenseSearchType } from "@/modules/offering/expense/enums/offering-expense-search-type.enum";
-import { OfferingExpenseSearchSubType } from "@/modules/offering/expense/enums/offering-expense-search-sub-type.enum";
+import { OfferingExpenseSearchType } from '@/modules/offering/expense/enums/offering-expense-search-type.enum';
+import { OfferingExpenseSearchSubType } from '@/modules/offering/expense/enums/offering-expense-search-sub-type.enum';
 
 interface SeedOfferingExpenses {
   //* General Info
@@ -34,7 +34,7 @@ interface SeedDataOfferingExpenses {
 //! Helpers
 const getLastSaturdays = (referenceDate: Date, count: number): Date[] => {
   const saturdays: Date[] = [];
-  let currentDate = new Date(referenceDate);
+  const currentDate = new Date(referenceDate);
 
   while (saturdays.length < count) {
     if (currentDate.getDay() === 6) {
@@ -48,7 +48,7 @@ const getLastSaturdays = (referenceDate: Date, count: number): Date[] => {
 
 const getLastFridays = (referenceDate: Date, count: number): Date[] => {
   const fridays: Date[] = [];
-  let currentDate = new Date(referenceDate);
+  const currentDate = new Date(referenceDate);
 
   while (fridays.length < count) {
     if (currentDate.getDay() === 5) {
@@ -125,9 +125,7 @@ const otherOfferingExpensesSubTypes = [
   OfferingExpenseSearchSubType.LegalAndAdministrative,
 ];
 
-
 export const dataOfferingExpenses: SeedDataOfferingExpenses = {
-
   //* Operational Expenses
   operationalOfferingExpenses: lastFridays.map((date, index) => ({
     type: OfferingExpenseSearchType.OperationalExpenses,

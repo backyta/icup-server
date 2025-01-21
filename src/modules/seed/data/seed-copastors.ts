@@ -86,8 +86,8 @@ export const dataCopastors: SeedDataCopastors = {
       referenceAddress: 'Al lado del colegio San Miguel.',
       roles: ['copastor'],
     },
-     //* Independencia
-     {
+    //* Independencia
+    {
       firstNames: 'Luz Mariella',
       lastNames: 'Salgado Huaman',
       gender: 'female',

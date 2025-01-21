@@ -1,5 +1,3 @@
-import * as bcrypt from 'bcrypt';
-
 interface SeedUser {
   email: string;
   firstNames: string;
@@ -20,7 +18,7 @@ export const dataUsers: SeedDataUsers = {
       lastNames: 'Test 1',
       email: 'user.test1@icup.com',
       gender: 'female',
-      password: bcrypt.hashSync('Abcd1234$', 10),
+      password: 'Abcd1234$',
       roles: ['admin-user'],
     },
     {
@@ -28,7 +26,7 @@ export const dataUsers: SeedDataUsers = {
       lastNames: 'Test 2',
       email: 'user.test2@icup.com',
       gender: 'male',
-      password: bcrypt.hashSync('Abcd1234%', 10),
+      password: 'Abcd1234%',
       roles: ['admin-user'],
     },
     {
@@ -36,7 +34,7 @@ export const dataUsers: SeedDataUsers = {
       lastNames: 'Test 3',
       email: 'user.test3@icup.com',
       gender: 'female',
-      password: bcrypt.hashSync('Abcd1234&', 10),
+      password: 'Abcd1234&',
       roles: ['admin-user'],
     },
   ],
