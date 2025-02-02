@@ -24,6 +24,8 @@ interface ReportValues {
   churchName: string;
   abbreviatedChurchName: string;
   churchAddress: string;
+  churchPhoneNumber: string;
+  churchEmail: string;
   type: string;
   subType?: string;
   amount: number;
@@ -54,6 +56,8 @@ export const generateTicketByOfferingIncomeIdReport = (
     churchName,
     abbreviatedChurchName,
     churchAddress,
+    churchPhoneNumber,
+    churchEmail,
     type,
     subType,
     amount,
@@ -79,6 +83,19 @@ export const generateTicketByOfferingIncomeIdReport = (
 
   //! Table body
   const body = [
+    [
+      {
+        text: `Detalles generales`,
+        colSpan: 2,
+        italics: true,
+        margin: [0, 0, 0, 5],
+        style: {
+          bold: true,
+          fontSize: 14,
+        },
+      },
+      {},
+    ],
     [
       {
         text: 'Iglesia:',
@@ -299,7 +316,7 @@ export const generateTicketByOfferingIncomeIdReport = (
         margin: [0, 0, 0, 5],
         style: {
           bold: true,
-          fontSize: 13,
+          fontSize: 14,
         },
       },
       {},
@@ -394,7 +411,7 @@ export const generateTicketByOfferingIncomeIdReport = (
         margin: [0, 0, 0, 5],
         style: {
           bold: true,
-          fontSize: 13,
+          fontSize: 14,
         },
       },
       {},
@@ -426,7 +443,7 @@ export const generateTicketByOfferingIncomeIdReport = (
   if (type) {
     recordDetails.push([
       {
-        text: 'Fecha de creación:',
+        text: 'Fecha de emission:',
         margin: [5, 0, 5, 0],
         style: {
           fontSize: 12,
@@ -449,12 +466,12 @@ export const generateTicketByOfferingIncomeIdReport = (
     pageMargins: [15, 10, 15, 15], // Margins for thermal printer
     styles: {
       header: {
-        fontSize: 16,
+        fontSize: 20,
         bold: true,
         alignment: 'center',
       },
       header2: {
-        fontSize: 15,
+        fontSize: 18,
         bold: true,
         alignment: 'center',
       },
@@ -465,26 +482,31 @@ export const generateTicketByOfferingIncomeIdReport = (
       title: {
         fontSize: 14,
         bold: true,
-        margin: [0, 5],
+        margin: [0, 5, 0, 3],
+      },
+      tileTickerNumber: {
+        fontSize: 13,
+        bold: true,
+        margin: [0, 0, 0, 3],
       },
       label: {
         fontSize: 13,
-        margin: [0, 0, 0, 2],
+        margin: [5, 0, 5, 2],
         bold: true,
       },
       value: {
         fontSize: 13,
-        margin: [0, 0, 0, 2],
+        margin: [5, 0, 5, 2],
       },
       labelDetails: {
-        fontSize: 12,
+        fontSize: 13,
         bold: true,
       },
       valueDetails: {
-        fontSize: 12,
+        fontSize: 13,
       },
       footer: {
-        fontSize: 12,
+        fontSize: 13,
         italics: true,
       },
     },
@@ -499,20 +521,26 @@ export const generateTicketByOfferingIncomeIdReport = (
         style: 'header2',
       },
       {
-        text: `${churchAddress}`,
+        text: `${churchAddress.toUpperCase()}`,
         style: 'subheader',
         alignment: 'center',
-        margin: [0, 5],
+        margin: [0, 5, 0, 10],
       },
       {
-        image: 'src/assets/logo-ticket.png',
-        width: 280,
-        height: 120,
+        text: `Teléfono: ${churchPhoneNumber}\nE-mail: ${churchEmail}\nWeb: www.unidosensupresencia.com`,
+        style: 'subheader',
         alignment: 'center',
-        margin: [0, 0, 0, 0],
+        margin: [0, 0, 0, 5],
       },
+      // {
+      //   image: 'src/assets/logo-4.png',
+      //   width: 100,
+      //   height: 60,
+      //   alignment: 'center',
+      //   margin: [0, 0, 0, 0],
+      // },
       {
-        text: '------------------------------',
+        text: '--------------------------------------------------------------------------------',
         alignment: 'center',
         margin: [0, 3, 0, 0],
       },
@@ -522,7 +550,12 @@ export const generateTicketByOfferingIncomeIdReport = (
         alignment: 'center',
       },
       {
-        text: '------------------------------',
+        text: 'R001-00000001',
+        style: 'tileTickerNumber',
+        alignment: 'center',
+      },
+      {
+        text: '--------------------------------------------------------------------------------',
         alignment: 'center',
         margin: [0, 0, 0, 3],
       },
@@ -538,7 +571,7 @@ export const generateTicketByOfferingIncomeIdReport = (
       },
       relationshipDetails.length !== 0
         ? {
-            text: '------------------------------',
+            text: '--------------------------------------------------------------------------------',
             alignment: 'center',
             margin: [0, 0, 0, 3],
           }
@@ -559,7 +592,7 @@ export const generateTicketByOfferingIncomeIdReport = (
 
       //? RECORD INFORMATION
       {
-        text: '------------------------------',
+        text: '--------------------------------------------------------------------------------',
         alignment: 'center',
         margin: [0, 0, 0, 3],
       },
@@ -574,7 +607,7 @@ export const generateTicketByOfferingIncomeIdReport = (
 
       //? FOOTER
       {
-        text: '------------------------------',
+        text: '--------------------------------------------------------------------------------',
         alignment: 'center',
         margin: [0, 0, 0, 5],
       },

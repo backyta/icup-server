@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, HttpCode } from '@nestjs/common';
+import {
+  Get,
+  Req,
+  Res,
+  Body,
+  Post,
+  HttpCode,
+  Controller,
+  UnauthorizedException,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -8,6 +17,7 @@ import {
   ApiUnauthorizedResponse,
   ApiInternalServerErrorResponse,
 } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 import { User } from '@/modules/user/entities/user.entity';
@@ -48,8 +58,8 @@ export class AuthController {
     description:
       '✅ Operation Successful: The login process was completed successfully, and the response includes the authentication token and user details.',
   })
-  loginUser(@Body() loginUserDto: LoginUserDto) {
-    return this.authService.login(loginUserDto);
+  loginUser(@Body() loginUserDto: LoginUserDto, @Res() res: Response) {
+    return this.authService.login(loginUserDto, res);
   }
 
   //* Check auth status (regenerate new token)
@@ -62,5 +72,24 @@ export class AuthController {
   @SkipThrottle()
   checkAuthStatus(@GetUser() user: User) {
     return this.authService.checkAuthStatus(user);
+  }
+
+  //* Refresh token
+  @Get('refresh-token')
+  @ApiOkResponse({
+    description: '✅ Success: The new access token was successfully generated.',
+  })
+  @SkipThrottle()
+  async refreshAccessToken(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = await req.cookies['refreshToken'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('No se encontró el refresh token.');
+    }
+
+    const newAccessToken =
+      await this.authService.refreshAccessToken(refreshToken);
+
+    return res.json({ accessToken: newAccessToken });
   }
 }

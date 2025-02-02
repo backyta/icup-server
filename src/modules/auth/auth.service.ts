@@ -7,8 +7,10 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import * as bcrypt from 'bcrypt';
@@ -28,10 +30,11 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
 
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   //* Login user
-  async login(loginUserDto: LoginUserDto): Promise<any> {
+  async login(loginUserDto: LoginUserDto, res: Response): Promise<any> {
     const { password, email } = loginUserDto;
 
     try {
@@ -46,18 +49,14 @@ export class AuthService {
           gender: true,
           password: true,
           id: true,
+          createdAt: false,
+          updatedAt: false,
         },
       });
 
-      if (!user) {
+      if (!user || !bcrypt.compareSync(password, user.password)) {
         throw new UnauthorizedException(
-          `Credenciales invalidas, verifique el correo y la contraseña.`,
-        );
-      }
-
-      if (!bcrypt.compareSync(password, user.password)) {
-        throw new UnauthorizedException(
-          `Credenciales invalidas, verifique el correo y la contraseña.`,
+          'Credenciales inválidas, verifique su correo y contraseña.',
         );
       }
 
@@ -69,10 +68,31 @@ export class AuthService {
 
       const { password: _, ...userWithoutPassword } = user;
 
-      return {
+      const payload: JwtPayload = { id: user.id };
+      //* Generate refresh token
+      const refreshToken = this.jwtService.sign(payload, {
+        secret: this.configService.get('JWT_SECRET_REFRESH'),
+        expiresIn: '1h',
+      });
+
+      const accessToken = this.getJwtToken(payload);
+
+      //* Save Refresh Token in a Secure Cookie
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        path: '/api/auth/',
+        domain:
+          this.configService.get('STAGE') === 'prod'
+            ? `${this.configService.get('DOMAIN_NAME')}`
+            : 'localhost',
+      });
+
+      return res.json({
         ...userWithoutPassword,
-        token: this.getJwtToken({ id: user.id }),
-      };
+        token: accessToken,
+      });
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;
@@ -88,6 +108,20 @@ export class AuthService {
       ...user,
       token: this.getJwtToken({ id: user.id }),
     };
+  }
+
+  //* Refresh token
+  async refreshAccessToken(refreshToken: string): Promise<string> {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get('JWT_SECRET_REFRESH'),
+      });
+      return this.getJwtToken({ id: payload.id });
+    } catch (error) {
+      throw new UnauthorizedException(
+        'El token es inválido o ha expirado. Por favor, inicia sesión nuevamente.',
+      );
+    }
   }
 
   //? PRIVATE METHODS

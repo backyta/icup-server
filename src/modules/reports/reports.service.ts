@@ -233,6 +233,8 @@ export class ReportsService {
         churchName: offeringIncome?.church?.churchName,
         abbreviatedChurchName: offeringIncome?.church?.abbreviatedChurchName,
         churchAddress: offeringIncome?.church?.address,
+        churchPhoneNumber: offeringIncome?.church?.phoneNumber,
+        churchEmail: offeringIncome?.church?.email,
         type: offeringIncome?.type,
         subType: offeringIncome?.subType,
         amount: offeringIncome?.amount,

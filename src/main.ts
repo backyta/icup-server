@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -64,11 +65,16 @@ async function bootstrap() {
   }
 
   // CORS config
+  const { DOMAIN_NAME, STAGE } = process.env;
+
   app.enableCors({
-    origin: '*',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: STAGE === 'dev' ? 'http://localhost:5173' : DOMAIN_NAME,
+    // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  // Use cookie-parser as global middleware
+  app.use(cookieParser());
 
   // Register global filter
   app.useGlobalFilters(new ThrottlerExceptionFilter());
