@@ -65,10 +65,11 @@ async function bootstrap() {
   }
 
   // CORS config
-  const { URL_DOMAIN, STAGE } = process.env;
+  // const { URL_DOMAIN, STAGE } = process.env;
 
   app.enableCors({
-    origin: STAGE === 'dev' ? 'http://localhost:5173' : URL_DOMAIN,
+    // origin: STAGE === 'dev' ? 'http://localhost:5173' : URL_DOMAIN,
+    origin: '*',
     // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
