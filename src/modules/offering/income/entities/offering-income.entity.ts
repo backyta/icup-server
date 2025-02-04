@@ -52,6 +52,9 @@ export class OfferingIncome {
   @Column('text', { name: 'shift', nullable: true })
   shift: string;
 
+  @Column('text', { unique: true })
+  receiptCode: string;
+
   @Column('text', { name: 'inactivation_reason', nullable: true })
   inactivationReason: string;
 

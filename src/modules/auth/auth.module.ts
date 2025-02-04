@@ -27,7 +27,7 @@ import { JwtStrategy } from '@/modules/auth/strategies/jwt.strategy';
         return {
           secret: configService.get('JWT_SECRET_ACCESS'),
           signOptions: {
-            expiresIn: '30s',
+            expiresIn: '15m',
           },
         };
       },

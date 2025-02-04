@@ -4,14 +4,15 @@ import { OfferingIncomeCreationCategory } from '@/modules/offering/income/enums/
 import { OfferingIncomeCreationShiftType } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
 
 import { RecordStatus } from '@/common/enums/record-status.enum';
-import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
 import { MemberType } from '@/modules/offering/income/enums/member-type.enum';
+import { CurrencyType } from '@/modules/offering/shared/enums/currency-type.enum';
+import { OfferingInactivationReason } from '@/modules/offering/shared/enums/offering-inactivation-reason.enum';
 
 interface SeedOfferingIncome {
   //* General Info
-  type: string;
-  subType?: string;
-  category?: string;
+  type: OfferingIncomeCreationType;
+  subType?: OfferingIncomeCreationSubType;
+  category?: OfferingIncomeCreationCategory;
   isNewExternalDonor?: boolean;
   externalDonorId?: string;
   externalDonorFirstNames?: string;
@@ -24,13 +25,13 @@ interface SeedOfferingIncome {
   externalDonorResidenceCountry?: string;
   externalDonorResidenceCity?: string;
   externalDonorPostalCode?: string;
-  shift?: string;
+  shift?: OfferingIncomeCreationShiftType | string;
   amount: string | number;
-  currency: string;
+  currency: CurrencyType;
   date: Date;
   comments?: string;
   imageUrls?: string[];
-  reasonElimination?: string;
+  reasonElimination?: OfferingInactivationReason;
   recordStatus?: string;
   memberType?: string | undefined;
 
@@ -44,10 +45,10 @@ interface SeedOfferingIncome {
 interface SeedDataOfferingIncome {
   sundayServiceOfferingIncome: SeedOfferingIncome[];
   familyGroupOfferingIncome: SeedOfferingIncome[];
-  sundaySchoolOfferingIncome: SeedOfferingIncome[];
+  // sundaySchoolOfferingIncome: SeedOfferingIncome[];
   unitedServiceOfferingIncome: SeedOfferingIncome[];
   fastingAndVigilOfferingIncome: SeedOfferingIncome[];
-  youthServiceOfferingIncome: SeedOfferingIncome[];
+  // youthServiceOfferingIncome: SeedOfferingIncome[];
   activitiesOfferingIncome: SeedOfferingIncome[];
   adjustmentOfferingIncome: SeedOfferingIncome[];
   churchGroundOfferingIncome: SeedOfferingIncome[];
@@ -154,36 +155,36 @@ export const dataOfferingIncome: SeedDataOfferingIncome = {
   })),
 
   //* Sunday School
-  sundaySchoolOfferingIncome: lastSundays.flatMap((date) => {
-    return [
-      {
-        type: OfferingIncomeCreationType.Offering,
-        subType: OfferingIncomeCreationSubType.SundaySchool,
-        category: OfferingIncomeCreationCategory.OfferingBox,
-        shift: OfferingIncomeCreationShiftType.Day,
-        amount: getRandomAmount(50, 100).toFixed(2),
-        currency: CurrencyType.PEN,
-        date,
-        comments: undefined,
-        imageUrls: [],
-        reasonElimination: undefined,
-        recordStatus: RecordStatus.Active,
-      },
-      {
-        type: OfferingIncomeCreationType.Offering,
-        subType: OfferingIncomeCreationSubType.SundaySchool,
-        category: OfferingIncomeCreationCategory.OfferingBox,
-        shift: OfferingIncomeCreationShiftType.Afternoon,
-        amount: getRandomAmount(50, 100).toFixed(2),
-        currency: CurrencyType.PEN,
-        date,
-        comments: undefined,
-        imageUrls: [],
-        reasonElimination: undefined,
-        recordStatus: RecordStatus.Active,
-      },
-    ];
-  }),
+  // sundaySchoolOfferingIncome: lastSundays.flatMap((date) => {
+  //   return [
+  //     {
+  //       type: OfferingIncomeCreationType.Offering,
+  //       subType: OfferingIncomeCreationSubType.SundaySchool,
+  //       category: OfferingIncomeCreationCategory.OfferingBox,
+  //       shift: OfferingIncomeCreationShiftType.Day,
+  //       amount: getRandomAmount(50, 100).toFixed(2),
+  //       currency: CurrencyType.PEN,
+  //       date,
+  //       comments: undefined,
+  //       imageUrls: [],
+  //       reasonElimination: undefined,
+  //       recordStatus: RecordStatus.Active,
+  //     },
+  //     {
+  //       type: OfferingIncomeCreationType.Offering,
+  //       subType: OfferingIncomeCreationSubType.SundaySchool,
+  //       category: OfferingIncomeCreationCategory.OfferingBox,
+  //       shift: OfferingIncomeCreationShiftType.Afternoon,
+  //       amount: getRandomAmount(50, 100).toFixed(2),
+  //       currency: CurrencyType.PEN,
+  //       date,
+  //       comments: undefined,
+  //       imageUrls: [],
+  //       reasonElimination: undefined,
+  //       recordStatus: RecordStatus.Active,
+  //     },
+  //   ];
+  // }),
 
   //* United Service
   unitedServiceOfferingIncome: lastFridays.map((date) => ({
@@ -230,18 +231,18 @@ export const dataOfferingIncome: SeedDataOfferingIncome = {
   }),
 
   //* Youth Service
-  youthServiceOfferingIncome: lastSaturdays.map((date) => ({
-    type: OfferingIncomeCreationType.Offering,
-    subType: OfferingIncomeCreationSubType.YouthService,
-    category: OfferingIncomeCreationCategory.OfferingBox,
-    amount: getRandomAmount(100, 300).toFixed(2),
-    currency: CurrencyType.PEN,
-    date,
-    comments: undefined,
-    imageUrls: [],
-    reasonElimination: undefined,
-    recordStatus: RecordStatus.Active,
-  })),
+  // youthServiceOfferingIncome: lastSaturdays.map((date) => ({
+  //   type: OfferingIncomeCreationType.Offering,
+  //   subType: OfferingIncomeCreationSubType.YouthService,
+  //   category: OfferingIncomeCreationCategory.OfferingBox,
+  //   amount: getRandomAmount(100, 300).toFixed(2),
+  //   currency: CurrencyType.PEN,
+  //   date,
+  //   comments: undefined,
+  //   imageUrls: [],
+  //   reasonElimination: undefined,
+  //   recordStatus: RecordStatus.Active,
+  // })),
 
   //* Church Ground
   churchGroundOfferingIncome: lastSundays.map((date) => ({

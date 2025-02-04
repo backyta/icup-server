@@ -20,7 +20,7 @@ import {
 import { MemberTypeNames } from '@/modules/offering/income/enums/member-type.enum';
 import { OfferingIncomeCreationShiftTypeNames } from '@/modules/offering/income/enums/offering-income-creation-shift-type.enum';
 
-interface ReportValues {
+interface ReceiptValues {
   churchName: string;
   abbreviatedChurchName: string;
   churchAddress: string;
@@ -45,16 +45,17 @@ interface ReportValues {
   pastorFullName?: string;
   memberFullName?: string;
   externalDonorFullName?: string;
+  ticketImageUrl?: string;
+  receiptCode: string;
   createdAt?: Date;
   createdBy?: string;
 }
 
-export const generateTicketByOfferingIncomeIdReport = (
-  values: ReportValues,
+export const generateReceiptByOfferingIncomeId = (
+  values: ReceiptValues,
 ): TDocumentDefinitions => {
   const {
     churchName,
-    abbreviatedChurchName,
     churchAddress,
     churchPhoneNumber,
     churchEmail,
@@ -77,6 +78,8 @@ export const generateTicketByOfferingIncomeIdReport = (
     memberType,
     memberFullName,
     externalDonorFullName,
+    receiptCode,
+    ticketImageUrl,
     createdAt,
     createdBy,
   } = values;
@@ -96,16 +99,7 @@ export const generateTicketByOfferingIncomeIdReport = (
       },
       {},
     ],
-    [
-      {
-        text: 'Iglesia:',
-        style: 'label',
-      },
-      {
-        text: `${abbreviatedChurchName}`,
-        style: 'value',
-      },
-    ],
+
     [
       {
         text: 'Tipo:',
@@ -182,56 +176,11 @@ export const generateTicketByOfferingIncomeIdReport = (
   if (amount) {
     body.push([
       {
-        text: 'Monto:',
+        text: 'Monto / Divisa',
         style: 'label',
       },
       {
-        text: `${amount}`,
-        style: 'value',
-      },
-    ]);
-  }
-
-  //* Add condition for currency
-  if (currency) {
-    body.push([
-      {
-        text: 'Divisa:',
-        style: 'label',
-      },
-      {
-        text: `${currency}`,
-        style: 'value',
-      },
-    ]);
-  }
-
-  //* Add condition for family group
-  if (subType === OfferingIncomeCreationSubType.FamilyGroup) {
-    body.push([
-      {
-        text: 'Grupo Familiar:',
-        style: 'label',
-      },
-      {
-        text: `${familyGroupName} ~ ${familyGroupCode}`,
-        style: 'value',
-      },
-    ]);
-  }
-
-  //* Add condition for zone
-  if (
-    subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil
-  ) {
-    body.push([
-      {
-        text: 'Zona:',
-        style: 'label',
-      },
-      {
-        text: `${zoneName} - ${zoneDistrict}`,
+        text: `${amount} ${currency}`,
         style: 'value',
       },
     ]);
@@ -325,14 +274,46 @@ export const generateTicketByOfferingIncomeIdReport = (
 
   //* Add condition for preacher
   if (subType === OfferingIncomeCreationSubType.FamilyGroup) {
+    relationshipDetails.push(
+      [
+        {
+          text: 'Nombre / Código:',
+          margin: [5, 0, 5, 2],
+          style: 'labelDetails',
+        },
+        {
+          text: `${familyGroupName} ~ ${familyGroupCode}`,
+          margin: [5, 0, 5, 2],
+          style: 'valueDetails',
+        },
+      ],
+      [
+        {
+          text: 'Predicador:',
+          margin: [5, 0, 5, 2],
+          style: 'labelDetails',
+        },
+        {
+          text: `${preacherFullName}`,
+          margin: [5, 0, 5, 2],
+          style: 'valueDetails',
+        },
+      ],
+    );
+  }
+
+  if (
+    subType === OfferingIncomeCreationSubType.ZonalFasting ||
+    subType === OfferingIncomeCreationSubType.ZonalVigil
+  ) {
     relationshipDetails.push([
       {
-        text: 'Predicador:',
+        text: 'Zona:',
         margin: [5, 0, 5, 2],
         style: 'labelDetails',
       },
       {
-        text: `${preacherFullName}`,
+        text: `${zoneName} - ${zoneDistrict}`,
         margin: [5, 0, 5, 2],
         style: 'valueDetails',
       },
@@ -443,7 +424,7 @@ export const generateTicketByOfferingIncomeIdReport = (
   if (type) {
     recordDetails.push([
       {
-        text: 'Fecha de emission:',
+        text: 'Fecha de emisión:',
         margin: [5, 0, 5, 0],
         style: {
           fontSize: 12,
@@ -480,14 +461,14 @@ export const generateTicketByOfferingIncomeIdReport = (
         italics: true,
       },
       title: {
-        fontSize: 14,
+        fontSize: 15,
         bold: true,
-        margin: [0, 5, 0, 3],
+        margin: [0, 5, 0, 8],
       },
       tileTickerNumber: {
         fontSize: 13,
         bold: true,
-        margin: [0, 0, 0, 3],
+        margin: [0, 0, 0, 5],
       },
       label: {
         fontSize: 13,
@@ -532,13 +513,6 @@ export const generateTicketByOfferingIncomeIdReport = (
         alignment: 'center',
         margin: [0, 0, 0, 5],
       },
-      // {
-      //   image: 'src/assets/logo-4.png',
-      //   width: 100,
-      //   height: 60,
-      //   alignment: 'center',
-      //   margin: [0, 0, 0, 0],
-      // },
       {
         text: '--------------------------------------------------------------------------------',
         alignment: 'center',
@@ -550,7 +524,7 @@ export const generateTicketByOfferingIncomeIdReport = (
         alignment: 'center',
       },
       {
-        text: 'R001-00000001',
+        text: `${receiptCode}`,
         style: 'tileTickerNumber',
         alignment: 'center',
       },
@@ -627,6 +601,32 @@ export const generateTicketByOfferingIncomeIdReport = (
         style: 'footer',
         alignment: 'center',
         margin: [0, 5],
+      },
+
+      {
+        table: {
+          widths: ['auto', '*'],
+          body: [
+            [
+              {
+                // Columna 1: QR
+                qr: `${ticketImageUrl}`,
+                fit: 120,
+                alignment: 'left',
+              },
+              {
+                // Columna 2: Texto
+                text: '"Escanea el código QR para ver tu recibo de ofrenda en línea. Accede a tu boleta digital de forma rápida y segura, almacenada en la nube."',
+                alignment: 'center',
+                fontSize: 11,
+                italics: true,
+                margin: [0, 15],
+              },
+            ],
+          ],
+        },
+        layout: 'noBorders',
+        margin: [5, 15, 5, 5],
       },
     ],
   };

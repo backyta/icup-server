@@ -62,7 +62,7 @@ import { getMemberMetricsReport } from '@/modules/reports/reports-types/metrics/
 import { getFamilyGroupMetricsReport } from '@/modules/reports/reports-types/metrics/family-group-metrics.report';
 import { getOfferingIncomeMetricsReport } from '@/modules/reports/reports-types/metrics/offering-income-metrics.report';
 import { getOfferingExpensesMetricsReport } from '@/modules/reports/reports-types/metrics/offering-expenses-metrics.report';
-import { generateTicketByOfferingIncomeIdReport } from '@/modules/reports/reports-types/tickets/generate-ticket-by-offering-income-id.report';
+import { generateReceiptByOfferingIncomeId } from '@/modules/reports/reports-types/receipts/generate-receipt-by-offering-income-id';
 import { getFinancialBalanceComparativeMetricsReport } from '@/modules/reports/reports-types/metrics/financial-balance-comparative-metrics.report';
 
 import { UserService } from '@/modules/user/user.service';
@@ -198,8 +198,8 @@ export class ReportsService {
     }
   }
 
-  //* GENERATE TICKET
-  async generateTicketByOfferingIncomeId(recordId: string) {
+  //* GENERATE RECEIPT
+  async generateReceiptByOfferingIncomeId(recordId: string) {
     try {
       const offeringIncome = await this.offeringIncomeRepository.findOne({
         where: {
@@ -229,7 +229,7 @@ export class ReportsService {
         );
       }
 
-      const docDefinition = generateTicketByOfferingIncomeIdReport({
+      const docDefinition = generateReceiptByOfferingIncomeId({
         churchName: offeringIncome?.church?.churchName,
         abbreviatedChurchName: offeringIncome?.church?.abbreviatedChurchName,
         churchAddress: offeringIncome?.church?.address,
@@ -290,6 +290,8 @@ export class ReportsService {
                 OfferingIncomeCreationSubType.FamilyGroup
               ? `${offeringIncome?.familyGroup?.theirPastor?.member?.firstNames} ${offeringIncome?.familyGroup?.theirPastor?.member?.lastNames}`
               : '',
+        ticketImageUrl: offeringIncome?.imageUrls[0],
+        receiptCode: offeringIncome?.receiptCode,
         createdAt: offeringIncome?.createdAt,
         createdBy: `${offeringIncome?.createdBy.firstNames} ${offeringIncome?.createdBy.lastNames}`,
       });

@@ -494,14 +494,14 @@ export class SeedService {
       dataOfferingIncome.sundayServiceOfferingIncome;
     const familyGroupOfferingIncome =
       dataOfferingIncome.familyGroupOfferingIncome;
-    const sundaySchoolOfferingIncome =
-      dataOfferingIncome.sundaySchoolOfferingIncome;
+    // const sundaySchoolOfferingIncome =
+    //   dataOfferingIncome.sundaySchoolOfferingIncome;
     const unitedServiceOfferingIncome =
       dataOfferingIncome.unitedServiceOfferingIncome;
     const fastingAndVigilOfferingIncome =
       dataOfferingIncome.fastingAndVigilOfferingIncome;
-    const youthServiceOfferingIncome =
-      dataOfferingIncome.youthServiceOfferingIncome;
+    // const youthServiceOfferingIncome =
+    //   dataOfferingIncome.youthServiceOfferingIncome;
     const churchGroundOfferingIncome =
       dataOfferingIncome.churchGroundOfferingIncome;
     const specialOfferingIncome = dataOfferingIncome.specialOfferingIncome;
@@ -509,17 +509,6 @@ export class SeedService {
       dataOfferingIncome.activitiesOfferingIncome;
     const adjustmentOfferingIncome =
       dataOfferingIncome.adjustmentOfferingIncome;
-
-    const promisesSundayServiceOfferingIncome = [];
-    const promisesFamilyGroupOfferingIncome = [];
-    const promisesSundaySchoolOfferingIncome = [];
-    const promisesUnitedServiceOfferingIncome = [];
-    const promisesFastingAndVigilOfferingIncome = [];
-    const promisesYouthServiceOfferingIncome = [];
-    const promisesChurchGroundOfferingIncome = [];
-    const promisesSpecialOfferingIncome = [];
-    const promisesActivitiesOfferingIncome = [];
-    const promisesAdjustmentOfferingIncome = [];
 
     const mainChurch = await this.churchRepository.findOne({
       where: { isAnexe: false },
@@ -536,18 +525,13 @@ export class SeedService {
     });
 
     //* Sunday Service
-    sundayServiceOfferingIncome.forEach((offering) => {
+    for (const offering of sundayServiceOfferingIncome) {
       offering.churchId = mainChurch?.id;
-
-      promisesSundayServiceOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesSundayServiceOfferingIncome);
+      await this.offeringIncomeService.create(offering, user);
+    }
 
     //* Family Group
-    familyGroupOfferingIncome.forEach((offering, index) => {
+    for (const [index, offering] of familyGroupOfferingIncome.entries()) {
       if (index <= 6) {
         offering.churchId = mainChurch?.id;
         offering.familyGroupId = allFamilyGroups[index]?.id;
@@ -556,59 +540,37 @@ export class SeedService {
         offering.familyGroupId = undefined;
       }
 
-      promisesFamilyGroupOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
+      await this.offeringIncomeService.create(offering, user);
+    }
 
-    await Promise.all(promisesFamilyGroupOfferingIncome);
+    //* Sunday School
+    // for (const offering of sundaySchoolOfferingIncome) {
+    //   offering.churchId = mainChurch?.id;
+    //   await this.offeringIncomeService.create(offering, user);
+    // }
 
-    //* Sunday Service
-    sundaySchoolOfferingIncome.forEach((offering) => {
+    // //* United Service
+
+    for (const offering of unitedServiceOfferingIncome) {
       offering.churchId = mainChurch?.id;
+      await this.offeringIncomeService.create(offering, user);
+    }
 
-      promisesSundaySchoolOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
+    // //* Fasting and Vigil
 
-    await Promise.all(promisesSundaySchoolOfferingIncome);
-
-    //* United Service
-    unitedServiceOfferingIncome.forEach((offering) => {
+    for (const offering of fastingAndVigilOfferingIncome) {
       offering.churchId = mainChurch?.id;
-
-      promisesUnitedServiceOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesUnitedServiceOfferingIncome);
-
-    //* Fasting and Vigil
-    fastingAndVigilOfferingIncome.forEach((offering) => {
-      offering.churchId = mainChurch?.id;
-
-      promisesFastingAndVigilOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesFastingAndVigilOfferingIncome);
+      await this.offeringIncomeService.create(offering, user);
+    }
 
     //* Youth Service
-    youthServiceOfferingIncome.forEach((offering) => {
-      offering.churchId = mainChurch?.id;
-
-      promisesYouthServiceOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesYouthServiceOfferingIncome);
+    // for (const offering of youthServiceOfferingIncome) {
+    //   offering.churchId = mainChurch?.id;
+    //   await this.offeringIncomeService.create(offering, user);
+    // }
 
     //* Church Ground
-    churchGroundOfferingIncome.forEach((offering, index) => {
+    for (const [index, offering] of churchGroundOfferingIncome.entries()) {
       if (index <= 6) {
         offering.churchId = mainChurch?.id;
         offering.memberId = allDisciples[index]?.id;
@@ -617,15 +579,11 @@ export class SeedService {
         offering.memberId = undefined;
       }
 
-      promisesChurchGroundOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesChurchGroundOfferingIncome);
+      await this.offeringIncomeService.create(offering, user);
+    }
 
     //* Special
-    specialOfferingIncome.forEach((offering, index) => {
+    for (const [index, offering] of specialOfferingIncome.entries()) {
       if (index <= 6) {
         offering.churchId = mainChurch?.id;
         offering.memberId = allDisciples[index]?.id;
@@ -634,34 +592,20 @@ export class SeedService {
         offering.memberId = undefined;
       }
 
-      promisesSpecialOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesSpecialOfferingIncome);
+      await this.offeringIncomeService.create(offering, user);
+    }
 
     //* Activities OfferingIncome
-    activitiesOfferingIncome.forEach((offering) => {
+    for (const offering of activitiesOfferingIncome) {
       offering.churchId = mainChurch?.id;
-
-      promisesActivitiesOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesActivitiesOfferingIncome);
+      await this.offeringIncomeService.create(offering, user);
+    }
 
     //* Adjustment OfferingIncome
-    adjustmentOfferingIncome.forEach((offering) => {
+    for (const offering of adjustmentOfferingIncome) {
       offering.churchId = mainChurch?.id;
-
-      promisesAdjustmentOfferingIncome.push(
-        this.offeringIncomeService.create(offering, user),
-      );
-    });
-
-    await Promise.all(promisesAdjustmentOfferingIncome);
+      await this.offeringIncomeService.create(offering, user);
+    }
   }
 
   //? Insert Offering Expenses

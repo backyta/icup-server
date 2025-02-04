@@ -29,19 +29,19 @@ export class CreateOfferingIncomeDto {
     example: OfferingIncomeCreationType.Offering,
   })
   @IsEnum(OfferingIncomeCreationType)
-  type: string;
+  type: OfferingIncomeCreationType;
 
   @ApiProperty({
     example: OfferingIncomeCreationSubType.ChurchGround,
   })
   @IsOptional()
-  subType?: string;
+  subType?: OfferingIncomeCreationSubType;
 
   @ApiProperty({
     example: OfferingIncomeCreationCategory.ExternalDonation,
   })
   @IsOptional()
-  category?: string;
+  category?: OfferingIncomeCreationCategory;
 
   //? For new Donator
   @ApiProperty({
@@ -151,7 +151,7 @@ export class CreateOfferingIncomeDto {
   })
   @IsOptional()
   @IsString()
-  shift?: string;
+  shift?: OfferingIncomeCreationShiftType | string;
 
   @ApiProperty({
     example: '50',
@@ -164,7 +164,7 @@ export class CreateOfferingIncomeDto {
   })
   @IsEnum(CurrencyType)
   @IsNotEmpty()
-  currency: string;
+  currency: CurrencyType;
 
   @ApiProperty({
     example: '1990/12/23',
@@ -197,7 +197,7 @@ export class CreateOfferingIncomeDto {
   @MinLength(1)
   @MaxLength(50)
   @IsOptional()
-  reasonElimination?: string;
+  reasonElimination?: OfferingInactivationReason;
 
   @ApiProperty({
     example: RecordStatus.Active,

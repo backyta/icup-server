@@ -146,6 +146,20 @@ export class OfferingIncomeService {
       familyGroupId,
     } = createOfferingIncomeDto;
 
+    //* Obtenemos el prefijo basado en el subTipo
+    const prefix = this.getPrefixBySubType(
+      type === OfferingIncomeCreationType.IncomeAdjustment ? type : subType,
+    );
+
+    if (!prefix) {
+      throw new Error('Invalid subType for receipt generation');
+    }
+
+    //* Generamos el código de recibo antes de guardar la entidad
+    const receiptCode = await this.generateNextReceipt(prefix);
+
+    console.log(receiptCode);
+
     //* Validations
     if (type === OfferingIncomeCreationType.Offering) {
       //? Family group
@@ -238,6 +252,7 @@ export class OfferingIncomeService {
             category: category,
             imageUrls: imageUrls,
             familyGroup: familyGroup,
+            receiptCode: receiptCode,
             createdAt: new Date(),
             createdBy: user,
           });
@@ -322,6 +337,7 @@ export class OfferingIncomeService {
             category: category,
             shift: shift,
             imageUrls: imageUrls,
+            receiptCode: receiptCode,
             createdAt: new Date(),
             createdBy: user,
           });
@@ -332,7 +348,7 @@ export class OfferingIncomeService {
         }
       }
 
-      //? Sunday School, Youth service
+      //? Sunday School, Youth service, Church Ground, Special
       if (
         subType === OfferingIncomeCreationSubType.SundaySchool ||
         subType === OfferingIncomeCreationSubType.YouthService ||
@@ -664,6 +680,7 @@ export class OfferingIncomeService {
               memberType: MemberType.ExternalDonor,
               category: category,
               externalDonor: newDonor,
+              receiptCode: receiptCode,
               imageUrls: imageUrls,
               createdAt: new Date(),
               createdBy: user,
@@ -701,6 +718,7 @@ export class OfferingIncomeService {
             shift: !shift || shift === '' ? null : shift,
             category: category,
             externalDonor: externalDonor ?? null,
+            receiptCode: receiptCode,
             imageUrls: imageUrls,
             createdAt: new Date(),
             createdBy: user,
@@ -801,6 +819,7 @@ export class OfferingIncomeService {
             memberType: null,
             shift: null,
             imageUrls: imageUrls,
+            receiptCode: receiptCode,
             familyGroup: null,
             createdAt: new Date(),
             createdBy: user,
@@ -876,6 +895,7 @@ export class OfferingIncomeService {
             familyGroup: null,
             memberType: null,
             shift: null,
+            receiptCode: receiptCode,
             imageUrls: imageUrls,
             createdAt: new Date(),
             createdBy: user,
@@ -945,6 +965,7 @@ export class OfferingIncomeService {
           memberType: null,
           shift: null,
           imageUrls: imageUrls,
+          receiptCode: receiptCode,
           familyGroup: null,
           createdAt: new Date(),
           createdBy: user,
@@ -3287,6 +3308,18 @@ export class OfferingIncomeService {
         subType === OfferingIncomeCreationSubType.Special ||
         subType === OfferingIncomeCreationSubType.ChurchGround
       ) {
+        existsOffering = await this.offeringIncomeRepository.find({
+          where: {
+            id: Not(id),
+            type: type,
+            subType: subType,
+            category: category,
+            date: new Date(date),
+            currency: currency,
+            recordStatus: RecordStatus.Active,
+          },
+        });
+
         if (memberType === MemberType.Pastor) {
           existsOffering = await this.offeringIncomeRepository.find({
             where: {
@@ -3328,7 +3361,6 @@ export class OfferingIncomeService {
               currency: currency,
               memberType: memberType,
               supervisor: memberValue as Supervisor,
-              disciple: memberValue as Disciple,
               recordStatus: RecordStatus.Active,
             },
           });
@@ -3724,6 +3756,8 @@ export class OfferingIncomeService {
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleDBExceptions(error: any): never {
+    console.log(error);
+
     if (error.code === '23505') {
       const detail = error.detail;
 
@@ -3737,5 +3771,42 @@ export class OfferingIncomeService {
     throw new InternalServerErrorException(
       'Sucedió un error inesperado, hable con el administrador.',
     );
+  }
+
+  //? Método para obtener el prefijo de acuerdo al subTipo
+  private getPrefixBySubType(subType: string): string | null {
+    const mapping = {
+      sunday_service: 'CD',
+      family_group: 'GF',
+      general_fasting: 'AG',
+      general_vigil: 'VG',
+      zonal_fasting: 'AZ',
+      zonal_vigil: 'VZ',
+      sunday_school: 'ED',
+      youth_service: 'CJ',
+      united_service: 'CU',
+      activities: 'AC',
+      church_ground: 'TI',
+      special: 'OE',
+      income_adjustment: 'AI',
+    };
+    return mapping[subType] || null;
+  }
+
+  //? Método para generar el siguiente código de recibo
+  private async generateNextReceipt(prefix: string): Promise<string> {
+    const lastRecord = await this.offeringIncomeRepository
+      .createQueryBuilder('offeringIncome')
+      .where('offeringIncome.receiptCode LIKE :prefix', {
+        prefix: `ROF-${prefix}-%`,
+      })
+      .orderBy('offeringIncome.receiptCode', 'DESC')
+      .getOne();
+
+    const nextSequenceNumber = lastRecord
+      ? parseInt(lastRecord.receiptCode.split('-').pop() ?? '0', 10) + 1
+      : 1;
+
+    return `ROF-${prefix}-${String(nextSequenceNumber).padStart(8, '0')}`;
   }
 }

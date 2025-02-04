@@ -102,17 +102,17 @@ export class ReportsController {
     pdfDoc.end();
   }
 
-  //* OFFERING INCOME TICKET
-  @Get('offering-income/:id/ticket')
+  //* OFFERING INCOME RECEIPT
+  @Get('offering-income/:id/receipt')
   @Auth()
   @ApiOkResponse({
     description:
-      '✅ Operation Successful: The requested offering income ticket has been successfully generated. The response includes the ticket as a downloadable PDF file.',
+      '✅ Operation Successful: The requested offering income receipt has been successfully generated. The response includes the receipt as a downloadable PDF file.',
   })
   @ApiParam({
     name: 'id',
     description:
-      'Unique identifier of the offering income record for which the ticket is being generated. This ID is used to retrieve the corresponding data from the database.',
+      'Unique identifier of the offering income record for which the receipt is being generated. This ID is used to retrieve the corresponding data from the database.',
     example: 'f47c7d13-9d6a-4d9e-bd1e-2cb4b64c0a27',
   })
   @ApiProduces('application/pdf')
@@ -121,12 +121,12 @@ export class ReportsController {
     @Param('id', ParseUUIDPipe) studentId: string,
   ) {
     const pdfDoc =
-      await this.reportsService.generateTicketByOfferingIncomeId(studentId);
+      await this.reportsService.generateReceiptByOfferingIncomeId(studentId);
 
     response.setHeader('Content-Type', 'application/pdf');
     response.setHeader(
       'Content-Disposition',
-      'attachment; filename="offering-income-ticket.pdf"',
+      'attachment; filename="offering-income-receipt.pdf"',
     );
     pdfDoc.pipe(response);
     pdfDoc.end();
