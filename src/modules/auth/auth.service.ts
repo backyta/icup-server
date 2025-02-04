@@ -83,10 +83,10 @@ export class AuthService {
         secure: true,
         sameSite: 'lax',
         path: '/api/auth/',
-        // domain:
-        //   this.configService.get('STAGE') === 'prod'
-        //     ? `${this.configService.get('DOMAIN_NAME')}`
-        //     : 'localhost',
+        domain:
+          this.configService.get('STAGE') === 'prod'
+            ? `${this.configService.get('URL_DOMAIN')}`
+            : 'localhost',
       });
 
       return res.json({
