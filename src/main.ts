@@ -68,7 +68,7 @@ async function bootstrap() {
   const { URL_DOMAIN, STAGE } = process.env;
 
   app.enableCors({
-    origin: STAGE === 'dev' ? 'http://localhost:5173' : URL_DOMAIN,
+    origin: STAGE === 'prod' ? URL_DOMAIN : 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
