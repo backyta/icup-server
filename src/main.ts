@@ -69,7 +69,7 @@ async function bootstrap() {
 
   app.enableCors({
     origin: STAGE === 'dev' ? 'http://localhost:5173' : URL_DOMAIN,
-    // methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
