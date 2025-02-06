@@ -158,8 +158,6 @@ export class OfferingIncomeService {
     //* Generamos el código de recibo antes de guardar la entidad
     const receiptCode = await this.generateNextReceipt(prefix);
 
-    console.log(receiptCode);
-
     //* Validations
     if (type === OfferingIncomeCreationType.Offering) {
       //? Family group
@@ -3756,8 +3754,6 @@ export class OfferingIncomeService {
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleDBExceptions(error: any): never {
-    console.log(error);
-
     if (error.code === '23505') {
       const detail = error.detail;
 

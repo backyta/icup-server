@@ -742,7 +742,7 @@ export const getFinancialBalanceComparativeMetricsReport = (
       //* GeneralComparativeOfferingIncome
       metricsTypesArray.includes(
         MetricSearchType.GeneralComparativeOfferingIncome,
-      )
+      ) && generalOfferingIncomeComparativeDataResult.length > 0
         ? [
             // Table Title
             {
@@ -4256,7 +4256,7 @@ export const getFinancialBalanceComparativeMetricsReport = (
       //? GeneralComparativeOfferingExpenses
       metricsTypesArray.includes(
         MetricSearchType.GeneralComparativeOfferingExpenses,
-      )
+      ) && generalOfferingExpensesComparativeDataResult.length > 0
         ? [
             // Table Title
             {

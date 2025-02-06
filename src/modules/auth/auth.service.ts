@@ -83,10 +83,6 @@ export class AuthService {
         secure: true,
         sameSite: 'lax',
         path: '/api/auth/',
-        // domain:
-        //   this.configService.get('STAGE') === 'prod'
-        //     ? `${this.configService.get('URL_DOMAIN')}`
-        //     : 'localhost',
       });
 
       return res.json({
@@ -102,16 +98,8 @@ export class AuthService {
     }
   }
 
-  //* Check auth status (regenerate token)
-  async checkAuthStatus(user: User) {
-    return {
-      ...user,
-      token: this.getJwtToken({ id: user.id }),
-    };
-  }
-
-  //* Refresh token
-  async refreshAccessToken(refreshToken: string): Promise<string> {
+  //* Renew token
+  async renewAccessToken(refreshToken: string): Promise<string> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get('JWT_SECRET_REFRESH'),

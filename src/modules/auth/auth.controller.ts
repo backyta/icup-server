@@ -20,11 +20,6 @@ import {
 import { Request, Response } from 'express';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
-import { User } from '@/modules/user/entities/user.entity';
-
-import { Auth } from '@/modules/auth/decorators/auth.decorator';
-import { GetUser } from '@/modules/auth/decorators/get-user.decorator';
-
 import { AuthService } from '@/modules/auth/auth.service';
 import { LoginUserDto } from '@/modules/auth/dto/login-user.dto';
 
@@ -62,25 +57,13 @@ export class AuthController {
     return this.authService.login(loginUserDto, res);
   }
 
-  //* Check auth status (regenerate new token)
-  @Get('check-auth-status')
-  @Auth()
-  @ApiOkResponse({
-    description:
-      '✅ Success: The authentication status of the user was successfully verified, and the response contains the relevant user details.',
-  })
-  @SkipThrottle()
-  checkAuthStatus(@GetUser() user: User) {
-    return this.authService.checkAuthStatus(user);
-  }
-
   //* Refresh token
-  @Get('refresh-token')
+  @Get('renew-token')
   @ApiOkResponse({
     description: '✅ Success: The new access token was successfully generated.',
   })
   @SkipThrottle()
-  async refreshAccessToken(@Req() req: Request, @Res() res: Response) {
+  async renewAccessToken(@Req() req: Request, @Res() res: Response) {
     const refreshToken = await req.cookies['refreshToken'];
 
     if (!refreshToken) {
@@ -88,7 +71,7 @@ export class AuthController {
     }
 
     const newAccessToken =
-      await this.authService.refreshAccessToken(refreshToken);
+      await this.authService.renewAccessToken(refreshToken);
 
     return res.json({ accessToken: newAccessToken });
   }
