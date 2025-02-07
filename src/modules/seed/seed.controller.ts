@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { BadRequestException, Controller, Get } from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -48,11 +48,10 @@ export class SeedController {
     description:
       '✅ Successfully created: SEED operation executed successfully. The database has been seeded with initial data.',
   })
-  //TODO : ACTIVAR LA PROHIBICIÓN DE SEMILLA EN PRODUCCIÓN
   executeSeed(): Promise<string> {
-    // if (this.configService.get('STAGE') === 'prod') {
-    //   throw new BadRequestException('Cannot run seed in production.');
-    // }
+    if (this.configService.get('STAGE') === 'prod') {
+      throw new BadRequestException('Cannot run seed in production.');
+    }
 
     return this.seedService.runSeed();
   }

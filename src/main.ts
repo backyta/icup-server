@@ -61,7 +61,7 @@ async function bootstrap() {
       },
     });
   } else {
-    console.log('Swagger documentation is disabled in this environment');
+    console.log('Swagger documentation is disabled in this environment.');
   }
 
   // CORS config
