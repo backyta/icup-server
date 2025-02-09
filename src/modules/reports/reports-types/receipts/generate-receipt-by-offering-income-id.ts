@@ -57,7 +57,7 @@ export const generateReceiptByOfferingIncomeId = (
   const {
     churchName,
     churchAddress,
-    churchPhoneNumber,
+    // churchPhoneNumber,
     churchEmail,
     type,
     subType,
@@ -508,10 +508,15 @@ export const generateReceiptByOfferingIncomeId = (
         margin: [0, 5, 0, 10],
       },
       {
-        text: `Web: www.unidosensupresencia.com\nE-mail: ${churchEmail}`,
+        text: [
+          { text: 'Web: ', bold: true },
+          'www.unidosensupresencia.com\n',
+          { text: 'E-mail: ', bold: true },
+          `${churchEmail}`,
+        ],
         style: 'subheader',
         alignment: 'center',
-        margin: [0, 0, 0, 5],
+        margin: [-3, 0, -3, 5],
       },
       {
         text: '--------------------------------------------------------------------------------',
@@ -602,32 +607,33 @@ export const generateReceiptByOfferingIncomeId = (
         alignment: 'center',
         margin: [0, 5],
       },
-
-      {
-        table: {
-          widths: ['auto', '*'],
-          body: [
-            [
-              {
-                // Columna 1: QR
-                qr: `${ticketImageUrl}`,
-                fit: 120,
-                alignment: 'left',
-              },
-              {
-                // Columna 2: Texto
-                text: '"Escanea el código QR para ver tu recibo de ofrenda en línea. Accede a tu boleta digital de forma rápida y segura, almacenada en la nube."',
-                alignment: 'center',
-                fontSize: 11,
-                italics: true,
-                margin: [0, 15],
-              },
-            ],
-          ],
-        },
-        layout: 'noBorders',
-        margin: [5, 15, 5, 5],
-      },
+      ticketImageUrl && ticketImageUrl.length > 0
+        ? {
+            table: {
+              widths: ['auto', '*'],
+              body: [
+                [
+                  {
+                    // Columna 1: QR
+                    qr: `${ticketImageUrl}`,
+                    fit: 120,
+                    alignment: 'left',
+                  },
+                  {
+                    // Columna 2: Texto
+                    text: '"Escanea el código QR para ver tu recibo de ofrenda en línea. Accede a tu boleta digital de forma rápida y segura, almacenada en la nube."',
+                    alignment: 'center',
+                    fontSize: 11,
+                    italics: true,
+                    margin: [0, 15],
+                  },
+                ],
+              ],
+            },
+            layout: 'noBorders',
+            margin: [5, 15, 5, 5],
+          }
+        : null,
     ],
   };
 
