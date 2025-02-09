@@ -69,7 +69,7 @@ export class OfferingIncomeController {
 
   //* CREATE
   @Post()
-  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser)
   @ApiCreatedResponse({
     description:
       '✅ Successfully created: The record has been successfully created and added to the system.',
@@ -153,7 +153,7 @@ export class OfferingIncomeController {
 
   //* UPDATE
   @Patch(':id')
-  @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
+  @Auth(UserRole.SuperUser, UserRole.TreasurerUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The resource was successfully updated. The updated data is returned in the response.',
@@ -179,7 +179,6 @@ export class OfferingIncomeController {
   //! INACTIVATE
   @Delete(':id')
   @Auth(UserRole.SuperUser)
-  // @Auth(UserRole.SuperUser, UserRole.AdminUser, UserRole.TreasurerUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The resource was successfully deleted. No content is returned.',

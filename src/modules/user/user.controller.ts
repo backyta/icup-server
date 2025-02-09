@@ -76,7 +76,7 @@ export class UserController {
 
   //* FIND ALL
   @Get()
-  @Auth(UserRole.SuperUser)
+  @Auth()
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The operation was completed successfully and the response contains the requested data.',

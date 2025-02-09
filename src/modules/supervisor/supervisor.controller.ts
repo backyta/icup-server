@@ -201,7 +201,6 @@ export class SupervisorController {
   //! INACTIVATE
   @Delete(':id')
   @Auth(UserRole.SuperUser)
-  // @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @ApiOkResponse({
     description:
       '✅ Successfully completed: The resource was successfully deleted. No content is returned.',

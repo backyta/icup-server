@@ -183,7 +183,6 @@ export class ZoneController {
 
   //! INACTIVATE
   @Delete(':id')
-  // @Auth(UserRole.SuperUser, UserRole.AdminUser)
   @Auth(UserRole.SuperUser)
   @ApiOkResponse({
     description:
