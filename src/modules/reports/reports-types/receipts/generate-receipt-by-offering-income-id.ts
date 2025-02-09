@@ -508,7 +508,7 @@ export const generateReceiptByOfferingIncomeId = (
         margin: [0, 5, 0, 10],
       },
       {
-        text: `Teléfono: ${churchPhoneNumber}\nE-mail: ${churchEmail}\nWeb: www.unidosensupresencia.com`,
+        text: `Web: www.unidosensupresencia.com\nE-mail: ${churchEmail}`,
         style: 'subheader',
         alignment: 'center',
         margin: [0, 0, 0, 5],
