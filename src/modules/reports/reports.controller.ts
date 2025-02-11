@@ -119,9 +119,12 @@ export class ReportsController {
   async generateReceipt(
     @Res() response: Response,
     @Param('id', ParseUUIDPipe) studentId: string,
+    @Query() queryParams: { generationType: string },
   ) {
-    const pdfDoc =
-      await this.reportsService.generateReceiptByOfferingIncomeId(studentId);
+    const pdfDoc = await this.reportsService.generateReceiptByOfferingIncomeId(
+      studentId,
+      queryParams,
+    );
 
     response.setHeader('Content-Type', 'application/pdf');
     response.setHeader(

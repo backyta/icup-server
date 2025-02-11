@@ -736,7 +736,8 @@ export class OfferingIncomeService {
       //? Zonal fasting and Zonal vigil
       if (
         subType === OfferingIncomeCreationSubType.ZonalFasting ||
-        subType === OfferingIncomeCreationSubType.ZonalVigil
+        subType === OfferingIncomeCreationSubType.ZonalVigil ||
+        subType === OfferingIncomeCreationSubType.ZonalEvangelism
       ) {
         if (!churchId) {
           throw new NotFoundException(`La iglesia es requerida.`);
@@ -839,6 +840,7 @@ export class OfferingIncomeService {
       if (
         subType === OfferingIncomeCreationSubType.GeneralVigil ||
         subType === OfferingIncomeCreationSubType.GeneralFasting ||
+        subType === OfferingIncomeCreationSubType.GeneralEvangelism ||
         subType === OfferingIncomeCreationSubType.UnitedService ||
         subType === OfferingIncomeCreationSubType.Activities
       ) {
@@ -1088,8 +1090,10 @@ export class OfferingIncomeService {
         searchType === OfferingIncomeSearchType.FamilyGroup ||
         searchType === OfferingIncomeSearchType.ZonalFasting ||
         searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalEvangelism ||
         searchType === OfferingIncomeSearchType.GeneralFasting ||
         searchType === OfferingIncomeSearchType.GeneralVigil ||
+        searchType === OfferingIncomeSearchType.GeneralEvangelism ||
         searchType === OfferingIncomeSearchType.YouthService ||
         searchType === OfferingIncomeSearchType.UnitedService ||
         searchType === OfferingIncomeSearchType.Activities ||
@@ -1808,12 +1812,13 @@ export class OfferingIncomeService {
       }
     }
 
-    //? Offering Zonal Fasting and Zonal Vigil --> Many
+    //? Offering Zonal Fasting and Zonal Vigil and Zonal Evangelism--> Many
     //* By Zone
     if (
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
-        searchType === OfferingIncomeSearchType.ZonalVigil) &&
+        searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType === OfferingIncomeSearchSubType.OfferingByZone
     ) {
       try {
@@ -1872,7 +1877,8 @@ export class OfferingIncomeService {
     if (
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
-        searchType === OfferingIncomeSearchType.ZonalVigil) &&
+        searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType === OfferingIncomeSearchSubType.OfferingByZoneDate
     ) {
       const [zone, date] = term.split('&');
@@ -1947,7 +1953,8 @@ export class OfferingIncomeService {
     if (
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
-        searchType === OfferingIncomeSearchType.ZonalVigil) &&
+        searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingBySupervisorFirstNames
     ) {
@@ -2015,7 +2022,8 @@ export class OfferingIncomeService {
     if (
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
-        searchType === OfferingIncomeSearchType.ZonalVigil) &&
+        searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingBySupervisorLastNames
     ) {
@@ -2083,7 +2091,8 @@ export class OfferingIncomeService {
     if (
       term &&
       (searchType === OfferingIncomeSearchType.ZonalFasting ||
-        searchType === OfferingIncomeSearchType.ZonalVigil) &&
+        searchType === OfferingIncomeSearchType.ZonalVigil ||
+        searchType === OfferingIncomeSearchType.ZonalEvangelism) &&
       searchSubType ===
         OfferingIncomeSearchSubType.OfferingBySupervisorFullNames
     ) {
@@ -3057,9 +3066,7 @@ export class OfferingIncomeService {
         `No se puede actualizar la Iglesia a la que pertenece este registro.`,
       );
     }
-    console.log(familyGroupId);
 
-    console.log(offering?.familyGroup?.id);
     if (familyGroupId && familyGroupId !== offering?.familyGroup?.id) {
       throw new BadRequestException(
         `No se puede actualizar el Grupo Familiar al que pertenece este registro.`,
@@ -3272,10 +3279,11 @@ export class OfferingIncomeService {
         });
       }
 
-      //* Zonal fasting and vigil
+      //* Zonal fasting and vigil and Zonal Evangelism
       if (
         subType === OfferingIncomeCreationSubType.ZonalVigil ||
-        subType === OfferingIncomeCreationSubType.ZonalFasting
+        subType === OfferingIncomeCreationSubType.ZonalFasting ||
+        subType === OfferingIncomeCreationSubType.ZonalEvangelism
       ) {
         existsOffering = await this.offeringIncomeRepository.find({
           where: {
@@ -3295,6 +3303,7 @@ export class OfferingIncomeService {
       if (
         subType === OfferingIncomeCreationSubType.GeneralFasting ||
         subType === OfferingIncomeCreationSubType.GeneralVigil ||
+        subType === OfferingIncomeCreationSubType.GeneralEvangelism ||
         subType === OfferingIncomeCreationSubType.UnitedService ||
         subType === OfferingIncomeCreationSubType.Activities
       ) {
@@ -3789,6 +3798,8 @@ export class OfferingIncomeService {
       general_vigil: 'VG',
       zonal_fasting: 'AZ',
       zonal_vigil: 'VZ',
+      general_evangelism: 'EG',
+      zonal_evangelism: 'EZ',
       sunday_school: 'ED',
       youth_service: 'CJ',
       united_service: 'CU',

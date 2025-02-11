@@ -2023,6 +2023,7 @@ export class MetricsService {
                 subType: In([
                   OfferingIncomeSearchType.GeneralFasting,
                   OfferingIncomeSearchType.GeneralVigil,
+                  OfferingIncomeSearchType.GeneralEvangelism,
                 ]),
 
                 date: Between(startDate, endDate),
@@ -2041,6 +2042,7 @@ export class MetricsService {
                 subType: In([
                   OfferingIncomeSearchType.ZonalVigil,
                   OfferingIncomeSearchType.ZonalFasting,
+                  OfferingIncomeSearchType.ZonalEvangelism,
                 ]),
 
                 date: Between(startDate, endDate),
@@ -2095,6 +2097,7 @@ export class MetricsService {
                 subType: In([
                   OfferingIncomeSearchType.GeneralFasting,
                   OfferingIncomeSearchType.GeneralVigil,
+                  OfferingIncomeSearchType.GeneralEvangelism,
                 ]),
 
                 date: Between(startDate, endDate),
@@ -2113,6 +2116,7 @@ export class MetricsService {
                 subType: In([
                   OfferingIncomeSearchType.ZonalVigil,
                   OfferingIncomeSearchType.ZonalFasting,
+                  OfferingIncomeSearchType.ZonalEvangelism,
                 ]),
 
                 date: Between(startDate, endDate),

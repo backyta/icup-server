@@ -57,7 +57,10 @@ export const offeringIncomeByFastingAndVigilFormatter = ({
   const dataResult: OfferingIncomeByFastingAndVigilDataResult[] =
     offeringIncome?.reduce((acc, offering) => {
       const existing = acc.find(
-        (item) => item.date === offering.date && item.type === offering.subType,
+        (item) =>
+          item.date === offering.date &&
+          item.subType === offering.subType &&
+          item.zone.id === offering.zone.id,
       );
 
       if (existing) {

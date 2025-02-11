@@ -199,7 +199,10 @@ export class ReportsService {
   }
 
   //* GENERATE RECEIPT
-  async generateReceiptByOfferingIncomeId(recordId: string) {
+  async generateReceiptByOfferingIncomeId(
+    recordId: string,
+    queryParams: { generationType: string },
+  ) {
     try {
       const offeringIncome = await this.offeringIncomeRepository.findOne({
         where: {
@@ -294,6 +297,7 @@ export class ReportsService {
         receiptCode: offeringIncome?.receiptCode,
         createdAt: offeringIncome?.createdAt,
         createdBy: `${offeringIncome?.createdBy.firstNames} ${offeringIncome?.createdBy.lastNames}`,
+        generationType: queryParams.generationType,
       });
 
       const doc = this.printerService.createPdf(docDefinition);
@@ -3389,8 +3393,6 @@ export class ReportsService {
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleDBExceptions(error: any): never {
-    console.log(error);
-
     if (error.code === '23505') {
       throw new BadRequestException(`${error.message}`);
     }

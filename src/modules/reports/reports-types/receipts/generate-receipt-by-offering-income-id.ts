@@ -49,6 +49,7 @@ interface ReceiptValues {
   receiptCode: string;
   createdAt?: Date;
   createdBy?: string;
+  generationType?: string;
 }
 
 export const generateReceiptByOfferingIncomeId = (
@@ -82,6 +83,7 @@ export const generateReceiptByOfferingIncomeId = (
     ticketImageUrl,
     createdAt,
     createdBy,
+    generationType,
   } = values;
 
   //! Table body
@@ -607,7 +609,7 @@ export const generateReceiptByOfferingIncomeId = (
         alignment: 'center',
         margin: [0, 5],
       },
-      ticketImageUrl && ticketImageUrl.length > 0
+      ticketImageUrl && ticketImageUrl.length > 0 && generationType !== 'update'
         ? {
             table: {
               widths: ['auto', '*'],
