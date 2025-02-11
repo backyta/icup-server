@@ -733,7 +733,7 @@ export class OfferingIncomeService {
         }
       }
 
-      //? Zonal fasting and Zonal vigil
+      //? Zonal fasting and Zonal vigil and Zonal evangelism
       if (
         subType === OfferingIncomeCreationSubType.ZonalFasting ||
         subType === OfferingIncomeCreationSubType.ZonalVigil ||

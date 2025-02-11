@@ -269,7 +269,9 @@ export class ReportsService {
         supervisorFullName:
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.ZonalFasting ||
-          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalEvangelism
             ? `${offeringIncome?.zone?.theirSupervisor?.member?.firstNames} ${offeringIncome?.zone?.theirSupervisor?.member?.lastNames}`
             : offeringIncome.subType ===
                 OfferingIncomeCreationSubType.FamilyGroup
@@ -278,7 +280,9 @@ export class ReportsService {
         copastorFullName:
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.ZonalFasting ||
-          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalEvangelism
             ? `${offeringIncome?.zone?.theirCopastor?.member?.firstNames} ${offeringIncome?.zone?.theirCopastor?.member?.lastNames}`
             : offeringIncome.subType ===
                 OfferingIncomeCreationSubType.FamilyGroup
@@ -287,7 +291,9 @@ export class ReportsService {
         pastorFullName:
           offeringIncome.subType ===
             OfferingIncomeCreationSubType.ZonalFasting ||
-          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil
+          offeringIncome.subType === OfferingIncomeCreationSubType.ZonalVigil ||
+          offeringIncome.subType ===
+            OfferingIncomeCreationSubType.ZonalEvangelism
             ? `${offeringIncome?.zone?.theirPastor?.member?.firstNames} ${offeringIncome?.zone?.theirPastor?.member?.lastNames}`
             : offeringIncome.subType ===
                 OfferingIncomeCreationSubType.FamilyGroup
