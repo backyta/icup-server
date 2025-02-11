@@ -141,7 +141,7 @@ export const getOfferingExpensesMetricsReport = (
                     expense?.church?.abbreviatedChurchName,
                     formatDateToLimaDayMonthYear(expense?.date),
                     expense.subType,
-                    expense.comments,
+                    expense.comments ?? '-',
                     expense.accumulatedOfferingPEN.toFixed(2),
                     expense.accumulatedOfferingUSD.toFixed(2),
                     expense.accumulatedOfferingEUR.toFixed(2),

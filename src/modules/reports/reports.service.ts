@@ -2337,9 +2337,7 @@ export class ReportsService {
       //* Offering Income by Family group
       let offeringIncomeByFamilyGroupDataResult: OfferingIncomeByFamilyGroupDataResult[];
       if (
-        metricsTypesArray.includes(
-          MetricSearchType.OfferingIncomeBySundayService,
-        )
+        metricsTypesArray.includes(MetricSearchType.OfferingIncomeByFamilyGroup)
       ) {
         offeringIncomeByFamilyGroupDataResult =
           await this.metricsService.findByTerm(
@@ -3391,6 +3389,8 @@ export class ReportsService {
   //? PRIVATE METHODS
   // For future index errors or constrains with code.
   private handleDBExceptions(error: any): never {
+    console.log(error);
+
     if (error.code === '23505') {
       throw new BadRequestException(`${error.message}`);
     }

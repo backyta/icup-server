@@ -1507,7 +1507,7 @@ export const getMemberMetricsReport = (
                       },
                     },
                     {
-                      text: `${Object.values(membersByRecordStatusDataResult).reduce((acc, item) => acc + item?.active, 0)} varones (${calculatePercentage(
+                      text: `${Object.values(membersByRecordStatusDataResult).reduce((acc, item) => acc + item?.active, 0)} miembros (${calculatePercentage(
                         Object.values(membersByRecordStatusDataResult).reduce(
                           (acc, item) => acc + item?.active,
                           0,
@@ -1525,7 +1525,7 @@ export const getMemberMetricsReport = (
                       },
                     },
                     {
-                      text: `${Object.values(membersByRecordStatusDataResult).reduce((acc, item) => acc + item?.inactive, 0)} mujeres (${calculatePercentage(
+                      text: `${Object.values(membersByRecordStatusDataResult).reduce((acc, item) => acc + item?.inactive, 0)} miembros (${calculatePercentage(
                         Object.values(membersByRecordStatusDataResult).reduce(
                           (acc, item) => acc + item?.inactive,
                           0,

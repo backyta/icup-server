@@ -3057,7 +3057,9 @@ export class OfferingIncomeService {
         `No se puede actualizar la Iglesia a la que pertenece este registro.`,
       );
     }
+    console.log(familyGroupId);
 
+    console.log(offering?.familyGroup?.id);
     if (familyGroupId && familyGroupId !== offering?.familyGroup?.id) {
       throw new BadRequestException(
         `No se puede actualizar el Grupo Familiar al que pertenece este registro.`,
