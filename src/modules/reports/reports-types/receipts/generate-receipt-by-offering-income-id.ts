@@ -306,7 +306,8 @@ export const generateReceiptByOfferingIncomeId = (
 
   if (
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil
+    subType === OfferingIncomeCreationSubType.ZonalVigil ||
+    subType === OfferingIncomeCreationSubType.ZonalEvangelism
   ) {
     relationshipDetails.push([
       {
@@ -326,7 +327,8 @@ export const generateReceiptByOfferingIncomeId = (
   if (
     subType === OfferingIncomeCreationSubType.FamilyGroup ||
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil
+    subType === OfferingIncomeCreationSubType.ZonalVigil ||
+    subType === OfferingIncomeCreationSubType.ZonalEvangelism
   ) {
     relationshipDetails.push([
       {
@@ -346,7 +348,8 @@ export const generateReceiptByOfferingIncomeId = (
   if (
     subType === OfferingIncomeCreationSubType.FamilyGroup ||
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil
+    subType === OfferingIncomeCreationSubType.ZonalVigil ||
+    subType === OfferingIncomeCreationSubType.ZonalEvangelism
   ) {
     relationshipDetails.push([
       {
@@ -366,7 +369,8 @@ export const generateReceiptByOfferingIncomeId = (
   if (
     subType === OfferingIncomeCreationSubType.FamilyGroup ||
     subType === OfferingIncomeCreationSubType.ZonalFasting ||
-    subType === OfferingIncomeCreationSubType.ZonalVigil
+    subType === OfferingIncomeCreationSubType.ZonalVigil ||
+    subType === OfferingIncomeCreationSubType.ZonalEvangelism
   ) {
     relationshipDetails.push([
       {
