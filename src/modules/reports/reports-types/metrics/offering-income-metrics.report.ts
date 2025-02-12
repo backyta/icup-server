@@ -22,7 +22,7 @@ import { OfferingIncomeBySundaySchoolDataResult } from '@/modules/metrics/helper
 import { OfferingIncomeBySundayServiceDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-sunday-service-formatter.helper';
 import { OfferingIncomeByUnitedServiceDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-united-service-formatter.helper';
 import { OfferingIncomeBySpecialOfferingDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-special-offering-formatter.helper';
-import { OfferingIncomeByFastingAndVigilDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-fasting-and-vigil-formatter.helper';
+import { OfferingIncomeByFastingAndVigilAndEvangelismDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-fasting-and-vigil-and-evangelism-formatter.helper';
 import { OfferingIncomeByIncomeAdjustmentDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-income-adjustment-formatter.helper';
 
 const monthNames = {
@@ -51,7 +51,7 @@ interface ReportOptions {
   offeringIncomeByFamilyGroupDataResult: OfferingIncomeByFamilyGroupDataResult[];
   offeringIncomeBySundaySchoolDataResult: OfferingIncomeBySundaySchoolDataResult[];
   offeringIncomeByUnitedServiceDataResult: OfferingIncomeByUnitedServiceDataResult[];
-  offeringIncomeByFastingAndVigilDataResult: OfferingIncomeByFastingAndVigilDataResult[];
+  offeringIncomeByFastingAndVigilDataResult: OfferingIncomeByFastingAndVigilAndEvangelismDataResult[];
   offeringIncomeByYouthServiceDataResult: OfferingIncomeByYouthServiceDataResult[];
   offeringIncomeBySpecialOfferingDataResult: OfferingIncomeBySpecialOfferingDataResult[];
   offeringIncomeByChurchGroundDataResult: OfferingIncomeByChurchGroundDataResult[];
@@ -884,7 +884,7 @@ export const getOfferingIncomeMetricsReport = (
 
       //* OfferingIncomeByFastingAndVigil
       metricsTypesArray.includes(
-        MetricSearchType.OfferingIncomeByFastingAndVigil,
+        MetricSearchType.OfferingIncomeByFastingAndVigilAndEvangelism,
       )
         ? [
             // Table Title
@@ -896,7 +896,7 @@ export const getOfferingIncomeMetricsReport = (
                 body: [
                   [
                     {
-                      text: `Ofrendas por Ayuno y Vigilia`,
+                      text: `Ofrendas por Ayuno, Vigilia y Evangelismo`,
                       color: '#1d96d3',
                       fontSize: 20,
                       bold: true,
@@ -913,7 +913,7 @@ export const getOfferingIncomeMetricsReport = (
               layout: 'customLayout01', // optional
               table: {
                 headerRows: 1,
-                widths: [60, 65, 65, 65, '*', 50, '*', '*', '*'],
+                widths: [60, 65, 70, 65, '*', 50, '*', '*', '*'],
                 body: [
                   [
                     {

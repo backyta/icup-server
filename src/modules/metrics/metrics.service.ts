@@ -42,7 +42,7 @@ import { offeringIncomeByYouthServiceFormatter } from '@/modules/metrics/helpers
 import { offeringIncomeBySundayServiceFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-sunday-service-formatter.helper';
 import { offeringIncomeByUnitedServiceFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-united-service-formatter.helper';
 import { offeringIncomeBySpecialOfferingFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-special-offering-formatter.helper';
-import { offeringIncomeByFastingAndVigilFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-fasting-and-vigil-formatter.helper';
+import { offeringIncomeByFastingAndVigilAndEvangelismFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-fasting-and-vigil-and-evangelism-formatter.helper';
 import { offeringIncomeByIncomeAdjustmentFormatter } from '@/modules/metrics/helpers/offering-income/offering-income-by-income-adjustment-formatter.helper';
 
 import { offeringExpenseChartFormatter } from '@/modules/metrics/helpers/offering-expense/offering-expense-chart-formatter.helper';
@@ -1997,7 +1997,8 @@ export class MetricsService {
     //* Offering income by fasting and vigil
     if (
       term &&
-      searchType === MetricSearchType.OfferingIncomeByFastingAndVigil
+      searchType ===
+        MetricSearchType.OfferingIncomeByFastingAndVigilAndEvangelism
     ) {
       if (isSingleMonth) {
         const [churchId, monthName, year] = term.split('&');
@@ -2060,7 +2061,7 @@ export class MetricsService {
               ],
             });
 
-          return offeringIncomeByFastingAndVigilFormatter({
+          return offeringIncomeByFastingAndVigilAndEvangelismFormatter({
             offeringIncome: [
               ...OfferingIncomeByGeneralFastingAndGeneralVigilAndChurch,
               ...OfferingIncomeByZonalFastingAndZonalVigil,
@@ -2134,7 +2135,7 @@ export class MetricsService {
               ],
             });
 
-          return offeringIncomeByFastingAndVigilFormatter({
+          return offeringIncomeByFastingAndVigilAndEvangelismFormatter({
             offeringIncome: [
               ...OfferingIncomeByGeneralFastingAndGeneralVigilAndChurch,
               ...OfferingIncomeByZonalFastingAndZonalVigil,

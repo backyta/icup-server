@@ -26,7 +26,7 @@ export enum MetricSearchType {
   OfferingIncomeBySundayService = 'offering_income_by_sunday_service',
   OfferingIncomeByFamilyGroup = 'offering_income_by_family_group',
   OfferingIncomeBySundaySchool = 'offering_income_by_sunday_school',
-  OfferingIncomeByFastingAndVigil = 'offering_income_by_fasting_and_vigil',
+  OfferingIncomeByFastingAndVigilAndEvangelism = 'offering_income_by_fasting_and_vigil_and_evangelism',
   OfferingIncomeByYouthService = 'offering_income_by_youth_service',
   OfferingIncomeBySpecialOffering = 'offering_income_by_special_offering',
   OfferingIncomeByChurchGround = 'offering_income_by_church_ground',

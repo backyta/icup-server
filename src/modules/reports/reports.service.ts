@@ -115,7 +115,7 @@ import { OfferingIncomeByYouthServiceDataResult } from '@/modules/metrics/helper
 import { OfferingIncomeBySundayServiceDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-sunday-service-formatter.helper';
 import { OfferingIncomeByUnitedServiceDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-united-service-formatter.helper';
 import { OfferingIncomeBySpecialOfferingDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-special-offering-formatter.helper';
-import { OfferingIncomeByFastingAndVigilDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-fasting-and-vigil-formatter.helper';
+import { OfferingIncomeByFastingAndVigilAndEvangelismDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-fasting-and-vigil-and-evangelism-formatter.helper';
 import { OfferingIncomeByIncomeAdjustmentDataResult } from '@/modules/metrics/helpers/offering-income/offering-income-by-income-adjustment-formatter.helper';
 
 import { OfferingExpenseDataResult } from '@/modules/metrics/helpers/offering-expense/offering-expense-chart-formatter.helper';
@@ -1557,8 +1557,10 @@ export class ReportsService {
           searchType === SearchType.FamilyGroup ||
           searchType === SearchType.ZonalFasting ||
           searchType === SearchType.ZonalVigil ||
+          searchType === SearchType.ZonalEvangelism ||
           searchType === SearchType.GeneralFasting ||
           searchType === SearchType.GeneralVigil ||
+          searchType === SearchType.GeneralEvangelism ||
           searchType === SearchType.YouthService ||
           searchType === SearchType.UnitedService ||
           searchType === SearchType.Activities ||
@@ -2394,17 +2396,18 @@ export class ReportsService {
       }
 
       //* Offering Income by Fasting And Vigil
-      let offeringIncomeByFastingAndVigilDataResult: OfferingIncomeByFastingAndVigilDataResult[];
+      let offeringIncomeByFastingAndVigilDataResult: OfferingIncomeByFastingAndVigilAndEvangelismDataResult[];
       if (
         metricsTypesArray.includes(
-          MetricSearchType.OfferingIncomeByFastingAndVigil,
+          MetricSearchType.OfferingIncomeByFastingAndVigilAndEvangelism,
         )
       ) {
         offeringIncomeByFastingAndVigilDataResult =
           await this.metricsService.findByTerm(
             `${churchId}&${startMonth}&${endMonth}&${year}`,
             {
-              searchType: MetricSearchType.OfferingIncomeByFastingAndVigil,
+              searchType:
+                MetricSearchType.OfferingIncomeByFastingAndVigilAndEvangelism,
               isSingleMonth: false,
             },
           );
