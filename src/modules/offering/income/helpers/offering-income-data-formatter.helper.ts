@@ -51,6 +51,8 @@ export const offeringIncomeDataFormatter = ({ offeringIncome }: Options) => {
       department: offering?.zone?.department,
       province: offering?.zone?.province,
       district: offering?.zone?.district,
+      supervisorFirstNames: offering?.zone?.theirSupervisor?.member?.firstNames,
+      supervisorLastNames: offering?.zone?.theirSupervisor?.member?.lastNames,
     },
     familyGroup: {
       id: offering?.familyGroup?.id,
@@ -58,7 +60,10 @@ export const offeringIncomeDataFormatter = ({ offeringIncome }: Options) => {
       familyGroupCode: offering?.familyGroup?.familyGroupCode,
       district: offering?.familyGroup?.district,
       urbanSector: offering?.familyGroup?.urbanSector,
-      theirPreacher: offering?.familyGroup?.theirPreacher,
+      preacherFirstNames:
+        offering?.familyGroup?.theirPreacher?.member?.firstNames,
+      preacherLastNames:
+        offering?.familyGroup?.theirPreacher?.member?.lastNames,
       disciples: offering?.familyGroup?.disciples,
     },
     externalDonor: {
